@@ -541,6 +541,67 @@ def _run_cashflow_board() -> dict[str, object]:
     return {"step": report, "metadata": cashflow_payload}
 
 
+def _run_research_notes() -> dict[str, object]:
+    step = {
+        "name": "build_research_notes",
+        "script": "scripts/build_research_notes.py",
+        "outputs": [
+            "data/output/research_notes_index.parquet",
+            "data/output/research_notes_index.csv",
+            "data/output/research_notes_metadata.json",
+        ],
+    }
+    report = _run_step(step)
+    metadata_path = PROJECT_ROOT / "data/output/research_notes_metadata.json"
+    notes_payload = _build_research_notes_metadata(
+        enabled=True,
+        status=report["status"],
+        n_notes_generated=0,
+        generated_files=[],
+        warnings=[],
+    )
+    if metadata_path.exists():
+        try:
+            payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+            notes_payload.update(
+                {
+                    "status": payload.get("status", report["status"]),
+                    "n_notes_generated": payload.get("n_notes_generated", 0),
+                    "generated_files": payload.get("generated_files", []),
+                    "warnings": payload.get("warnings", []),
+                }
+            )
+        except Exception:
+            pass
+    if report["status"] != "OK" and report.get("error_message"):
+        notes_payload["warnings"] = list(notes_payload.get("warnings", [])) + [report["error_message"]]
+    return {"step": report, "metadata": notes_payload}
+
+
+def _build_research_notes_metadata(
+    enabled: bool = False,
+    status: str | None = None,
+    n_notes_generated: int | None = None,
+    generated_files: list[str] | None = None,
+    warnings: list[str] | None = None,
+) -> dict[str, object]:
+    payload: dict[str, object] = {"enabled": enabled}
+    if enabled:
+        payload.update(
+            {
+                "status": status or "ERROR",
+                "n_notes_generated": n_notes_generated or 0,
+                "generated_files": generated_files or [],
+                "warnings": warnings or [],
+            }
+        )
+    return payload
+
+
+def _default_research_notes_metadata() -> dict[str, object]:
+    return _build_research_notes_metadata(enabled=False)
+
+
 def _build_pipeline_metadata(
     mode: str,
     steps: list[dict[str, object]],
@@ -548,6 +609,7 @@ def _build_pipeline_metadata(
     portfolio_stack: dict[str, object] | None = None,
     sector_board: dict[str, object] | None = None,
     cashflow_board: dict[str, object] | None = None,
+    research_notes: dict[str, object] | None = None,
     online_update: dict[str, object] | None = None,
     flags_used: list[str] | None = None,
 ) -> dict[str, object]:
@@ -596,6 +658,7 @@ def _build_pipeline_metadata(
         "portfolio_stack": portfolio_stack or _default_portfolio_stack_metadata(),
         "sector_board": sector_board or _default_sector_board_metadata(),
         "cashflow_board": cashflow_board or _default_cashflow_board_metadata(),
+        "research_notes": research_notes or _default_research_notes_metadata(),
         "online_update": online_update or _build_online_update_metadata(enabled=False),
         "steps": steps,
     }
@@ -612,6 +675,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--build-sector", action="store_true", help="Build sector board outputs after watchlists are available.")
     parser.add_argument("--build-portfolio", action="store_true", help="Build portfolio/risk/capital outputs after watchlists.")
     parser.add_argument("--build-cashflow", action="store_true", help="Build cashflow board outputs after watchlists are available.")
+    parser.add_argument("--build-research-notes", action="store_true", help="Build research notes after watchlists, cashflow and portfolio.")
     parser.add_argument("--update-index", action="store_true", help="Refresh raw index/VNINDEX data before generating features in online mode.")
     args = parser.parse_args(argv)
 
@@ -623,6 +687,7 @@ def main(argv: list[str] | None = None) -> int:
         ("--build-sector", args.build_sector),
         ("--build-portfolio", args.build_portfolio),
         ("--build-cashflow", args.build_cashflow),
+        ("--build-research-notes", args.build_research_notes),
         ("--update-index", args.update_index),
     ] if enabled]
     if mode == "online":
@@ -721,6 +786,12 @@ def main(argv: list[str] | None = None) -> int:
             step_reports.append(stack_result["step"])
             portfolio_stack_metadata = stack_result["metadata"]
 
+    research_notes_metadata = _default_research_notes_metadata()
+    if args.build_research_notes:
+        notes_result = _run_research_notes()
+        step_reports.append(notes_result["step"])
+        research_notes_metadata = notes_result["metadata"]
+
     metadata = _build_pipeline_metadata(
         mode=mode,
         steps=step_reports,
@@ -728,6 +799,7 @@ def main(argv: list[str] | None = None) -> int:
         portfolio_stack=portfolio_stack_metadata,
         sector_board=sector_board_metadata,
         cashflow_board=cashflow_board_metadata,
+        research_notes=research_notes_metadata,
         online_update=online_update_metadata,
         flags_used=flags_used,
     )
@@ -744,6 +816,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.build_cashflow and cashflow_board_metadata.get("status") == "ERROR":
         return 1
     if args.build_portfolio and portfolio_stack_metadata.get("status") == "ERROR":
+        return 1
+    if args.build_research_notes and research_notes_metadata.get("status") == "ERROR":
         return 1
     return 0
 

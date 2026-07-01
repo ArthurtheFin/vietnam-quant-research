@@ -143,6 +143,7 @@ def test_validate_pipeline_metadata_rejects_absolute_paths() -> None:
         "portfolio_stack": {"enabled": False},
         "sector_board": {"enabled": False},
         "cashflow_board": {"enabled": False},
+        "research_notes": {"enabled": False},
         "online_update": {"enabled": False},
     }
 
