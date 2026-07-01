@@ -119,6 +119,14 @@ def compute_symbol_cashflow_metrics(
     out["cashflow_value_20d"] = grouped["cashflow_value"].transform(lambda s: pd.to_numeric(s, errors="coerce").rolling(20, min_periods=10).mean())
     out["cashflow_value_ratio_20d"] = out["cashflow_value"] / out["cashflow_value_20d"]
 
+    # Check for recent zero volume count on history
+    if "volume" in out.columns:
+        out["zero_vol_5d_count"] = grouped["volume"].transform(
+            lambda s: (pd.to_numeric(s, errors="coerce") == 0).rolling(5, min_periods=1).sum()
+        ).fillna(0).astype(int)
+    else:
+        out["zero_vol_5d_count"] = 0
+
     # performance metrics
     if "return_5d" not in out.columns and "close" in out.columns:
         out["return_5d"] = grouped["close"].pct_change(5)
@@ -131,6 +139,34 @@ def compute_symbol_cashflow_metrics(
     latest = _latest_row(out)
     if latest.empty:
         return latest, value_proxy_used
+
+    # Data Quality and Liquidity Flags
+    latest["zero_volume_flag"] = _fill_bool_false(latest["volume"] == 0)
+    latest["missing_volume_flag"] = _fill_bool_false(latest["volume"].isna())
+    latest["liquidity_flag"] = _fill_bool_false(latest["cashflow_value_20d"] >= 100000000.0)
+    latest["data_quality_flag"] = _fill_bool_false(
+        latest["zero_volume_flag"] | latest["missing_volume_flag"] | latest["close"].isna() | (latest["zero_vol_5d_count"] >= 3)
+    )
+
+    status_list = []
+    for idx, row in latest.iterrows():
+        is_missing = pd.isna(row.get("volume")) or pd.isna(row.get("close"))
+        is_zero = row.get("volume") == 0
+        is_low_liq = pd.isna(row.get("cashflow_value_20d")) or row.get("cashflow_value_20d") < 100000000.0
+        is_anomaly = row.get("zero_vol_5d_count", 0) >= 3
+        
+        if is_missing:
+            status = "MISSING_DATA"
+        elif is_zero:
+            status = "ZERO_VOLUME"
+        elif is_anomaly:
+            status = "CHECK_REQUIRED"
+        elif is_low_liq:
+            status = "LOW_LIQUIDITY"
+        else:
+            status = "OK"
+        status_list.append(status)
+    latest["cashflow_data_status"] = status_list
 
     # cashflow intensity score
     latest["cashflow_intensity_score"] = 0.5 * _score_rank(latest["volume_ratio_20d"]) + 0.5 * _score_rank(latest["cashflow_value_ratio_20d"])
@@ -173,19 +209,30 @@ def compute_symbol_cashflow_metrics(
         (latest["return_10d"] >= -0.03) & (latest["return_10d"] <= 0.03) & 
         (latest["volume_ratio_20d"] < 0.7)
     )
+    
+    # DRY_UP_WATCH signal (volatility < 40%, return consolidates between -2% and 3%, volume ratio < 0.7)
+    latest["dry_up_watch_signal"] = _fill_bool_false(
+        (latest["return_10d"] >= -0.02) & (latest["return_10d"] <= 0.03) &
+        (latest["volume_ratio_20d"] < 0.7) & (vol_pct < 0.40) &
+        latest["cashflow_data_status"].isin(["OK", "LOW_LIQUIDITY"])
+    )
 
     # Classify State
     latest["cashflow_state"] = np.select(
         [
+            latest["cashflow_data_status"].isin(["MISSING_DATA", "ZERO_VOLUME"]),
             latest["distribution_risk"],
             latest["breakout_volume_confirmation"] | (latest["price_volume_confirmation"] & (latest["return_5d"] >= 0.01)),
             latest["accumulation_signal"],
+            latest["dry_up_watch_signal"],
             (latest["volume_ratio_20d"] < 0.8) & (latest["return_5d"] <= 0.0),
         ],
         [
+            "CHECK_REQUIRED",
             "DISTRIBUTION_RISK",
             "CONFIRMED_INFLOW",
             "ACCUMULATION",
+            "DRY_UP_WATCH",
             "WEAK_FLOW",
         ],
         default="NEUTRAL",
@@ -222,12 +269,14 @@ def compute_symbol_cashflow_metrics(
     # Classify label
     latest["cashflow_label"] = np.select(
         [
+            latest["cashflow_state"] == "CHECK_REQUIRED",
             (latest["cashflow_state"] == "CONFIRMED_INFLOW") & (latest["cashflow_score"] >= 70.0),
-            (latest["cashflow_state"] == "ACCUMULATION") | (latest["cashflow_score"] >= 60.0),
+            (latest["cashflow_state"] == "ACCUMULATION") | (latest["cashflow_state"] == "DRY_UP_WATCH") | (latest["cashflow_score"] >= 60.0),
             latest["cashflow_state"] == "DISTRIBUTION_RISK",
             (latest["cashflow_state"] == "WEAK_FLOW") | (latest["cashflow_score"] < 40.0),
         ],
         [
+            "NEUTRAL",
             "STRONG",
             "IMPROVING",
             "RISKY",
@@ -253,6 +302,10 @@ def compute_sector_cashflow_metrics(
         sector_name = str(sector or "UNKNOWN")
         n_symbols = int(group["symbol"].nunique())
         
+        # Valid symbols mask (has volume > 0 and close and volume are non-missing)
+        valid_mask = group["volume"].notna() & (group["volume"] > 0) & group["close"].notna()
+        n_symbols_valid = int(group.loc[valid_mask, "symbol"].nunique())
+        
         # Sector aggregations
         sector_cashflow_value_20d = float(pd.to_numeric(group["cashflow_value_20d"], errors="coerce").sum())
         sector_cashflow_intensity = float(pd.to_numeric(group["cashflow_intensity_score"], errors="coerce").mean())
@@ -263,15 +316,8 @@ def compute_sector_cashflow_metrics(
         sector_pct_accumulation = float((group["cashflow_state"] == "ACCUMULATION").mean())
         sector_pct_distribution_risk = float((group["cashflow_state"] == "DISTRIBUTION_RISK").mean())
         
-        # Sector Cashflow Score
-        # Average symbol scores but give premium for confirmed inflow and penalty for distribution risk
-        raw_sector_score = (
-            0.40 * sector_cashflow_intensity +
-            0.30 * (sector_pct_confirmed_inflow * 100.0) +
-            0.30 * (sector_pct_accumulation * 100.0) -
-            0.20 * (sector_pct_distribution_risk * 100.0)
-        )
-        sector_cashflow_score = float(np.clip(raw_sector_score, 0.0, 100.0))
+        avg_cf_score = float(group["cashflow_score"].mean()) if not group.empty else 50.0
+        median_cf_score = float(group["cashflow_score"].median()) if not group.empty else 50.0
         
         # Top 3 cashflow symbols in sector
         top_symbols_list = (
@@ -285,13 +331,15 @@ def compute_sector_cashflow_metrics(
             "sector": sector_name,
             "latest_date": latest_date,
             "n_symbols": n_symbols,
-            "sector_cashflow_value_20d": sector_cashflow_value_20d,
+            "n_symbols_with_valid_cashflow": n_symbols_valid,
+            "sector_liquidity_20d": sector_cashflow_value_20d,
             "sector_cashflow_intensity": sector_cashflow_intensity,
             "sector_avg_volume_ratio_20d": sector_avg_volume_ratio_20d,
             "sector_pct_confirmed_inflow": sector_pct_confirmed_inflow,
             "sector_pct_accumulation": sector_pct_accumulation,
             "sector_pct_distribution_risk": sector_pct_distribution_risk,
-            "sector_cashflow_score": sector_cashflow_score,
+            "avg_cf_score": avg_cf_score,
+            "median_cf_score": median_cf_score,
             "top_cashflow_symbols": top_cashflow_symbols,
         })
         
@@ -299,9 +347,50 @@ def compute_sector_cashflow_metrics(
     if sector_board.empty:
         return sector_board
         
+    # Classify sample size
+    sector_board["sector_sample_size_label"] = np.select(
+        [
+            sector_board["n_symbols_with_valid_cashflow"] < 5,
+            sector_board["n_symbols_with_valid_cashflow"] <= 15
+        ],
+        ["SMALL", "NORMAL"],
+        default="LARGE"
+    )
+
+    # Compute raw score
+    raw_score = (
+        0.30 * sector_board["avg_cf_score"] +
+        0.20 * sector_board["median_cf_score"] +
+        0.30 * (sector_board["sector_pct_confirmed_inflow"] * 100.0) +
+        0.20 * (sector_board["sector_pct_accumulation"] * 100.0)
+    )
+
+    # Determine 70th percentile threshold for sector liquidity
+    liq_threshold = sector_board["sector_liquidity_20d"].quantile(0.70)
+    if pd.isna(liq_threshold) or liq_threshold <= 0:
+        liq_threshold = 1000000000.0  # 1B VND fallback
+        
+    # Apply Calibration / Penalties for SMALL sectors
+    is_small = sector_board["sector_sample_size_label"] == "SMALL"
+    is_top_liq = sector_board["sector_liquidity_20d"] >= liq_threshold
+    
+    calibrated_score = np.where(
+        is_small & ~is_top_liq,
+        raw_score * 0.7,  # 30% penalty
+        raw_score
+    )
+    # Small sectors with high liquidity still get 10% penalty
+    calibrated_score = np.where(
+        is_small & is_top_liq,
+        calibrated_score * 0.9,  # 10% penalty
+        calibrated_score
+    )
+    
+    sector_board["sector_cashflow_score"] = np.clip(calibrated_score, 0.0, 100.0)
     sector_board["sector_cashflow_rank"] = sector_board["sector_cashflow_score"].rank(method="first", ascending=False).astype(int)
     
-    sector_board["sector_cashflow_label"] = np.select(
+    # Sector Labels
+    labels = np.select(
         [
             sector_board["sector_cashflow_score"] >= 70.0,
             sector_board["sector_cashflow_score"] >= 55.0,
@@ -316,6 +405,42 @@ def compute_sector_cashflow_metrics(
         ],
         default="NEUTRAL",
     )
+    sector_board["sector_cashflow_label"] = labels
+    
+    # Demote label for SMALL sectors: cap at IMPROVING (or NEUTRAL if low liquidity)
+    sector_board["sector_cashflow_label"] = np.where(
+        (sector_board["sector_sample_size_label"] == "SMALL") & (sector_board["sector_cashflow_label"] == "STRONG_INFLOW"),
+        np.where(is_top_liq, "IMPROVING", "NEUTRAL"),
+        sector_board["sector_cashflow_label"]
+    )
+    
+    # Score Quality
+    liq_50 = sector_board["sector_liquidity_20d"].quantile(0.50)
+    liq_20 = sector_board["sector_liquidity_20d"].quantile(0.20)
+    
+    quality = np.select(
+        [
+            (sector_board["sector_sample_size_label"] == "LARGE") & (sector_board["sector_liquidity_20d"] >= liq_50),
+            (sector_board["sector_sample_size_label"] == "SMALL") | (sector_board["sector_liquidity_20d"] < liq_20),
+        ],
+        ["HIGH", "LOW"],
+        default="MEDIUM"
+    )
+    sector_board["sector_score_quality"] = quality
+    
+    # Score Warnings
+    warnings_list = []
+    for idx, row in sector_board.iterrows():
+        warns = []
+        if row["sector_sample_size_label"] == "SMALL":
+            warns.append("Small sample size (N < 5) may skew score")
+        if row["sector_liquidity_20d"] < 500000000.0:  # 500M VND
+            warns.append("Low sector liquidity")
+        warnings_list.append("; ".join(warns) if warns else "")
+    sector_board["sector_score_warning"] = warnings_list
+    
+    # Clean up columns
+    sector_board = sector_board.drop(columns=["avg_cf_score", "median_cf_score"])
     
     return sector_board.sort_values("sector_cashflow_rank").reset_index(drop=True)
 
@@ -349,7 +474,7 @@ def build_cashflow_watchlist_confirmation(
     if not watchlist_rows:
         return pd.DataFrame(columns=[
             "symbol", "sector", "watchlist_tier", "cashflow_score", "cashflow_state",
-            "cashflow_label", "confirmation_status", "cashflow_reason"
+            "cashflow_label", "confirmation_status", "cashflow_reason", "cashflow_action_note"
         ])
         
     watchlist_df = pd.DataFrame(watchlist_rows)
@@ -368,18 +493,19 @@ def build_cashflow_watchlist_confirmation(
     # Merge with cashflow metrics
     cf_subset = symbol_cashflow[[
         "symbol", "sector", "cashflow_score", "cashflow_state", "cashflow_label",
-        "volume_ratio_20d", "return_5d"
+        "volume_ratio_20d", "return_5d", "cashflow_data_status"
     ]]
     
     merged = watchlist_df.merge(cf_subset, on="symbol", how="inner")
     if merged.empty:
         return pd.DataFrame(columns=[
             "symbol", "sector", "watchlist_tier", "cashflow_score", "cashflow_state",
-            "cashflow_label", "confirmation_status", "cashflow_reason"
+            "cashflow_label", "confirmation_status", "cashflow_reason", "cashflow_action_note"
         ])
         
     status_list = []
     reason_list = []
+    action_note_list = []
     
     for _, row in merged.iterrows():
         tier = row["watchlist_tier"]
@@ -387,62 +513,93 @@ def build_cashflow_watchlist_confirmation(
         state = row["cashflow_state"]
         vol_ratio = row["volume_ratio_20d"]
         ret_5d = row["return_5d"]
+        data_status = row["cashflow_data_status"]
         
         status = "WATCH"
-        reason = "Neutral flow confirmation."
+        reason = "Theo dõi: dòng tiền ở trạng thái trung tính."
+        action_note = "Quan sát hành vi giá ở các ngưỡng hỗ trợ, chưa vội hành động."
         
-        if tier == "client_ready":
-            if label == "STRONG":
-                status = "CONFIRMED"
-                reason = f"Strong cashflow confirmation: volume ratio is {vol_ratio:.2f}x, price return is {ret_5d:.1%}."
-            elif label == "IMPROVING":
-                status = "CONFIRMED"
-                reason = f"Improving flow: state is {state}, volume ratio is {vol_ratio:.2f}x."
-            elif label == "RISKY":
-                status = "CAUTION"
-                reason = f"Caution: Distribution risk detected! Price dropped {ret_5d:.1%} on high volume."
-            elif label == "WEAK":
-                status = "WATCH"
-                reason = f"Watch: Cashflow is weak with volume ratio of {vol_ratio:.2f}x."
-            else:
-                status = "CONFIRMED"
-                reason = "Neutral volume confirmation."
-        elif tier == "trading_watchlist":
-            if state == "ACCUMULATION":
-                status = "CONFIRMED"
-                reason = "Confirmed: Stealth accumulation detected."
-            elif label in ("STRONG", "IMPROVING"):
-                status = "CONFIRMED"
-                reason = f"Confirmed: Strong inflow supports setup. Volume ratio is {vol_ratio:.2f}x."
-            elif label == "RISKY":
-                status = "CAUTION"
-                reason = "Caution: Distribution risk detected."
-            elif label == "WEAK":
-                status = "WATCH"
-                reason = f"Watch: Setup lacks volume support. Volume ratio is {vol_ratio:.2f}x."
-            else:
-                status = "WATCH"
-                reason = "Watch: Neutral volume confirmation."
-        elif tier == "research_candidates":
-            if label in ("STRONG", "IMPROVING"):
-                status = "CONFIRMED"
-                reason = f"Upgrade candidate: Strong money flow. Volume ratio is {vol_ratio:.2f}x."
-            elif label == "RISKY":
+        if data_status in ("MISSING_DATA", "ZERO_VOLUME"):
+            status = "CHECK_REQUIRED"
+            reason = "Cần kiểm tra: volume hiện tại bằng 0 hoặc thiếu dữ liệu, không đủ cơ sở kết luận dòng tiền."
+            action_note = "Tạm ngưng giao dịch để xác minh dữ liệu giá/khối lượng từ sàn."
+        elif data_status == "LOW_LIQUIDITY":
+            status = "CAUTION"
+            reason = f"Cảnh báo: Cổ phiếu có thanh khoản cực thấp (giá trị giao dịch 20D < 100 triệu VND)."
+            action_note = "Hạn chế mua mới, cẩn trọng rủi ro thanh khoản thấp."
+        elif state == "DISTRIBUTION_RISK":
+            if tier == "research_candidates":
                 status = "REJECT"
-                reason = "Reject: Distribution pressure detected."
+                reason = "Loại bỏ: Tín hiệu phân phối rõ rệt (giá giảm mạnh trên khối lượng lớn)."
+                action_note = "Loại khỏi watchlist theo dõi dòng tiền ngắn hạn."
             else:
-                status = "WATCH"
-                reason = "Watch: Neutral volume flow."
-                
+                status = "CAUTION"
+                reason = f"Cảnh báo: Áp lực phân phối (giá giảm {ret_5d:.1%} trên volume lớn {vol_ratio:.2f}x)."
+                action_note = "Dừng mua mới và cân nhắc hạ tỷ trọng vị thế hiện tại."
+        elif state == "DRY_UP_WATCH":
+            status = "WATCH"
+            reason = f"Theo dõi kiệt cung (Dry-up): giá giữ nền ổn định, volume cạn kiệt ({vol_ratio:.2f}x trung bình)."
+            action_note = "Theo dõi chặt chẽ, chuẩn bị mua thăm dò khi có tín hiệu breakout xác nhận."
+        else:
+            if tier == "client_ready":
+                if label == "STRONG":
+                    status = "STRONG_CONFIRMED"
+                    reason = f"Xác nhận mạnh: volume tăng mạnh {vol_ratio:.2f}x trung bình, giá tăng {ret_5d:.1%}."
+                    action_note = "Khuyến nghị MUA/GIA TĂNG tỷ trọng khi đạt điểm breakout."
+                elif label == "IMPROVING":
+                    status = "CONFIRMED"
+                    reason = f"Xác nhận: dòng tiền đang cải thiện (trạng thái {state}, volume ratio {vol_ratio:.2f}x)."
+                    action_note = "Khuyến nghị NẮM GIỮ hoặc TÍCH LŨY THÊM tại vùng nền giá."
+                elif label == "WEAK":
+                    status = "WATCH"
+                    reason = f"Theo dõi: dòng tiền yếu, volume ratio chỉ đạt {vol_ratio:.2f}x trung bình."
+                    action_note = "Hạn chế mua đuổi, quan sát thêm phản ứng tại các vùng hỗ trợ."
+                else:
+                    status = "NEUTRAL_CONFIRMED"
+                    reason = f"Xác nhận trung tính: dòng tiền ổn định ở mức trung bình ({vol_ratio:.2f}x)."
+                    action_note = "Nắm giữ vị thế hiện tại, chưa cần hành động mua/bán vội."
+            elif tier == "trading_watchlist":
+                if state == "ACCUMULATION":
+                    status = "CONFIRMED"
+                    reason = "Xác nhận: Phát hiện dấu hiệu tích lũy âm thầm (Stealth Accumulation)."
+                    action_note = "Khuyến nghị TÍCH LŨY thăm dò tại vùng nền giá."
+                elif label in ("STRONG", "IMPROVING"):
+                    status = "CONFIRMED"
+                    reason = f"Xác nhận: Dòng tiền vào hỗ trợ xu hướng tăng (volume ratio {vol_ratio:.2f}x)."
+                    action_note = "Nắm giữ và canh điểm mua gia tăng vị thế."
+                elif label == "WEAK":
+                    status = "WATCH"
+                    reason = f"Theo dõi: Thiết lập kỹ thuật thiếu sự xác nhận từ volume ({vol_ratio:.2f}x)."
+                    action_note = "Kiên nhẫn chờ đợi dòng tiền lớn vào xác nhận trước khi mở vị thế."
+                else:
+                    status = "NEUTRAL_CONFIRMED"
+                    reason = "Theo dõi trung tính: khối lượng duy trì ổn định quanh mức trung bình."
+                    action_note = "Nắm giữ vị thế cũ, chưa mở mua mới."
+            elif tier == "research_candidates":
+                if label in ("STRONG", "IMPROVING"):
+                    status = "CONFIRMED"
+                    reason = f"Ứng viên nâng hạng: Dòng tiền vào mạnh mẽ ({vol_ratio:.2f}x trung bình), giá tăng tốt."
+                    action_note = "Khuyến nghị NÂNG HẠNG lên trading watchlist để theo dõi điểm mua."
+                elif label == "WEAK":
+                    status = "WATCH"
+                    reason = f"Theo dõi: Sức mạnh dòng tiền yếu ({vol_ratio:.2f}x), chưa có động lực."
+                    action_note = "Giữ trong danh sách ứng viên nghiên cứu, chưa đưa vào giao dịch."
+                else:
+                    status = "WATCH"
+                    reason = "Theo dõi trung tính: dòng tiền chưa có sự đột phá."
+                    action_note = "Tiếp tục quan sát thêm."
+                    
         status_list.append(status)
         reason_list.append(reason)
+        action_note_list.append(action_note)
         
     merged["confirmation_status"] = status_list
     merged["cashflow_reason"] = reason_list
+    merged["cashflow_action_note"] = action_note_list
     
     keep_cols = [
         "symbol", "sector", "watchlist_tier", "cashflow_score", "cashflow_state",
-        "cashflow_label", "confirmation_status", "cashflow_reason"
+        "cashflow_label", "confirmation_status", "cashflow_reason", "cashflow_action_note"
     ]
     return merged[keep_cols].sort_values(["watchlist_tier", "cashflow_score"], ascending=[True, False]).reset_index(drop=True)
 
@@ -539,6 +696,23 @@ def build_cashflow_board(
     elif attach_meta.get("mapping_coverage", 0.0) < 0.80:
         status = "WARNING"
         
+    n_data_quality_warnings = int(symbol_cf["data_quality_flag"].sum()) if "data_quality_flag" in symbol_cf.columns else 0
+    n_low_liquidity_symbols = int((symbol_cf["cashflow_data_status"] == "LOW_LIQUIDITY").sum()) if "cashflow_data_status" in symbol_cf.columns else 0
+    n_zero_volume_symbols = int(symbol_cf["zero_volume_flag"].sum()) if "zero_volume_flag" in symbol_cf.columns else 0
+    
+    confirmation_counts = {}
+    if "confirmation_status" in watchlist_confirm.columns:
+        counts = watchlist_confirm["confirmation_status"].value_counts().to_dict()
+        confirmation_counts = {str(k): int(v) for k, v in counts.items()}
+        
+    sector_score_warnings = []
+    if "sector_score_warning" in sector_cf.columns:
+        sector_score_warnings = [
+            f"{row['sector']}: {row['sector_score_warning']}"
+            for _, row in sector_cf.iterrows()
+            if row["sector_score_warning"]
+        ]
+        
     metadata = {
         "generated_at": utc_now_iso(),
         "status": status,
@@ -546,6 +720,11 @@ def build_cashflow_board(
         "n_symbols": int(symbol_cf["symbol"].nunique()) if not symbol_cf.empty else 0,
         "n_sectors": int(sector_cf["sector"].nunique()) if not sector_cf.empty else 0,
         "value_proxy_used": value_proxy_used,
+        "n_data_quality_warnings": n_data_quality_warnings,
+        "n_low_liquidity_symbols": n_low_liquidity_symbols,
+        "n_zero_volume_symbols": n_zero_volume_symbols,
+        "confirmation_counts": confirmation_counts,
+        "sector_score_warnings": sector_score_warnings,
         "warnings": warnings,
         "generated_files": [],
     }

@@ -54,6 +54,18 @@ def main() -> int:
     LOGGER.info("Sector count: %s", payload.get("n_sectors"))
     LOGGER.info("Value proxy used: %s", payload.get("value_proxy_used"))
     
+    LOGGER.info("Data Quality Warnings: %s", payload.get("n_data_quality_warnings"))
+    LOGGER.info("Low Liquidity Symbols: %s", payload.get("n_low_liquidity_symbols"))
+    LOGGER.info("Zero Volume Symbols: %s", payload.get("n_zero_volume_symbols"))
+    
+    confirmation_counts = payload.get("confirmation_counts", {})
+    if confirmation_counts:
+        LOGGER.info("Watchlist Confirmation Counts: %s", ", ".join(f"{k}={v}" for k, v in confirmation_counts.items()))
+        
+    sector_score_warnings = payload.get("sector_score_warnings", [])
+    if sector_score_warnings:
+        LOGGER.warning("Sector Score Warnings:\n  %s", "\n  ".join(sector_score_warnings))
+    
     if payload.get("warnings"):
         LOGGER.warning("Cashflow Board warnings: %s", "; ".join(str(item) for item in payload["warnings"]))
         

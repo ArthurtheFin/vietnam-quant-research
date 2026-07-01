@@ -29,7 +29,7 @@ def _sample_features() -> pd.DataFrame:
                 "date": date,
                 "close": 10.0 + (0.01 * i),
                 "volume": 2000 if i == 24 else 1500,
-                "value": 20000.0 if i == 24 else 15000.0,
+                "value": 2000000000.0 if i == 24 else 1500000000.0,
                 "realized_vol_20d": 0.15,
                 "volatility_percentile": 0.20,
             },
@@ -38,7 +38,7 @@ def _sample_features() -> pd.DataFrame:
                 "date": date,
                 "close": 20.0 + (5.0 if i == 24 else 0.05 * i),
                 "volume": 2500 if i == 24 else 1000,
-                "value": 50000.0 if i == 24 else 20000.0,
+                "value": 5000000000.0 if i == 24 else 2000000000.0,
                 "realized_vol_20d": 0.25,
                 "volatility_percentile": 0.40,
             },
@@ -47,7 +47,7 @@ def _sample_features() -> pd.DataFrame:
                 "date": date,
                 "close": 30.0 - (1.0 if i == 24 else 0.02 * i),
                 "volume": 3000 if i == 24 else 1000,
-                "value": 90000.0 if i == 24 else 30000.0,
+                "value": 9000000000.0 if i == 24 else 3000000000.0,
                 "realized_vol_20d": 0.35,
                 "volatility_percentile": 0.75,
             },
@@ -56,7 +56,7 @@ def _sample_features() -> pd.DataFrame:
                 "date": date,
                 "close": 15.0 - (0.05 * i),
                 "volume": 500 if i == 24 else 1000,
-                "value": 7500.0 if i == 24 else 15000.0,
+                "value": 750000000.0 if i == 24 else 1500000000.0,
                 "realized_vol_20d": 0.20,
                 "volatility_percentile": 0.35,
             }
@@ -181,9 +181,9 @@ def test_watchlist_confirmation() -> None:
     assert not confirm.empty
     confirm_map = dict(zip(confirm["symbol"], confirm["confirmation_status"]))
     
-    assert confirm_map["BBB"] == "CONFIRMED"
+    assert confirm_map["BBB"] == "STRONG_CONFIRMED"
     assert confirm_map["AAA"] == "CONFIRMED"
-    assert confirm_map["CCC"] == "REJECT" or confirm_map["CCC"] == "CAUTION" # For research candidate risky, REJECT.
+    assert confirm_map["CCC"] == "REJECT" or confirm_map["CCC"] == "CAUTION"
     assert confirm_map["DDD"] == "WATCH"
 
 
@@ -227,3 +227,151 @@ def test_write_outputs_and_metadata_validation(tmp_path: Path) -> None:
     loaded = json.loads(metadata_file.read_text(encoding="utf-8"))
     assert loaded["status"] == "OK"
     assert loaded["latest_date"] == "2026-06-25"
+
+
+def test_cashflow_board_calibration_v1_1() -> None:
+    # 1. Test symbol-level zero/missing volume and DRY_UP_WATCH
+    rows = []
+    for i in range(25):
+        date = f"2026-06-{i+1:02d}"
+        rows.extend([
+            {
+                # ZERO_VOLUME test symbol
+                "symbol": "ZERO_VOL",
+                "date": date,
+                "close": 10.0,
+                "volume": 0.0 if i >= 20 else 100.0,
+                "value": 0.0 if i >= 20 else 1000.0,
+                "realized_vol_20d": 0.1,
+                "volatility_percentile": 0.1,
+            },
+            {
+                # MISSING_VOLUME test symbol
+                "symbol": "MISSING_VOL",
+                "date": date,
+                "close": 10.0,
+                "volume": np.nan if i == 24 else 100.0,
+                "value": np.nan if i == 24 else 1000.0,
+                "realized_vol_20d": 0.1,
+                "volatility_percentile": 0.1,
+            },
+            {
+                # DRY_UP_WATCH test symbol
+                "symbol": "DRY_UP",
+                "date": date,
+                "close": 10.0 + (0.001 * i),
+                "volume": 20.0 if i == 24 else 100.0,
+                "value": 200.0 if i == 24 else 1000.0,
+                "realized_vol_20d": 0.05,
+                "volatility_percentile": 0.15,
+            },
+            {
+                # LOW_LIQUIDITY symbol
+                "symbol": "LOW_LIQ",
+                "date": date,
+                "close": 10.0,
+                "volume": 10.0,
+                "value": 100.0,
+                "realized_vol_20d": 0.1,
+                "volatility_percentile": 0.3,
+            }
+        ])
+        
+    features = pd.DataFrame(rows)
+    symbol_cf, _ = compute_symbol_cashflow_metrics(features, benchmark_df=None)
+    
+    assert not symbol_cf.empty
+    states = dict(zip(symbol_cf["symbol"], symbol_cf["cashflow_state"]))
+    status = dict(zip(symbol_cf["symbol"], symbol_cf["cashflow_data_status"]))
+    
+    assert status["ZERO_VOL"] == "ZERO_VOLUME"
+    assert states["ZERO_VOL"] == "CHECK_REQUIRED"
+    
+    assert status["MISSING_VOL"] == "MISSING_DATA"
+    assert states["MISSING_VOL"] == "CHECK_REQUIRED"
+    
+    assert states["DRY_UP"] == "DRY_UP_WATCH"
+    assert status["LOW_LIQ"] == "LOW_LIQUIDITY"
+    
+    # 2. Test Sector Sample Size Adjustment and Demotion
+    symbol_cf_mock = pd.DataFrame([
+        {
+            "symbol": "S1", "sector": "SmallSector", "date": "2026-06-30",
+            "close": 10.0, "volume": 100, "cashflow_value": 1000.0, "cashflow_value_20d": 1000.0,
+            "cashflow_intensity_score": 90.0, "cashflow_score": 90.0, "volume_ratio_20d": 1.5, "return_5d": 0.05,
+            "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "STRONG", "cashflow_data_status": "OK"
+        },
+        {
+            "symbol": "N1", "sector": "NormalSector", "date": "2026-06-30",
+            "close": 10.0, "volume": 100, "cashflow_value": 1000.0, "cashflow_value_20d": 1000.0,
+            "cashflow_intensity_score": 70.0, "cashflow_score": 70.0, "volume_ratio_20d": 1.1, "return_5d": 0.02,
+            "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "STRONG", "cashflow_data_status": "OK"
+        },
+        {
+            "symbol": "N2", "sector": "NormalSector", "date": "2026-06-30",
+            "close": 10.0, "volume": 100, "cashflow_value": 1000.0, "cashflow_value_20d": 1000.0,
+            "cashflow_intensity_score": 70.0, "cashflow_score": 70.0, "volume_ratio_20d": 1.1, "return_5d": 0.02,
+            "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "STRONG", "cashflow_data_status": "OK"
+        },
+        {
+            "symbol": "N3", "sector": "NormalSector", "date": "2026-06-30",
+            "close": 10.0, "volume": 100, "cashflow_value": 1000.0, "cashflow_value_20d": 1000.0,
+            "cashflow_intensity_score": 70.0, "cashflow_score": 70.0, "volume_ratio_20d": 1.1, "return_5d": 0.02,
+            "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "STRONG", "cashflow_data_status": "OK"
+        },
+        {
+            "symbol": "N4", "sector": "NormalSector", "date": "2026-06-30",
+            "close": 10.0, "volume": 100, "cashflow_value": 1000.0, "cashflow_value_20d": 1000.0,
+            "cashflow_intensity_score": 70.0, "cashflow_score": 70.0, "volume_ratio_20d": 1.1, "return_5d": 0.02,
+            "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "STRONG", "cashflow_data_status": "OK"
+        },
+        {
+            "symbol": "N5", "sector": "NormalSector", "date": "2026-06-30",
+            "close": 10.0, "volume": 100, "cashflow_value": 1000.0, "cashflow_value_20d": 1000.0,
+            "cashflow_intensity_score": 70.0, "cashflow_score": 70.0, "volume_ratio_20d": 1.1, "return_5d": 0.02,
+            "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "STRONG", "cashflow_data_status": "OK"
+        },
+        {
+            "symbol": "N6", "sector": "NormalSector", "date": "2026-06-30",
+            "close": 10.0, "volume": 100, "cashflow_value": 1000.0, "cashflow_value_20d": 1000.0,
+            "cashflow_intensity_score": 70.0, "cashflow_score": 70.0, "volume_ratio_20d": 1.1, "return_5d": 0.02,
+            "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "STRONG", "cashflow_data_status": "OK"
+        }
+    ])
+    
+    sector_cf = compute_sector_cashflow_metrics(symbol_cf_mock, latest_date="2026-06-30")
+    
+    sec_sizes = dict(zip(sector_cf["sector"], sector_cf["sector_sample_size_label"]))
+    sec_labels = dict(zip(sector_cf["sector"], sector_cf["sector_cashflow_label"]))
+    
+    assert sec_sizes["SmallSector"] == "SMALL"
+    assert sec_sizes["NormalSector"] == "NORMAL"
+    assert sec_labels["SmallSector"] != "STRONG_INFLOW"
+    
+    # 3. Test Watchlist Confirmation and Commentary
+    client_ready = pd.DataFrame([
+        {"symbol": "S1"},
+        {"symbol": "N1"},
+    ])
+    
+    confirm = build_cashflow_watchlist_confirmation(
+        symbol_cf_mock,
+        client_ready=client_ready
+    )
+    
+    assert "cashflow_reason" in confirm.columns
+    assert "cashflow_action_note" in confirm.columns
+    assert not confirm["cashflow_reason"].isna().any()
+    assert not confirm["cashflow_action_note"].isna().any()
+    
+    # Check new metadata keys
+    _, _, _, meta = build_cashflow_board(
+        stock_features=symbol_cf_mock,
+        client_ready=client_ready
+    )
+    
+    assert "n_data_quality_warnings" in meta
+    assert "n_low_liquidity_symbols" in meta
+    assert "n_zero_volume_symbols" in meta
+    assert "confirmation_counts" in meta
+    assert "sector_score_warnings" in meta
