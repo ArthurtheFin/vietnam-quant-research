@@ -63,6 +63,7 @@ def test_write_run_snapshot_creates_expected_keys(tmp_path: Path) -> None:
         "errors": [],
         "generated_files": ["data/output/client_ready_watchlist.parquet"],
         "portfolio_stack": {"enabled": False},
+        "sector_board": {"enabled": False},
         "online_update": {"enabled": False},
     }
     pd.DataFrame([{"symbol": "AAA", "date": "2026-06-30"}]).to_parquet(
@@ -140,6 +141,7 @@ def test_validate_pipeline_metadata_rejects_absolute_paths() -> None:
         "generated_files": ["/abs/path.parquet"],
         "watchlist_counts": {},
         "portfolio_stack": {"enabled": False},
+        "sector_board": {"enabled": False},
         "online_update": {"enabled": False},
     }
 
@@ -152,3 +154,8 @@ def test_resolve_steps_to_run_offline_excludes_online_updates() -> None:
     names = [step["name"] for step in steps]
     assert "update_daily_data" not in names
     assert "update_index_data" not in names
+
+
+def test_default_sector_board_metadata_disabled() -> None:
+    payload = daily_pipeline._default_sector_board_metadata()
+    assert payload == {"enabled": False}

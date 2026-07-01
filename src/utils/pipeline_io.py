@@ -195,6 +195,7 @@ def validate_pipeline_metadata(payload: dict[str, object]) -> dict[str, object]:
             "watchlist_counts",
             "portfolio_stack",
             "online_update",
+            "sector_board",
         ),
         label="pipeline_metadata.json",
     )
@@ -218,6 +219,31 @@ def validate_portfolio_stack_metadata(payload: dict[str, object]) -> dict[str, o
         label="portfolio_stack_metadata.json",
     )
     _validate_no_absolute_paths(payload, "portfolio_stack_metadata.json")
+    return payload
+
+
+def validate_sector_board_metadata(payload: dict[str, object]) -> dict[str, object]:
+    _validate_required_keys(
+        payload,
+        required_keys=(
+            "generated_at",
+            "status",
+            "latest_date",
+            "n_sectors",
+            "sector_map_source",
+            "sector_map_rows",
+            "sector_map_template",
+            "mapping_coverage",
+            "unknown_ratio",
+            "total_symbols",
+            "mapped_symbols",
+            "missing_symbols",
+            "warnings",
+            "generated_files",
+        ),
+        label="sector_board_metadata.json",
+    )
+    _validate_no_absolute_paths(payload, "sector_board_metadata.json")
     return payload
 
 

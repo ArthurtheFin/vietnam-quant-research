@@ -9,6 +9,8 @@ import sys
 import time
 from pathlib import Path
 
+import pandas as pd
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -168,8 +170,35 @@ def _build_online_update_metadata(enabled: bool) -> dict[str, object]:
     }
 
 
+def _build_sector_board_metadata(
+    enabled: bool = False,
+    status: str | None = None,
+    latest_date: str | None = None,
+    n_sectors: int | None = None,
+    generated_files: list[str] | None = None,
+    warnings: list[str] | None = None,
+) -> dict[str, object]:
+    payload: dict[str, object] = {"enabled": enabled}
+    if enabled:
+        payload.update(
+            {
+                "status": status or "ERROR",
+                "latest_date": latest_date,
+                "n_sectors": n_sectors or 0,
+                "generated_files": generated_files or [],
+                "warnings": warnings or [],
+            }
+        )
+    return payload
+
+
+def _default_sector_board_metadata() -> dict[str, object]:
+    return _build_sector_board_metadata(enabled=False)
+
+
 def _read_artifact_summary(path: str | Path) -> dict[str, object]:
     artifact_path = PROJECT_ROOT / path
+    suffix = artifact_path.suffix.lower()
     if artifact_path.is_dir():
         return {
             "path": relative_path(artifact_path, PROJECT_ROOT),
@@ -179,7 +208,7 @@ def _read_artifact_summary(path: str | Path) -> dict[str, object]:
             "symbol_count": None,
             "latest_date": None,
         }
-    if artifact_path.suffix.lower() == ".json":
+    if suffix == ".json":
         payload: dict[str, object] = {}
         if artifact_path.exists():
             try:
@@ -194,7 +223,28 @@ def _read_artifact_summary(path: str | Path) -> dict[str, object]:
             "symbol_count": payload.get("symbol_count"),
             "latest_date": payload.get("source_latest_date") or payload.get("latest_date"),
         }
-    df = read_parquet(artifact_path)
+    if not artifact_path.exists():
+        return {
+            "path": relative_path(artifact_path, PROJECT_ROOT),
+            "exists": False,
+            "rows": None,
+            "columns": None,
+            "symbol_count": None,
+            "latest_date": None,
+        }
+    if suffix == ".parquet":
+        df = read_parquet(artifact_path)
+    elif suffix == ".csv":
+        df = pd.read_csv(artifact_path)
+    else:
+        return {
+            "path": relative_path(artifact_path, PROJECT_ROOT),
+            "exists": True,
+            "rows": None,
+            "columns": None,
+            "symbol_count": None,
+            "latest_date": None,
+        }
     summary = dataframe_metadata(df, path=artifact_path)
     summary["path"] = relative_path(artifact_path, PROJECT_ROOT)
     summary["exists"] = artifact_path.exists()
@@ -350,11 +400,56 @@ def _run_portfolio_stack() -> dict[str, object]:
     return {"step": report, "metadata": stack_payload}
 
 
+def _run_sector_board() -> dict[str, object]:
+    step = {
+        "name": "build_sector_board",
+        "script": "scripts/build_sector_board.py",
+        "outputs": [
+            "data/output/sector_board.parquet",
+            "data/output/sector_board.csv",
+            "data/output/sector_leaders.parquet",
+            "data/output/sector_leaders.csv",
+            "data/output/sector_board_metadata.json",
+        ],
+    }
+    report = _run_step(step)
+    metadata_path = PROJECT_ROOT / "data/output/sector_board_metadata.json"
+    sector_payload = _build_sector_board_metadata(
+        enabled=True,
+        status=report["status"],
+        latest_date=None,
+        n_sectors=0,
+        generated_files=[],
+        warnings=[],
+    )
+    if metadata_path.exists():
+        payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+        sector_payload.update(
+            {
+                "status": payload.get("status", report["status"]),
+                "latest_date": payload.get("latest_date"),
+                "n_sectors": payload.get("n_sectors", 0),
+                "total_symbols": payload.get("total_symbols"),
+                "mapped_symbols": payload.get("mapped_symbols"),
+                "missing_symbols": payload.get("missing_symbols"),
+                "generated_files": payload.get("generated_files", []),
+                "warnings": payload.get("warnings", []),
+                "sector_map_source": payload.get("sector_map_source"),
+                "mapping_coverage": payload.get("mapping_coverage"),
+                "unknown_ratio": payload.get("unknown_ratio"),
+            }
+        )
+    if report["status"] != "OK" and report.get("error_message"):
+        sector_payload["warnings"] = list(sector_payload.get("warnings", [])) + [report["error_message"]]
+    return {"step": report, "metadata": sector_payload}
+
+
 def _build_pipeline_metadata(
     mode: str,
     steps: list[dict[str, object]],
     freshness: dict[str, object],
     portfolio_stack: dict[str, object] | None = None,
+    sector_board: dict[str, object] | None = None,
     online_update: dict[str, object] | None = None,
     flags_used: list[str] | None = None,
 ) -> dict[str, object]:
@@ -401,6 +496,7 @@ def _build_pipeline_metadata(
         "benchmark_status": _benchmark_status(freshness),
         "generated_files": generated_files,
         "portfolio_stack": portfolio_stack or _default_portfolio_stack_metadata(),
+        "sector_board": sector_board or _default_sector_board_metadata(),
         "online_update": online_update or _build_online_update_metadata(enabled=False),
         "steps": steps,
     }
@@ -414,6 +510,7 @@ def main(argv: list[str] | None = None) -> int:
     group.add_argument("--offline", action="store_true", help="Use existing parquet data only.")
     group.add_argument("--online", action="store_true", help="Fetch fresh SSI data before rebuilding artifacts.")
     parser.add_argument("--strict-freshness", action="store_true", help="Treat stale warning-level artifacts as errors.")
+    parser.add_argument("--build-sector", action="store_true", help="Build sector board outputs after watchlists are available.")
     parser.add_argument("--build-portfolio", action="store_true", help="Build portfolio/risk/capital outputs after watchlists.")
     parser.add_argument("--update-index", action="store_true", help="Refresh raw index/VNINDEX data before generating features in online mode.")
     args = parser.parse_args(argv)
@@ -423,6 +520,7 @@ def main(argv: list[str] | None = None) -> int:
         ("--online", args.online),
         ("--offline", args.offline or not args.online),
         ("--strict-freshness", args.strict_freshness),
+        ("--build-sector", args.build_sector),
         ("--build-portfolio", args.build_portfolio),
         ("--update-index", args.update_index),
     ] if enabled]
@@ -492,6 +590,11 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     freshness = evaluate_freshness(base_dir=PROJECT_ROOT, strict=args.strict_freshness)
+    sector_board_metadata = _default_sector_board_metadata()
+    if args.build_sector:
+        sector_result = _run_sector_board()
+        step_reports.append(sector_result["step"])
+        sector_board_metadata = sector_result["metadata"]
     portfolio_stack_metadata = _default_portfolio_stack_metadata()
     if args.build_portfolio:
         if freshness["status"] == "ERROR":
@@ -515,6 +618,7 @@ def main(argv: list[str] | None = None) -> int:
         steps=step_reports,
         freshness=freshness,
         portfolio_stack=portfolio_stack_metadata,
+        sector_board=sector_board_metadata,
         online_update=online_update_metadata,
         flags_used=flags_used,
     )
@@ -525,6 +629,8 @@ def main(argv: list[str] | None = None) -> int:
 
     LOGGER.info("Daily pipeline complete with freshness status: %s", freshness["status"])
     if freshness["status"] == "ERROR":
+        return 1
+    if args.build_sector and sector_board_metadata.get("status") == "ERROR":
         return 1
     if args.build_portfolio and portfolio_stack_metadata.get("status") == "ERROR":
         return 1

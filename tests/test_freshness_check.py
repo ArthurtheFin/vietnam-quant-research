@@ -96,6 +96,7 @@ def test_metadata_validators_accept_required_keys() -> None:
         "generated_files": [],
         "watchlist_counts": {},
         "portfolio_stack": {"enabled": False},
+        "sector_board": {"enabled": False},
         "online_update": {"enabled": False},
     }
     portfolio_payload = {

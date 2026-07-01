@@ -33,3 +33,16 @@ from src.analytics.meta_ranking import (
     score_meta_ranking,
     top_meta_candidates,
 )
+from src.analytics.sector_board import (
+    attach_sector,
+    audit_sector_mapping,
+    build_sector_board,
+    build_sector_leaders,
+    compute_sector_metrics,
+    ensure_sector_map_template,
+    load_sector_board_inputs,
+    load_sector_map,
+    normalize_sector_map,
+    rank_sectors,
+    write_sector_outputs,
+)

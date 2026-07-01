@@ -1,0 +1,502 @@
+symbol,sector,industry,exchange,source,updated_at
+A32,Consumer Staples,Consumer non-durables,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AAA,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+AAH,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AAM,Agriculture & Aquaculture,Seafood / aquaculture,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+AAS,Securities,Securities brokerage,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AAT,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+AAV,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+ABB,Banking,Bank,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ABC,Technology & Communications,Technology / communications,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ABI,Banking,Bank,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ABR,Technology & Communications,Communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ABS,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ABT,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ABW,Securities,Securities brokerage,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ACB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ACC,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ACE,Materials,Cement / construction materials,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ACG,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ACL,Agriculture & Aquaculture,Seafood / aquaculture,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ACM,Materials,Steel / mining / minerals,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ACS,Construction & Infrastructure,Construction / infrastructure,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ACV,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ADC,Technology & Communications,Technology / communications,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+ADG,Business Services,Commercial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ADP,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ADS,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+AFX,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AG1,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AGF,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AGG,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+AGM,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AGP,Healthcare,Pharmaceuticals / healthcare,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AGR,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+AGX,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AIC,Insurance,Insurance,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AIG,Consumer Staples,Consumer non-durables,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ALT,Materials,Process industries,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+ALV,Construction & Infrastructure,Industrial services,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AMC,Materials,Steel / mining / minerals,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+AMD,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+AME,Industrials,Producer manufacturing,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+AMP,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AMS,Construction & Infrastructure,Construction / infrastructure,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+AMV,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+ANT,Food & Beverage,Food & beverage,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ANV,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+APC,Business Services,Commercial services,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+APF,Food & Beverage,Food & beverage,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+APG,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+APH,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+API,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+APL,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+APP,Energy,Oil gas / coal / energy,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+APS,Securities,Securities brokerage,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+APT,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+ARM,Transportation & Logistics,Transportation / logistics,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+ART,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+ASA,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+ASG,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ASM,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ASP,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+AST,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ATA,Transportation & Logistics,Transportation,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ATB,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+ATG,Financial Services,Financials / diversified holdings,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+ATS,Consumer Services,Consumer services,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+AVC,Utilities,Power / water utility,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+BAF,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BBC,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BCE,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BCG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BCM,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BDT,Construction & Infrastructure,Construction / infrastructure,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+BFC,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BHN,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BIC,Insurance,Insurance,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BID,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BIG,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+BKG,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BMC,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BMI,Insurance,Insurance,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BMP,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BRC,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BSI,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BSR,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BTP,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BTT,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BVB,Banking,Bank,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+BVH,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+BVS,Securities,Securities brokerage,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+BWE,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+C32,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+C47,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CAP,Food & Beverage,Food & beverage,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+CCC,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CCI,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CCL,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CDC,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CEO,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+CHP,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CIG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CII,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CKG,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CLC,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CLL,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CLW,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CMG,Technology & Communications,Technology services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CMV,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CMX,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CNG,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+COM,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CRC,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CRE,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CSM,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CSV,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CTD,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CTF,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CTG,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CTI,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CTR,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CTS,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+CVT,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+D2D,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DAH,Consumer Services,Tourism / hotel / travel,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DAT,Agriculture & Aquaculture,Seafood / aquaculture,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DBC,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DBD,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DBT,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DC4,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DCF,Construction & Infrastructure,Construction / infrastructure,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+DCL,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DCM,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DDV,Materials,Process industries,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+DGC,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DGW,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DHA,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DHC,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DHG,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DHM,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DIG,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DLG,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DMC,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DPG,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DPM,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DPR,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DQC,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DRC,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DRH,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DRI,Materials,Plastics / rubber / packaging / wood,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+DRL,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DSC,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DSE,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DSN,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DTA,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DTL,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DTT,Technology & Communications,Technology / communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DVP,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DXG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DXS,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+DXV,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+EIB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ELC,Technology & Communications,Technology / communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+EVE,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+EVF,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+EVG,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+EVS,Securities,Securities brokerage,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+FCM,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+FCN,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+FDC,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+FIR,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+FIT,Healthcare,Health technology,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+FMC,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+FOC,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+FOX,Technology & Communications,Technology / communications,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+FPT,Technology & Communications,Technology services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+FRT,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+FTS,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GAS,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GDT,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GEE,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GEG,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GEX,Technology & Communications,Electronic technology,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GIL,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GMD,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GMH,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GSP,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GTA,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+GVR,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HAG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HAH,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HAP,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HAR,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HAS,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HAX,Retail & Distribution,Retail trade,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HBC,Real Estate,Real estate / property,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+HCD,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HCM,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HDB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HDC,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HDG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HHP,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HHS,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HHV,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HID,Business Services,Commercial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HII,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HMC,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HMH,Transportation & Logistics,Transportation,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+HNA,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HNG,Materials,Process industries,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+HNM,Consumer Staples,Consumer non-durables,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+HPG,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HPX,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HQC,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HRC,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HSG,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HSL,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HT1,Materials,Cement / construction materials,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HTG,Textiles & Apparel,Textiles / apparel,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HTI,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HTL,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HTN,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HTV,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HU1,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HUB,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HUT,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+HVH,Technology & Communications,Technology / communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HVN,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+HVX,Materials,Cement / construction materials,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ICT,Technology & Communications,Technology / communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+IDC,Utilities,Utilities,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+IDI,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+IDJ,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+IJC,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ILB,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+IMP,Healthcare,Health technology,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ITC,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ITD,Technology & Communications,Technology / communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+JVC,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KBC,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KDC,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KDH,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KHG,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KHP,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KLB,Banking,Bank,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+KMR,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KOS,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KPF,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+KSB,Materials,Cement / construction materials,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+KSF,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+KSV,Materials,Steel / mining / minerals,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+L10,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LAF,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LBM,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LCG,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LDG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LGC,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LGL,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LHC,Construction & Infrastructure,Construction / infrastructure,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+LHG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LIX,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LM8,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LPB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+LSG,Real Estate,Real estate / property,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+LSS,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MBB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MBS,Securities,Securities brokerage,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+MCH,Consumer Staples,Consumer non-durables,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+MCM,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MCP,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MDG,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MHC,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MIG,Insurance,Insurance,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MSB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MSH,Textiles & Apparel,Textiles / apparel,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MSN,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MSR,Retail & Distribution,Distribution services,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+MST,Construction & Infrastructure,Industrial services,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+MWG,Retail & Distribution,Retail trade,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+MZG,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+NAB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NAF,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NAV,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NBB,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NCT,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NDN,Real Estate,Real estate / property,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+NHA,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NHH,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NHT,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NKG,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NLG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NNC,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NO1,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NRC,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+NSC,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NT2,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NTL,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NTP,Materials,Plastics / rubber / packaging / wood,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+NVB,Banking,Bank,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+NVL,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+NVT,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+OCB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+OGC,Retail & Distribution,Retail trade,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+OIL,Energy,Oil gas / coal / energy,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+OPC,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ORS,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PAC,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PAN,Business Services,Commercial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PC1,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PCH,Materials,Plastics / rubber / packaging / wood,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+PDN,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PDR,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PET,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PGC,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PGD,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PGI,Insurance,Insurance,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PGV,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PHC,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PHP,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+PHR,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PIT,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PJT,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PLP,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PLX,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PMG,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PNC,Consumer Services,Consumer services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PNJ,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+POM,Materials,Steel / mining / minerals,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+POW,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PPC,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PPT,Retail & Distribution,Distribution services,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+PSH,UNKNOWN,,,Project raw symbol only - not found in HF metadata,2026-07-01
+PTB,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PTC,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PTL,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PVC,Chemicals,Fertilizer / chemicals,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+PVD,Energy,Energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PVI,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+PVP,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+PVS,Construction & Infrastructure,Industrial services,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+PVT,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+QCG,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+QNP,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+QNS,Food & Beverage,Food & beverage,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+QTP,Utilities,Power / water utility,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+RAL,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+REE,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+RYG,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+S4A,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SAB,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SAM,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SAV,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SBA,Utilities,Utilities,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SBG,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SBT,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SBV,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SC5,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SCR,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SCS,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SFC,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SFG,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SFI,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SGN,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SGR,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SGT,Technology & Communications,Technology / communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SHA,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SHB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SHI,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SHP,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SHS,Securities,Securities brokerage,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+SIP,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SJD,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SJS,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SKG,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SMA,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SMB,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SMC,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SPM,Healthcare,Health technology,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SRC,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SRF,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SSB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SSC,Materials,Non-energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SSI,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+ST8,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+STB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+STG,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+STH,Education,Education / publishing,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+STK,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SVC,Retail & Distribution,Retail trade,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SVD,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SVI,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SVT,Technology & Communications,Technology / communications,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SZC,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+SZL,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TAL,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TBC,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCD,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCH,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCI,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCL,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCM,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCO,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCR,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TCT,Consumer Services,Consumer services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TDC,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TDG,Energy,Energy minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TDH,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TDM,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TDP,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TDW,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TEG,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+THD,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+THG,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TIG,Financial Services,Financials / diversified holdings,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+TIP,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TIX,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TLD,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TLG,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TLH,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TMP,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TMS,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TMT,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TN1,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TNC,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TNG,Retail & Distribution,Retail / trading,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+TNH,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TNI,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TNT,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TPB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TPC,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TPP,Materials,Plastics / rubber / packaging / wood,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+TRA,Healthcare,Health technology,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TRC,Materials,Plastics / rubber / packaging / wood,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TSC,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TSJ,Consumer Services,Tourism / hotel / travel,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+TTA,Construction & Infrastructure,Construction / infrastructure,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TTE,Utilities,Utilities,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TTF,Consumer Discretionary,Consumer durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TV2,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TVB,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TVC,Business Services,Commercial services,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+TVN,Materials,Steel / mining / minerals,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+TVS,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TVT,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+TYA,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+UIC,Utilities,Utilities,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VAB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VAF,Chemicals,Fertilizer / chemicals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VCA,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VCB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VCF,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VCG,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VCI,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VDP,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VDS,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VEA,Industrials,Producer manufacturing,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+VFG,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VFS,Securities,Securities brokerage,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+VGC,Retail & Distribution,Distribution services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VGI,Technology & Communications,Communications,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+VGR,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+VGS,Materials,Steel / mining / minerals,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+VGT,Textiles & Apparel,Textiles / apparel,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+VHC,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VHM,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VIB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VIC,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VID,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VIP,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VIT,Industrials,Producer manufacturing,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+VIW,Utilities,Power / water utility,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+VIX,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VJC,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VMD,Healthcare,Pharmaceuticals / healthcare,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VND,Securities,Securities brokerage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VNE,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VNG,Consumer Services,Tourism / hotel / travel,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VNL,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VNM,Food & Beverage,Food & beverage,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VNS,Consumer Services,Consumer services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VNZ,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+VOS,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VPB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VPD,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VPG,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VPH,Construction & Infrastructure,Industrial services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VPI,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VPL,Consumer Services,Consumer services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VPS,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VRC,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VRE,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VSC,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VSH,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VSI,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VTB,Industrials,Producer manufacturing,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VTO,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VTP,Transportation & Logistics,Transportation,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VTZ,Materials,Plastics / rubber / packaging / wood,HNX,HF Vietnam metadata + rule normalization,2026-07-01
+VVS,UNKNOWN,,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
+YBM,Materials,Steel / mining / minerals,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+YEG,Technology & Communications,Technology services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
