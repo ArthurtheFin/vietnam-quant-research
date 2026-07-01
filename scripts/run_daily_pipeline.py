@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -23,6 +24,7 @@ from src.utils.pipeline_io import (
     resolve_watchlist_source,
     utc_now_iso,
     validate_pipeline_metadata,
+    write_run_snapshot,
     write_json,
 )
 from src.validation.freshness_check import evaluate_freshness
@@ -92,6 +94,79 @@ ONLINE_INDEX_STEPS = [
     },
 ]
 
+ONLINE_STEP_NAMES = {"update_daily_data", "update_index_data"}
+TOLERABLE_ONLINE_ERROR_CATEGORIES = {"PROVIDER_RATE_LIMIT", "PROVIDER_EMPTY_RESPONSE"}
+
+
+def _sanitize_error_message(raw_error: str | None) -> str | None:
+    if not raw_error:
+        return None
+    text = raw_error.replace(str(PROJECT_ROOT), ".").replace(str(Path.home()), "~")
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not lines:
+        return None
+    message = re.sub(r"\s+", " ", lines[-1])
+    if len(message) > 280:
+        message = message[:277] + "..."
+    return message
+
+
+def _classify_error(raw_error: str | None) -> str:
+    normalized = (raw_error or "").lower()
+    if "missing fcdata credential" in normalized or "create `.env`" in normalized:
+        return "MISSING_ENV"
+    if (
+        "429" in normalized
+        or "quota" in normalized
+        or "rate limit" in normalized
+        or "too many requests" in normalized
+        or "exceeded" in normalized
+    ):
+        return "PROVIDER_RATE_LIMIT"
+    if (
+        "expecting value" in normalized
+        or "empty response" in normalized
+        or "khong co raw index data sau khi fetch" in normalized
+        or "no raw index data after fetch" in normalized
+    ):
+        return "PROVIDER_EMPTY_RESPONSE"
+    if (
+        "schema" in normalized
+        or "missing required key" in normalized
+        or "missing column" in normalized
+        or "keyerror" in normalized
+    ):
+        return "DATA_SCHEMA_ERROR"
+    if "traceback" in normalized:
+        return "CODE_ERROR"
+    return "UNKNOWN_ERROR"
+
+
+def _recommended_action(error_category: str, mode: str, step_name: str) -> str | None:
+    if error_category == "PROVIDER_RATE_LIMIT":
+        return "Wait and rerun online update later, or use offline mode if data is already fresh."
+    if error_category == "PROVIDER_EMPTY_RESPONSE":
+        return "Rerun online update later and verify the SSI provider is returning data before rebuilding benchmarks."
+    if error_category == "MISSING_ENV":
+        return "Populate SSI credentials in `.env` from `.env.example`, then rerun online mode."
+    if error_category == "DATA_SCHEMA_ERROR":
+        return f"Inspect `{step_name}` inputs/outputs for schema drift before rerunning `{mode}` mode."
+    if error_category == "CODE_ERROR":
+        return f"Inspect `{step_name}` stack trace and fix the code path before rerunning `{mode}` mode."
+    return "Inspect logs and rerun the pipeline after confirming provider/data availability."
+
+
+def _build_online_update_metadata(enabled: bool) -> dict[str, object]:
+    return {
+        "enabled": enabled,
+        "status": "SKIPPED" if not enabled else "OK",
+        "error_category": None,
+        "error_message": None,
+        "recommended_action": None,
+        "warnings": [],
+        "steps": [],
+    }
+
 
 def _read_artifact_summary(path: str | Path) -> dict[str, object]:
     artifact_path = PROJECT_ROOT / path
@@ -155,6 +230,9 @@ def _run_step(step: dict[str, object]) -> dict[str, object]:
         LOGGER.warning("Step `%s` stderr:\n%s", step["name"], result.stderr.strip())
 
     summaries = [_read_artifact_summary(path) for path in step.get("outputs", [])]
+    raw_error = (result.stderr or result.stdout).strip() if result.returncode != 0 else None
+    error_category = _classify_error(raw_error) if raw_error else None
+    error_message = _sanitize_error_message(raw_error)
     payload = {
         "name": step["name"],
         "script": script,
@@ -162,9 +240,10 @@ def _run_step(step: dict[str, object]) -> dict[str, object]:
         "return_code": int(result.returncode),
         "status": "OK" if result.returncode == 0 else "ERROR",
         "outputs": summaries,
+        "error_category": error_category,
+        "error_message": error_message,
+        "recommended_action": _recommended_action(error_category, "pipeline", str(step["name"])) if error_category else None,
     }
-    if result.returncode != 0:
-        payload["error"] = (result.stderr or result.stdout).strip()
     return payload
 
 
@@ -221,6 +300,16 @@ def _default_portfolio_stack_metadata() -> dict[str, object]:
     return _build_portfolio_stack_metadata(enabled=False)
 
 
+def _resolve_steps_to_run(mode: str, update_index: bool) -> list[dict[str, object]]:
+    steps_to_run = list(PIPELINE_STEPS)
+    if mode != "online":
+        return steps_to_run
+    online_prefix_steps = list(ONLINE_DAILY_STEPS)
+    if update_index:
+        online_prefix_steps = ONLINE_INDEX_STEPS + online_prefix_steps
+    return online_prefix_steps + steps_to_run
+
+
 def _run_portfolio_stack() -> dict[str, object]:
     step = {
         "name": "build_portfolio_stack",
@@ -256,8 +345,8 @@ def _run_portfolio_stack() -> dict[str, object]:
                 "source_latest_date": payload.get("source_latest_date"),
             }
         )
-    if report["status"] != "OK" and report.get("error"):
-        stack_payload["warnings"] = list(stack_payload.get("warnings", [])) + [report["error"]]
+    if report["status"] != "OK" and report.get("error_message"):
+        stack_payload["warnings"] = list(stack_payload.get("warnings", [])) + [report["error_message"]]
     return {"step": report, "metadata": stack_payload}
 
 
@@ -266,6 +355,8 @@ def _build_pipeline_metadata(
     steps: list[dict[str, object]],
     freshness: dict[str, object],
     portfolio_stack: dict[str, object] | None = None,
+    online_update: dict[str, object] | None = None,
+    flags_used: list[str] | None = None,
 ) -> dict[str, object]:
     stock_df = read_parquet(PROJECT_ROOT / "data/processed/stock_features.parquet")
     watchlist_source = resolve_watchlist_source(PROJECT_ROOT)
@@ -286,10 +377,17 @@ def _build_pipeline_metadata(
         for artifact in step.get("outputs", []):
             if artifact.get("exists"):
                 generated_files.append(artifact["path"])
+    generated_files = list(dict.fromkeys(generated_files))
+
+    warnings = list(freshness.get("warnings", []))
+    errors = list(freshness.get("errors", []))
+    if online_update and online_update.get("warnings"):
+        warnings.extend(str(item) for item in online_update.get("warnings", []))
 
     payload = {
         "run_timestamp": utc_now_iso(),
         "run_mode": mode,
+        "flags_used": flags_used or [],
         "latest_stock_date": dataframe_metadata(stock_df).get("latest_date"),
         "latest_feature_date": dataframe_metadata(stock_df).get("latest_date"),
         "latest_benchmark_date": freshness.get("artifacts", {}).get("benchmark_vnindex", {}).get("latest_date"),
@@ -297,12 +395,13 @@ def _build_pipeline_metadata(
         "total_rows": int(len(stock_df)),
         "watchlist_source": watchlist_source_metadata,
         "watchlist_counts": watchlist_counts,
-        "warnings": freshness.get("warnings", []),
-        "errors": freshness.get("errors", []),
+        "warnings": warnings,
+        "errors": errors,
         "freshness_status": freshness.get("status"),
         "benchmark_status": _benchmark_status(freshness),
         "generated_files": generated_files,
         "portfolio_stack": portfolio_stack or _default_portfolio_stack_metadata(),
+        "online_update": online_update or _build_online_update_metadata(enabled=False),
         "steps": steps,
     }
     validate_pipeline_metadata(payload)
@@ -320,26 +419,74 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     mode = "online" if args.online else "offline"
-    steps_to_run = list(PIPELINE_STEPS)
+    flags_used = [flag for flag, enabled in [
+        ("--online", args.online),
+        ("--offline", args.offline or not args.online),
+        ("--strict-freshness", args.strict_freshness),
+        ("--build-portfolio", args.build_portfolio),
+        ("--update-index", args.update_index),
+    ] if enabled]
     if mode == "online":
         _ensure_online_ready()
-        online_prefix_steps = list(ONLINE_DAILY_STEPS)
-        if args.update_index:
-            online_prefix_steps = ONLINE_INDEX_STEPS + online_prefix_steps
-        steps_to_run = online_prefix_steps + steps_to_run
+    steps_to_run = _resolve_steps_to_run(mode=mode, update_index=args.update_index)
 
     LOGGER.info("Starting daily pipeline in `%s` mode", mode)
     step_reports: list[dict[str, object]] = []
+    online_update_metadata = _build_online_update_metadata(enabled=(mode == "online"))
     for step in steps_to_run:
         report = _run_step(step)
         step_reports.append(report)
+        if mode == "online" and report["name"] in ONLINE_STEP_NAMES:
+            online_update_metadata["steps"].append(
+                {
+                    "name": report["name"],
+                    "status": report["status"],
+                    "error_category": report.get("error_category"),
+                    "error_message": report.get("error_message"),
+                    "recommended_action": report.get("recommended_action"),
+                }
+            )
         if report["status"] != "OK":
+            error_category = str(report.get("error_category") or "UNKNOWN_ERROR")
+            error_message = report.get("error_message")
+            if mode == "online" and report["name"] in ONLINE_STEP_NAMES and error_category in TOLERABLE_ONLINE_ERROR_CATEGORIES:
+                online_update_metadata.update(
+                    {
+                        "status": "WARNING",
+                        "error_category": error_category,
+                        "error_message": error_message,
+                        "recommended_action": report.get("recommended_action"),
+                    }
+                )
+                if error_message:
+                    online_update_metadata["warnings"].append(f"{report['name']}: {error_message}")
+                LOGGER.warning(
+                    "Online step `%s` failed with %s. Continuing with local data.",
+                    report["name"],
+                    error_category,
+                )
+                continue
+
+            if mode == "online" and report["name"] in ONLINE_STEP_NAMES:
+                online_update_metadata.update(
+                    {
+                        "status": "ERROR",
+                        "error_category": error_category,
+                        "error_message": error_message,
+                        "recommended_action": report.get("recommended_action"),
+                    }
+                )
             metadata = _build_pipeline_metadata(
                 mode=mode,
                 steps=step_reports,
-                freshness={"status": "ERROR", "warnings": [], "errors": [report.get("error", "Unknown error")], "artifacts": {}},
+                freshness={"status": "ERROR", "warnings": [], "errors": [error_message or "Unknown error"], "artifacts": {}},
                 portfolio_stack=_default_portfolio_stack_metadata(),
+                online_update=online_update_metadata,
+                flags_used=flags_used,
             )
+            write_json(metadata, PROJECT_ROOT / "data/output/pipeline_metadata.json")
+            snapshot_path = write_run_snapshot(metadata, PROJECT_ROOT)
+            metadata["generated_files"] = list(dict.fromkeys(metadata["generated_files"] + [relative_path(snapshot_path, PROJECT_ROOT)]))
             write_json(metadata, PROJECT_ROOT / "data/output/pipeline_metadata.json")
             LOGGER.error("Pipeline stopped at step `%s`", step["name"])
             return 1
@@ -368,7 +515,12 @@ def main(argv: list[str] | None = None) -> int:
         steps=step_reports,
         freshness=freshness,
         portfolio_stack=portfolio_stack_metadata,
+        online_update=online_update_metadata,
+        flags_used=flags_used,
     )
+    write_json(metadata, PROJECT_ROOT / "data/output/pipeline_metadata.json")
+    snapshot_path = write_run_snapshot(metadata, PROJECT_ROOT)
+    metadata["generated_files"] = list(dict.fromkeys(metadata["generated_files"] + [relative_path(snapshot_path, PROJECT_ROOT)]))
     write_json(metadata, PROJECT_ROOT / "data/output/pipeline_metadata.json")
 
     LOGGER.info("Daily pipeline complete with freshness status: %s", freshness["status"])

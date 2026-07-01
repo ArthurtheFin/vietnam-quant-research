@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 import pandas as pd
 
@@ -165,6 +165,24 @@ def _validate_required_keys(payload: dict[str, object], required_keys: Iterable[
         raise ValueError(f"{label} is missing required key(s): {', '.join(missing)}")
 
 
+def _contains_absolute_path(value: Any) -> bool:
+    if isinstance(value, dict):
+        return any(_contains_absolute_path(item) for item in value.values())
+    if isinstance(value, (list, tuple, set)):
+        return any(_contains_absolute_path(item) for item in value)
+    if isinstance(value, str):
+        try:
+            return Path(value).is_absolute()
+        except Exception:
+            return False
+    return False
+
+
+def _validate_no_absolute_paths(payload: dict[str, object], label: str) -> None:
+    if _contains_absolute_path(payload):
+        raise ValueError(f"{label} must not contain absolute filesystem paths")
+
+
 def validate_pipeline_metadata(payload: dict[str, object]) -> dict[str, object]:
     _validate_required_keys(
         payload,
@@ -176,9 +194,11 @@ def validate_pipeline_metadata(payload: dict[str, object]) -> dict[str, object]:
             "generated_files",
             "watchlist_counts",
             "portfolio_stack",
+            "online_update",
         ),
         label="pipeline_metadata.json",
     )
+    _validate_no_absolute_paths(payload, "pipeline_metadata.json")
     return payload
 
 
@@ -197,4 +217,95 @@ def validate_portfolio_stack_metadata(payload: dict[str, object]) -> dict[str, o
         ),
         label="portfolio_stack_metadata.json",
     )
+    _validate_no_absolute_paths(payload, "portfolio_stack_metadata.json")
     return payload
+
+
+def build_run_snapshot(metadata: dict[str, object], base_dir: str | Path = ".") -> dict[str, object]:
+    base = Path(base_dir)
+    trading_df = read_parquet(base / "data/output/trading_watchlist.parquet")
+    client_ready_df = read_parquet(base / "data/output/client_ready_watchlist.parquet")
+    portfolio_df = pd.DataFrame()
+    if metadata.get("portfolio_stack", {}).get("enabled"):
+        portfolio_df, _ = read_first_existing_parquet(
+            [
+                "data/output/portfolio_weights.parquet",
+                "data/output/portfolio_candidates.parquet",
+                "data/output/capital_plan.parquet",
+            ],
+            base_dir=base,
+        )
+    return {
+        "run_timestamp": metadata.get("run_timestamp"),
+        "run_mode": metadata.get("run_mode"),
+        "flags_used": metadata.get("flags_used", []),
+        "freshness_status": metadata.get("freshness_status"),
+        "benchmark_latest_date": metadata.get("benchmark_status", {}).get("benchmark_latest_date"),
+        "stock_latest_date": metadata.get("latest_stock_date"),
+        "watchlist_counts": metadata.get("watchlist_counts", {}),
+        "trading_watchlist_symbols": unique_symbols(trading_df),
+        "client_ready_symbols": unique_symbols(client_ready_df),
+        "portfolio_symbols": unique_symbols(portfolio_df),
+        "warnings": metadata.get("warnings", []),
+        "errors": metadata.get("errors", []),
+        "generated_files": metadata.get("generated_files", []),
+    }
+
+
+def write_run_snapshot(metadata: dict[str, object], base_dir: str | Path = ".") -> Path:
+    snapshot = build_run_snapshot(metadata, base_dir=base_dir)
+    timestamp = pd.to_datetime(snapshot["run_timestamp"], utc=True, errors="coerce")
+    if pd.isna(timestamp):
+        filename = "run_unknown.json"
+    else:
+        filename = f"run_{timestamp.tz_convert(None).strftime('%Y-%m-%d_%H%M%S')}.json"
+    output_path = Path(base_dir) / "data/output/run_history" / filename
+    write_json(snapshot, output_path)
+    return output_path
+
+
+def load_run_snapshots(base_dir: str | Path = ".", limit: int | None = None) -> list[dict[str, object]]:
+    run_history_dir = Path(base_dir) / "data/output/run_history"
+    if not run_history_dir.exists():
+        return []
+    paths = sorted(run_history_dir.glob("run_*.json"))
+    if limit is not None:
+        paths = paths[-limit:]
+    snapshots: list[dict[str, object]] = []
+    for path in paths:
+        snapshots.append(json.loads(path.read_text(encoding="utf-8")))
+    return snapshots
+
+
+def compare_run_snapshots(previous: dict[str, object], current: dict[str, object]) -> dict[str, object]:
+    previous_client = set(previous.get("client_ready_symbols", []))
+    current_client = set(current.get("client_ready_symbols", []))
+    previous_portfolio = set(previous.get("portfolio_symbols", []))
+    current_portfolio = set(current.get("portfolio_symbols", []))
+    previous_counts = previous.get("watchlist_counts", {})
+    current_counts = current.get("watchlist_counts", {})
+
+    def _count_delta(name: str) -> dict[str, int]:
+        prev_rows = int(previous_counts.get(name, {}).get("rows", 0))
+        curr_rows = int(current_counts.get(name, {}).get("rows", 0))
+        return {"previous": prev_rows, "current": curr_rows, "delta": curr_rows - prev_rows}
+
+    return {
+        "current_run_timestamp": current.get("run_timestamp"),
+        "previous_run_timestamp": previous.get("run_timestamp"),
+        "client_ready_added": sorted(current_client - previous_client),
+        "client_ready_removed": sorted(previous_client - current_client),
+        "portfolio_added": sorted(current_portfolio - previous_portfolio),
+        "portfolio_removed": sorted(previous_portfolio - current_portfolio),
+        "watchlist_count_changes": {
+            "research_candidates": _count_delta("research_candidates"),
+            "trading_watchlist": _count_delta("trading_watchlist"),
+            "client_ready_watchlist": _count_delta("client_ready_watchlist"),
+        },
+        "freshness_status_changed": previous.get("freshness_status") != current.get("freshness_status"),
+        "freshness_status_previous": previous.get("freshness_status"),
+        "freshness_status_current": current.get("freshness_status"),
+        "benchmark_date_changed": previous.get("benchmark_latest_date") != current.get("benchmark_latest_date"),
+        "benchmark_latest_date_previous": previous.get("benchmark_latest_date"),
+        "benchmark_latest_date_current": current.get("benchmark_latest_date"),
+    }

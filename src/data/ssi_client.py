@@ -22,6 +22,45 @@ except ImportError as exc:  # pragma: no cover
 logger = get_logger(__name__)
 
 
+class SSIProviderError(RuntimeError):
+    """Base error for provider-side SSI/FCData failures."""
+
+
+class SSIRateLimitError(SSIProviderError):
+    """Raised when SSI responds with quota/rate-limit errors."""
+
+
+class SSIEmptyResponseError(SSIProviderError):
+    """Raised when SSI responds with empty or unusable payloads."""
+
+
+def _classify_provider_exception(exc: Exception) -> Exception:
+    if isinstance(exc, SSIProviderError):
+        return exc
+
+    message = str(exc).strip()
+    normalized = message.lower()
+
+    if (
+        "429" in normalized
+        or "quota" in normalized
+        or "rate limit" in normalized
+        or "too many requests" in normalized
+        or "exceeded" in normalized
+    ):
+        return SSIRateLimitError("SSI provider rate limit (429 quota exceeded)")
+
+    if (
+        "expecting value" in normalized
+        or "empty response" in normalized
+        or "no content" in normalized
+        or "line 1 column 1" in normalized
+    ):
+        return SSIEmptyResponseError("SSI provider returned an empty or non-JSON response")
+
+    return exc
+
+
 def _as_dict(obj: Any) -> Any:
     if is_dataclass(obj):
         return asdict(obj)
@@ -104,9 +143,11 @@ class SSIDataClient:
 
     def _validate_response(self, res: Any) -> None:
         if res is None:
-            return
+            raise SSIEmptyResponseError("SSI provider returned an empty response")
         parsed = None
         if isinstance(res, str):
+            if not res.strip():
+                raise SSIEmptyResponseError("SSI provider returned an empty response")
             try:
                 parsed = json.loads(res)
             except json.JSONDecodeError:
@@ -132,6 +173,9 @@ class SSIDataClient:
             if is_no_data:
                 return
 
+            if str(status).strip() == "429" or "quota" in message or "rate limit" in message or "exceeded" in message:
+                raise SSIRateLimitError("SSI provider rate limit (429 quota exceeded)")
+
             if status is not None:
                 if status_str not in ("success", "200", "00", "0", "true"):
                     raise RuntimeError(f"SSI API returned error status '{status}': {parsed.get('message', 'Unknown error')}")
@@ -154,10 +198,29 @@ class SSIDataClient:
                 return res
             except Exception as exc:  # pragma: no cover - depends on network/API
                 self.last_call_time = time.time()
-                last_error = exc
-                logger.warning("FCData call failed on attempt %s/%s: %s", attempt, self.retry_count, exc)
-                time.sleep(self.retry_sleep * attempt)
-        raise RuntimeError(f"FCData call failed after {self.retry_count} attempts") from last_error
+                last_error = _classify_provider_exception(exc)
+                delay = round(self.retry_sleep * (2 ** (attempt - 1)), 2)
+                if attempt < self.retry_count:
+                    logger.warning(
+                        "FCData call failed on attempt %s/%s: error_type=%s message=%s retry_delay=%.2fs",
+                        attempt,
+                        self.retry_count,
+                        type(last_error).__name__,
+                        last_error,
+                        delay,
+                    )
+                    time.sleep(delay)
+                else:
+                    logger.error(
+                        "FCData call failed after %s/%s attempts: error_type=%s message=%s",
+                        attempt,
+                        self.retry_count,
+                        type(last_error).__name__,
+                        last_error,
+                    )
+        if last_error is None:
+            raise RuntimeError("FCData call failed for an unknown reason")
+        raise last_error
 
 
     def _to_frame(self, response: Any) -> pd.DataFrame:

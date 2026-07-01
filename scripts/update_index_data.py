@@ -25,7 +25,7 @@ END_DATE = date.today().strftime("%Y-%m-%d")
 
 def main() -> int:
     try:
-        from src.data.ssi_client import SSIDataClient
+        from src.data.ssi_client import SSIDataClient, SSIEmptyResponseError, SSIRateLimitError
     except ImportError as exc:
         raise SystemExit(
             "Khong the import `ssi_fc_data`. Hay cai package SSI FCData truoc khi chay update_index_data.py"
@@ -43,36 +43,43 @@ def main() -> int:
     updated_latest: dict[str, str | None] = {}
     raw_paths: dict[str, str] = {}
 
-    for index_id in indexes:
-        df = update_index_history(client, index_id, START_DATE, END_DATE)
-        latest = None
-        if not df.empty and "date" in df.columns:
-            latest = str(pd.to_datetime(df["date"], errors="coerce").max().date())
-        raw_path = Path("data/raw/index_ohlcv") / f"{str(index_id).upper()}.parquet"
-        updated_latest[str(index_id).upper()] = latest
-        raw_paths[str(index_id).upper()] = relative_path(raw_path, PROJECT_ROOT) or str(raw_path)
-        print(f"{str(index_id).upper()} rows={df.shape[0]} latest_raw_date={latest} path={raw_paths[str(index_id).upper()]}")
+    try:
+        for index_id in indexes:
+            df = update_index_history(client, index_id, START_DATE, END_DATE)
+            latest = None
+            if not df.empty and "date" in df.columns:
+                latest = str(pd.to_datetime(df["date"], errors="coerce").max().date())
+            raw_path = Path("data/raw/index_ohlcv") / f"{str(index_id).upper()}.parquet"
+            updated_latest[str(index_id).upper()] = latest
+            raw_paths[str(index_id).upper()] = relative_path(raw_path, PROJECT_ROOT) or str(raw_path)
+            print(f"{str(index_id).upper()} rows={df.shape[0]} latest_raw_date={latest} path={raw_paths[str(index_id).upper()]}")
 
-    index_raw = load_index_files("data/raw/index_ohlcv")
-    if index_raw.empty:
-        raise SystemExit("Khong co raw index data sau khi fetch. Kiem tra lai credentials, package va index ids.")
+        index_raw = load_index_files("data/raw/index_ohlcv")
+        if index_raw.empty:
+            raise SSIEmptyResponseError("Khong co raw index data sau khi fetch.")
 
-    index_features = prepare_index_features(index_raw)
-    save_parquet(index_features, "data/processed/index_features.parquet")
-    print("index_features", index_features.shape)
+        index_features = prepare_index_features(index_raw)
+        save_parquet(index_features, "data/processed/index_features.parquet")
+        print("index_features", index_features.shape)
 
-    for index_id in indexes:
-        benchmark = build_benchmark_file(
-            index_id=index_id,
-            raw_dir="data/raw/index_ohlcv",
-            output_path=f"data/processed/benchmark_{str(index_id).lower()}.parquet",
-        )
-        latest_benchmark = None
-        if not benchmark.empty and "date" in benchmark.columns:
-            latest_benchmark = str(pd.to_datetime(benchmark["date"], errors="coerce").max().date())
-        print(
-            f"benchmark_{str(index_id).lower()} rows={benchmark.shape[0]} latest_benchmark_date={latest_benchmark}"
-        )
+        for index_id in indexes:
+            benchmark = build_benchmark_file(
+                index_id=index_id,
+                raw_dir="data/raw/index_ohlcv",
+                output_path=f"data/processed/benchmark_{str(index_id).lower()}.parquet",
+            )
+            latest_benchmark = None
+            if not benchmark.empty and "date" in benchmark.columns:
+                latest_benchmark = str(pd.to_datetime(benchmark["date"], errors="coerce").max().date())
+            print(
+                f"benchmark_{str(index_id).lower()} rows={benchmark.shape[0]} latest_benchmark_date={latest_benchmark}"
+            )
+    except SSIRateLimitError as exc:
+        print(f"[PROVIDER_RATE_LIMIT] {exc}")
+        return 1
+    except SSIEmptyResponseError as exc:
+        print(f"[PROVIDER_EMPTY_RESPONSE] {exc}")
+        return 1
     return 0
 
 
