@@ -196,6 +196,36 @@ def _default_sector_board_metadata() -> dict[str, object]:
     return _build_sector_board_metadata(enabled=False)
 
 
+def _build_cashflow_board_metadata(
+    enabled: bool = False,
+    status: str | None = None,
+    latest_date: str | None = None,
+    n_symbols: int | None = None,
+    n_sectors: int | None = None,
+    value_proxy_used: bool | None = None,
+    generated_files: list[str] | None = None,
+    warnings: list[str] | None = None,
+) -> dict[str, object]:
+    payload: dict[str, object] = {"enabled": enabled}
+    if enabled:
+        payload.update(
+            {
+                "status": status or "ERROR",
+                "latest_date": latest_date,
+                "n_symbols": n_symbols or 0,
+                "n_sectors": n_sectors or 0,
+                "value_proxy_used": value_proxy_used or False,
+                "generated_files": generated_files or [],
+                "warnings": warnings or [],
+            }
+        )
+    return payload
+
+
+def _default_cashflow_board_metadata() -> dict[str, object]:
+    return _build_cashflow_board_metadata(enabled=False)
+
+
 def _read_artifact_summary(path: str | Path) -> dict[str, object]:
     artifact_path = PROJECT_ROOT / path
     suffix = artifact_path.suffix.lower()
@@ -444,12 +474,60 @@ def _run_sector_board() -> dict[str, object]:
     return {"step": report, "metadata": sector_payload}
 
 
+def _run_cashflow_board() -> dict[str, object]:
+    step = {
+        "name": "build_cashflow_board",
+        "script": "scripts/build_cashflow_board.py",
+        "outputs": [
+            "data/output/cashflow_board.parquet",
+            "data/output/cashflow_board.csv",
+            "data/output/sector_cashflow.parquet",
+            "data/output/sector_cashflow.csv",
+            "data/output/watchlist_cashflow_confirmation.parquet",
+            "data/output/watchlist_cashflow_confirmation.csv",
+            "data/output/cashflow_board_metadata.json",
+        ],
+    }
+    report = _run_step(step)
+    metadata_path = PROJECT_ROOT / "data/output/cashflow_board_metadata.json"
+    cashflow_payload = _build_cashflow_board_metadata(
+        enabled=True,
+        status=report["status"],
+        latest_date=None,
+        n_symbols=0,
+        n_sectors=0,
+        value_proxy_used=False,
+        generated_files=[],
+        warnings=[],
+    )
+    if metadata_path.exists():
+        try:
+            payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+            cashflow_payload.update(
+                {
+                    "status": payload.get("status", report["status"]),
+                    "latest_date": payload.get("latest_date"),
+                    "n_symbols": payload.get("n_symbols", 0),
+                    "n_sectors": payload.get("n_sectors", 0),
+                    "value_proxy_used": payload.get("value_proxy_used", False),
+                    "generated_files": payload.get("generated_files", []),
+                    "warnings": payload.get("warnings", []),
+                }
+            )
+        except Exception:
+            pass
+    if report["status"] != "OK" and report.get("error_message"):
+        cashflow_payload["warnings"] = list(cashflow_payload.get("warnings", [])) + [report["error_message"]]
+    return {"step": report, "metadata": cashflow_payload}
+
+
 def _build_pipeline_metadata(
     mode: str,
     steps: list[dict[str, object]],
     freshness: dict[str, object],
     portfolio_stack: dict[str, object] | None = None,
     sector_board: dict[str, object] | None = None,
+    cashflow_board: dict[str, object] | None = None,
     online_update: dict[str, object] | None = None,
     flags_used: list[str] | None = None,
 ) -> dict[str, object]:
@@ -497,6 +575,7 @@ def _build_pipeline_metadata(
         "generated_files": generated_files,
         "portfolio_stack": portfolio_stack or _default_portfolio_stack_metadata(),
         "sector_board": sector_board or _default_sector_board_metadata(),
+        "cashflow_board": cashflow_board or _default_cashflow_board_metadata(),
         "online_update": online_update or _build_online_update_metadata(enabled=False),
         "steps": steps,
     }
@@ -512,6 +591,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--strict-freshness", action="store_true", help="Treat stale warning-level artifacts as errors.")
     parser.add_argument("--build-sector", action="store_true", help="Build sector board outputs after watchlists are available.")
     parser.add_argument("--build-portfolio", action="store_true", help="Build portfolio/risk/capital outputs after watchlists.")
+    parser.add_argument("--build-cashflow", action="store_true", help="Build cashflow board outputs after watchlists are available.")
     parser.add_argument("--update-index", action="store_true", help="Refresh raw index/VNINDEX data before generating features in online mode.")
     args = parser.parse_args(argv)
 
@@ -522,6 +602,7 @@ def main(argv: list[str] | None = None) -> int:
         ("--strict-freshness", args.strict_freshness),
         ("--build-sector", args.build_sector),
         ("--build-portfolio", args.build_portfolio),
+        ("--build-cashflow", args.build_cashflow),
         ("--update-index", args.update_index),
     ] if enabled]
     if mode == "online":
@@ -595,6 +676,13 @@ def main(argv: list[str] | None = None) -> int:
         sector_result = _run_sector_board()
         step_reports.append(sector_result["step"])
         sector_board_metadata = sector_result["metadata"]
+
+    cashflow_board_metadata = _default_cashflow_board_metadata()
+    if args.build_cashflow:
+        cashflow_result = _run_cashflow_board()
+        step_reports.append(cashflow_result["step"])
+        cashflow_board_metadata = cashflow_result["metadata"]
+
     portfolio_stack_metadata = _default_portfolio_stack_metadata()
     if args.build_portfolio:
         if freshness["status"] == "ERROR":
@@ -619,6 +707,7 @@ def main(argv: list[str] | None = None) -> int:
         freshness=freshness,
         portfolio_stack=portfolio_stack_metadata,
         sector_board=sector_board_metadata,
+        cashflow_board=cashflow_board_metadata,
         online_update=online_update_metadata,
         flags_used=flags_used,
     )
@@ -631,6 +720,8 @@ def main(argv: list[str] | None = None) -> int:
     if freshness["status"] == "ERROR":
         return 1
     if args.build_sector and sector_board_metadata.get("status") == "ERROR":
+        return 1
+    if args.build_cashflow and cashflow_board_metadata.get("status") == "ERROR":
         return 1
     if args.build_portfolio and portfolio_stack_metadata.get("status") == "ERROR":
         return 1
