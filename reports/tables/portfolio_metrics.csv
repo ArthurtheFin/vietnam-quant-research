@@ -1,0 +1,2 @@
+annualized_return,annualized_volatility,sharpe_ratio,sortino_ratio,max_drawdown,recovery_days,historical_var_95_daily,historical_cvar_95_daily
+0.2962183270557624,0.6728924115001961,0.4402164773939884,0.7486627619380395,-0.7504453071477506,1108,0.04614354397768136,0.08421908821202036

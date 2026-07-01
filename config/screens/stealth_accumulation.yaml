@@ -1,0 +1,85 @@
+name: stealth_accumulation
+
+universe:
+  symbols: []
+  markets:
+    - HOSE
+    - HNX
+
+windows:
+  base_window: 20
+  trend_window: 60
+  liquidity_window: 20
+  volume_fast_window: 5
+  volume_slow_window: 20
+  market_window: 20
+  min_history: 60
+
+filters:
+  min_price: 10.0
+  min_avg_value_20d: 25000000000
+  allowed_volatility_regimes:
+    - Low Vol
+    - Normal Vol
+  allowed_market_regimes:
+    - Neutral
+    - Risk-off
+    - Unknown
+  trend_filters:
+    require_above_ma50: true
+    require_above_ma200: true
+    require_ma50_above_ma200: true
+
+thresholds:
+  stage_a_min_score: 55.0
+  stage_b_min_score: 65.0
+  stage_c_min_score: 75.0
+  watchlist_min_net_score: 60.0
+  max_fakeout_risk: 45.0
+
+output:
+  top_n: 10
+
+sector:
+  enabled: true
+  column: sector
+  unknown_label: Unclassified
+  max_names_per_sector: 2
+  symbol_map:
+    ACB: Banking
+    CTG: Banking
+    MBB: Banking
+    TCB: Banking
+    SSI: Securities
+    VCI: Securities
+    VND: Securities
+    FPT: Technology
+    HPG: Materials
+    MWG: Retail
+
+backtest:
+  top_n: 5
+  holding_periods:
+    - 5
+    - 10
+    - 20
+  only_watchlist: false
+  sector_aware: true
+  entry_delay_days: 1
+  entry_price_col: open
+  exit_price_col: close
+  benchmark_symbol: VNINDEX
+  benchmark_path: data/processed/benchmark_vnindex.parquet
+  cost_model:
+    round_trip_cost: 0.004
+    base_slippage_bps: 10.0
+    atr_slippage_weight: 0.05
+    liquidity_target_avg_value: 25000000000
+    low_liquidity_penalty_bps: 15.0
+    regime_slippage_multiplier:
+      Low Vol: 0.85
+      Normal Vol: 1.0
+      High Vol: 1.15
+      Stress Vol: 1.35
+      Panic Vol: 1.6
+      Unknown: 1.1

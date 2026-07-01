@@ -1,0 +1,32 @@
+Ticker: STB
+Date: 2026-06-26
+
+Final Score: 80/100
+Decision: WATCH / WAIT FOR PULLBACK
+Confidence: Medium-High
+
+Entry Zone: 72,254 - 73,687
+Stop-loss: 68,814
+Target 1: 80,279
+Target 2: 84,864
+Risk/Reward: 1.50
+
+Market Regime: Bullish
+Trend: Uptrend
+Momentum: Positive
+Relative Strength: Neutral/lagging
+Alpha: 95.28%
+Risk: Controlled
+Liquidity: Passed
+Simulation: 50.1% target-before-stop probability
+
+Main Reasons:
+1. market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
+2. alpha: 100/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
+3. trend: 95/100 - MA structure, slopes, ADX/+DI, and breakout context.
+
+Warnings:
+1. Risk/reward is below the preferred buy threshold.
+
+Vietnamese Broker Note:
+STB hiện được hệ thống chấm 80/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là uptrend. Giá vẫn giữ trên MA50 và MA200, cho thấy cấu trúc trung hạn chưa bị phá vỡ. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 50.1%.

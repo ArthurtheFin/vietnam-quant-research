@@ -1,0 +1,32 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+.DS_Store
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.tmp
+*.temp
+*.bak
+*.swp
+~$*
+
+# local data cache
+data/raw/**/*.parquet
+data/processed/**/*.parquet
+data/signals/**/*.parquet
+data/output/**/*.parquet
+data/output/**/*.csv
+data/output/**/*.json
+data/reports/**/*.html
+data/reports/**/*.png
+data/reports/**/*.md
+
+# notebooks outputs if needed
+*.log

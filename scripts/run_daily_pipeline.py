@@ -1,0 +1,383 @@
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+os.chdir(PROJECT_ROOT)
+
+from src.data.loaders import read_parquet
+from src.utils.logger import get_logger
+from src.utils.pipeline_io import (
+    dataframe_metadata,
+    relative_path,
+    resolve_watchlist_source,
+    utc_now_iso,
+    validate_pipeline_metadata,
+    write_json,
+)
+from src.validation.freshness_check import evaluate_freshness
+
+LOGGER = get_logger("daily_pipeline")
+
+
+PIPELINE_STEPS = [
+    {
+        "name": "generate_features",
+        "script": "scripts/generate_features.py",
+        "outputs": ["data/processed/stock_features.parquet", "data/processed/benchmark_vnindex.parquet"],
+    },
+    {
+        "name": "generate_signals",
+        "script": "scripts/generate_signals.py",
+        "outputs": ["data/signals/setup_signals.parquet"],
+    },
+    {
+        "name": "run_alpha_scoring",
+        "script": "scripts/run_alpha_scoring.py",
+        "outputs": ["data/signals/alpha_scores.parquet"],
+    },
+    {
+        "name": "generate_trade_cards",
+        "script": "scripts/generate_trade_cards.py",
+        "outputs": ["data/signals/breakout_20d_trade_cards.parquet"],
+    },
+    {
+        "name": "run_stealth_accumulation_screen",
+        "script": "scripts/run_stealth_accumulation_screen.py",
+        "outputs": [
+            "data/signals/stealth_accumulation_history.parquet",
+            "data/signals/stealth_accumulation_latest.parquet",
+        ],
+    },
+    {
+        "name": "run_meta_ranking",
+        "script": "scripts/run_meta_ranking.py",
+        "outputs": [
+            "data/signals/meta_ranking.parquet",
+            "data/signals/final_watchlist.parquet",
+            "data/output/research_candidates.parquet",
+            "data/output/trading_watchlist.parquet",
+            "data/output/client_ready_watchlist.parquet",
+        ],
+    },
+]
+
+ONLINE_DAILY_STEPS = [
+    {
+        "name": "update_daily_data",
+        "script": "scripts/update_daily_data.py",
+        "outputs": ["data/raw"],
+    },
+]
+
+ONLINE_INDEX_STEPS = [
+    {
+        "name": "update_index_data",
+        "script": "scripts/update_index_data.py",
+        "outputs": [
+            "data/raw/index_ohlcv",
+            "data/processed/index_features.parquet",
+            "data/processed/benchmark_vnindex.parquet",
+        ],
+    },
+]
+
+
+def _read_artifact_summary(path: str | Path) -> dict[str, object]:
+    artifact_path = PROJECT_ROOT / path
+    if artifact_path.is_dir():
+        return {
+            "path": relative_path(artifact_path, PROJECT_ROOT),
+            "exists": artifact_path.exists(),
+            "rows": None,
+            "columns": None,
+            "symbol_count": None,
+            "latest_date": None,
+        }
+    if artifact_path.suffix.lower() == ".json":
+        payload: dict[str, object] = {}
+        if artifact_path.exists():
+            try:
+                payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+            except Exception:
+                payload = {}
+        return {
+            "path": relative_path(artifact_path, PROJECT_ROOT),
+            "exists": artifact_path.exists(),
+            "rows": None,
+            "columns": None,
+            "symbol_count": payload.get("symbol_count"),
+            "latest_date": payload.get("source_latest_date") or payload.get("latest_date"),
+        }
+    df = read_parquet(artifact_path)
+    summary = dataframe_metadata(df, path=artifact_path)
+    summary["path"] = relative_path(artifact_path, PROJECT_ROOT)
+    summary["exists"] = artifact_path.exists()
+    return summary
+
+
+def _ensure_online_ready() -> None:
+    from src.data import fcdata_config
+
+    try:
+        fcdata_config.validate_config()
+    except EnvironmentError as exc:
+        raise SystemExit(str(exc)) from exc
+
+
+def _run_step(step: dict[str, object]) -> dict[str, object]:
+    script = str(step["script"])
+    cmd = [sys.executable, script]
+    LOGGER.info("Running step `%s` via `%s`", step["name"], " ".join(cmd))
+    started = time.time()
+    result = subprocess.run(
+        cmd,
+        cwd=PROJECT_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    duration = round(time.time() - started, 2)
+
+    if result.stdout.strip():
+        LOGGER.info("Step `%s` stdout:\n%s", step["name"], result.stdout.strip())
+    if result.stderr.strip():
+        LOGGER.warning("Step `%s` stderr:\n%s", step["name"], result.stderr.strip())
+
+    summaries = [_read_artifact_summary(path) for path in step.get("outputs", [])]
+    payload = {
+        "name": step["name"],
+        "script": script,
+        "duration_seconds": duration,
+        "return_code": int(result.returncode),
+        "status": "OK" if result.returncode == 0 else "ERROR",
+        "outputs": summaries,
+    }
+    if result.returncode != 0:
+        payload["error"] = (result.stderr or result.stdout).strip()
+    return payload
+
+
+def _benchmark_status(freshness: dict[str, object]) -> dict[str, object]:
+    artifacts = freshness.get("artifacts", {})
+    benchmark = artifacts.get("benchmark_vnindex", {})
+    stock = artifacts.get("stock_features", {})
+    benchmark_latest = benchmark.get("latest_date")
+    stock_latest = stock.get("latest_date")
+    if benchmark_latest and stock_latest and benchmark_latest < stock_latest:
+        return {
+            "status": "WARNING",
+            "benchmark_latest_date": benchmark_latest,
+            "stock_latest_date": stock_latest,
+            "reason": "Offline pipeline rebuilds benchmark from local raw index parquet, and local VNINDEX raw data only reaches the older date.",
+            "recommended_action": "Run `python scripts/update_index_data.py` in online mode after SSI index data is available to refresh VNINDEX raw history.",
+        }
+    return {
+        "status": "OK",
+        "benchmark_latest_date": benchmark_latest,
+        "stock_latest_date": stock_latest,
+        "reason": None,
+        "recommended_action": None,
+    }
+
+
+def _build_portfolio_stack_metadata(
+    enabled: bool = False,
+    status: str | None = None,
+    warnings: list[str] | None = None,
+    generated_files: list[str] | None = None,
+    source_watchlist: str | None = None,
+    symbols_used: list[str] | None = None,
+    **extra: object,
+) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "enabled": enabled,
+    }
+    if enabled:
+        payload.update(
+            {
+                "status": status or "ERROR",
+                "warnings": warnings or [],
+                "generated_files": generated_files or [],
+                "source_watchlist": source_watchlist,
+                "symbols_used": symbols_used or [],
+            }
+        )
+        payload.update(extra)
+    return payload
+
+
+def _default_portfolio_stack_metadata() -> dict[str, object]:
+    return _build_portfolio_stack_metadata(enabled=False)
+
+
+def _run_portfolio_stack() -> dict[str, object]:
+    step = {
+        "name": "build_portfolio_stack",
+        "script": "scripts/build_portfolio_stack.py",
+        "outputs": [
+            "data/output/portfolio_candidates.parquet",
+            "data/output/portfolio_weights.parquet",
+            "data/output/capital_plan.parquet",
+            "data/output/portfolio_stack_metadata.json",
+            "data/output/portfolio_risk_report.json",
+        ],
+    }
+    report = _run_step(step)
+    metadata_path = PROJECT_ROOT / "data/output/portfolio_stack_metadata.json"
+    stack_payload = {
+        "enabled": True,
+        "status": report["status"],
+        "warnings": [],
+        "generated_files": [],
+        "source_watchlist": None,
+        "symbols_used": [],
+    }
+    if metadata_path.exists():
+        payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+        stack_payload.update(
+            {
+                "status": payload.get("status", report["status"]),
+                "warnings": payload.get("warnings", []),
+                "generated_files": payload.get("generated_files", []),
+                "source_watchlist": payload.get("source_path"),
+                "symbols_used": payload.get("used_symbols", payload.get("symbols", [])),
+                "source_watchlist_name": payload.get("source_name"),
+                "source_latest_date": payload.get("source_latest_date"),
+            }
+        )
+    if report["status"] != "OK" and report.get("error"):
+        stack_payload["warnings"] = list(stack_payload.get("warnings", [])) + [report["error"]]
+    return {"step": report, "metadata": stack_payload}
+
+
+def _build_pipeline_metadata(
+    mode: str,
+    steps: list[dict[str, object]],
+    freshness: dict[str, object],
+    portfolio_stack: dict[str, object] | None = None,
+) -> dict[str, object]:
+    stock_df = read_parquet(PROJECT_ROOT / "data/processed/stock_features.parquet")
+    watchlist_source = resolve_watchlist_source(PROJECT_ROOT)
+    watchlist_source_metadata = watchlist_source.metadata()
+    watchlist_source_metadata["source_path"] = relative_path(watchlist_source_metadata.get("source_path"), PROJECT_ROOT)
+    watchlist_counts = {}
+    for name in ("research_candidates", "trading_watchlist", "client_ready_watchlist"):
+        path = PROJECT_ROOT / f"data/output/{name}.parquet"
+        frame = read_parquet(path)
+        watchlist_counts[name] = {
+            "rows": int(len(frame)),
+            "symbols": int(frame["symbol"].nunique()) if "symbol" in frame.columns else 0,
+            "latest_date": dataframe_metadata(frame).get("latest_date"),
+        }
+
+    generated_files = []
+    for step in steps:
+        for artifact in step.get("outputs", []):
+            if artifact.get("exists"):
+                generated_files.append(artifact["path"])
+
+    payload = {
+        "run_timestamp": utc_now_iso(),
+        "run_mode": mode,
+        "latest_stock_date": dataframe_metadata(stock_df).get("latest_date"),
+        "latest_feature_date": dataframe_metadata(stock_df).get("latest_date"),
+        "latest_benchmark_date": freshness.get("artifacts", {}).get("benchmark_vnindex", {}).get("latest_date"),
+        "total_symbols": int(stock_df["symbol"].nunique()) if "symbol" in stock_df.columns else 0,
+        "total_rows": int(len(stock_df)),
+        "watchlist_source": watchlist_source_metadata,
+        "watchlist_counts": watchlist_counts,
+        "warnings": freshness.get("warnings", []),
+        "errors": freshness.get("errors", []),
+        "freshness_status": freshness.get("status"),
+        "benchmark_status": _benchmark_status(freshness),
+        "generated_files": generated_files,
+        "portfolio_stack": portfolio_stack or _default_portfolio_stack_metadata(),
+        "steps": steps,
+    }
+    validate_pipeline_metadata(payload)
+    return payload
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run the daily research pipeline in offline or online mode.")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--offline", action="store_true", help="Use existing parquet data only.")
+    group.add_argument("--online", action="store_true", help="Fetch fresh SSI data before rebuilding artifacts.")
+    parser.add_argument("--strict-freshness", action="store_true", help="Treat stale warning-level artifacts as errors.")
+    parser.add_argument("--build-portfolio", action="store_true", help="Build portfolio/risk/capital outputs after watchlists.")
+    parser.add_argument("--update-index", action="store_true", help="Refresh raw index/VNINDEX data before generating features in online mode.")
+    args = parser.parse_args(argv)
+
+    mode = "online" if args.online else "offline"
+    steps_to_run = list(PIPELINE_STEPS)
+    if mode == "online":
+        _ensure_online_ready()
+        online_prefix_steps = list(ONLINE_DAILY_STEPS)
+        if args.update_index:
+            online_prefix_steps = ONLINE_INDEX_STEPS + online_prefix_steps
+        steps_to_run = online_prefix_steps + steps_to_run
+
+    LOGGER.info("Starting daily pipeline in `%s` mode", mode)
+    step_reports: list[dict[str, object]] = []
+    for step in steps_to_run:
+        report = _run_step(step)
+        step_reports.append(report)
+        if report["status"] != "OK":
+            metadata = _build_pipeline_metadata(
+                mode=mode,
+                steps=step_reports,
+                freshness={"status": "ERROR", "warnings": [], "errors": [report.get("error", "Unknown error")], "artifacts": {}},
+                portfolio_stack=_default_portfolio_stack_metadata(),
+            )
+            write_json(metadata, PROJECT_ROOT / "data/output/pipeline_metadata.json")
+            LOGGER.error("Pipeline stopped at step `%s`", step["name"])
+            return 1
+
+    freshness = evaluate_freshness(base_dir=PROJECT_ROOT, strict=args.strict_freshness)
+    portfolio_stack_metadata = _default_portfolio_stack_metadata()
+    if args.build_portfolio:
+        if freshness["status"] == "ERROR":
+            portfolio_stack_metadata = {
+                **_build_portfolio_stack_metadata(
+                    enabled=True,
+                    status="ERROR",
+                    warnings=["Skipped portfolio stack because freshness check returned ERROR."],
+                    generated_files=[],
+                    source_watchlist=None,
+                    symbols_used=[],
+                ),
+            }
+        else:
+            stack_result = _run_portfolio_stack()
+            step_reports.append(stack_result["step"])
+            portfolio_stack_metadata = stack_result["metadata"]
+
+    metadata = _build_pipeline_metadata(
+        mode=mode,
+        steps=step_reports,
+        freshness=freshness,
+        portfolio_stack=portfolio_stack_metadata,
+    )
+    write_json(metadata, PROJECT_ROOT / "data/output/pipeline_metadata.json")
+
+    LOGGER.info("Daily pipeline complete with freshness status: %s", freshness["status"])
+    if freshness["status"] == "ERROR":
+        return 1
+    if args.build_portfolio and portfolio_stack_metadata.get("status") == "ERROR":
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

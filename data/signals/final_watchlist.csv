@@ -1,0 +1,11 @@
+rank,symbol,date,analysis_as_of,data_age_days,close,final_score,base_final_score,warning_penalty,candidate_tier,confidence_label,is_research_candidate,is_trading_candidate,is_client_ready,exclusion_reason,trend_score,momentum_score,relative_strength_score,volume_score,liquidity_score,risk_score,signal_score,volatility_regime,risk_reward_estimate,reason,warning
+1,CTS,2026-06-30,2026-06-30,0,26800,87.76,87.76,0.0,Client Ready,High,True,True,True,,25.0,19.53,19.35,4.9,8.64,2.08,8.26,High Vol,5.14,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+2,MSB,2026-06-30,2026-06-30,0,15950,87.24,87.24,0.0,Client Ready,High,True,True,True,,25.0,19.4,19.17,0.97,9.44,4.97,8.29,Normal Vol,18.57,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+3,STB,2026-06-30,2026-06-30,0,75300,86.23,86.23,0.0,Client Ready,High,True,True,True,,25.0,19.19,19.1,0.25,9.87,4.52,8.3,Normal Vol,10.11,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+4,POW,2026-06-30,2026-06-30,0,14750,85.08,85.08,0.0,Client Ready,High,True,True,True,,25.0,18.68,18.26,1.27,9.35,4.8,7.72,Normal Vol,5.55,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+5,ABB,2026-06-30,2026-06-30,0,18100,84.13,84.13,0.0,Client Ready,High,True,True,True,,25.0,19.05,19.05,0.48,8.31,4.23,8.01,Normal Vol,11.65,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+6,BMP,2026-06-30,2026-06-30,0,154000,83.31,83.31,0.0,Client Ready,High,True,True,True,,25.0,19.08,19.08,1.04,8.02,3.56,7.53,Normal Vol,10.29,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+7,SSB,2026-06-30,2026-06-30,0,15900,82.8,82.8,0.0,Client Ready,High,True,True,True,,25.0,18.68,18.33,0.1,8.5,4.26,7.93,High Vol,6.34,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+8,VAB,2026-06-30,2026-06-30,0,11250,82.67,82.67,0.0,Client Ready,High,True,True,True,,25.0,18.42,18.0,1.03,7.49,4.53,8.2,Normal Vol,5.79,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+9,BVB,2026-06-30,2026-06-30,0,13700,82.45,82.45,0.0,Client Ready,High,True,True,True,,25.0,18.36,18.21,0.79,8.41,4.36,7.32,Low Vol,3.7,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",
+10,SAB,2026-06-30,2026-06-30,0,48700,82.3,82.3,0.0,Client Ready,High,True,True,True,,25.0,17.33,16.19,0.97,8.33,6.74,7.74,Low Vol,5.42,"Xu hướng tăng duy trì, rs vượt vnindex, động lượng tốt.",

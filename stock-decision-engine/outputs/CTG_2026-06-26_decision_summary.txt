@@ -1,0 +1,32 @@
+Ticker: CTG
+Date: 2026-06-26
+
+Final Score: 60/100
+Decision: WATCH / WAIT FOR PULLBACK
+Confidence: Medium
+
+Entry Zone: 33,245 - 33,501
+Stop-loss: 32,629
+Target 1: 34,682
+Target 2: 35,504
+Risk/Reward: 1.50
+
+Market Regime: Bullish
+Trend: Downtrend
+Momentum: Weak
+Relative Strength: Neutral/lagging
+Alpha: 5.20%
+Risk: Controlled
+Liquidity: Passed
+Simulation: 45.5% target-before-stop probability
+
+Main Reasons:
+1. market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
+2. alpha: 100/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
+3. risk: 100/100 - ATR, volatility percentile, drawdown, CVaR, skew, and stop width.
+
+Warnings:
+1. Risk/reward is below the preferred buy threshold.
+
+Vietnamese Broker Note:
+CTG hiện được hệ thống chấm 60/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 45.5%.

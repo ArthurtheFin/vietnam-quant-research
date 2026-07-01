@@ -1,0 +1,108 @@
+universe:
+  markets:
+    - HOSE
+    - HNX
+    - UPCOM
+  indexes:
+    - VNINDEX
+    - VN30
+    - HNXIndex
+    - HNXUpcomIndex
+  watchlist:
+    - ACB
+    - BID
+    - CTG
+    - DGC
+    - FPT
+    - GAS
+    - GVR
+    - HDB
+    - HPG
+    - LPB
+    - MBB
+    - MSN
+    - MWG
+    - PLX
+    - SAB
+    - SHB
+    - SSB
+    - SSI
+    - STB
+    - TCB
+    - TPB
+    - VCB
+    - VHM
+    - VIB
+    - VIC
+    - VJC
+    - VNM
+    - VPB
+    - VRE
+    - VPL
+  start_date: '2020-01-01'
+
+returns:
+  horizons: [1, 5, 10, 20, 60]
+
+trend:
+  ma_windows: [20, 50, 200]
+
+volatility:
+  atr_window: 14
+  realized_windows: [10, 20, 60]
+  ewma_span: 20
+  percentile_window: 252
+
+distribution:
+  window: 60
+
+signals:
+  breakout_lookback: 20
+  breakout_min_volume_z: 1.0
+  pullback_ma_col: ma20
+  pullback_tolerance: 0.015
+  volume_spike_threshold: 2.0
+
+backtest:
+  holding_periods: [5, 10, 20]
+  target_pct: 0.08
+  stop_loss_pct: 0.03
+  transaction_cost_pct: 0.0015
+
+monte_carlo:
+  simulations: 10000
+  horizon_days: 20
+  method: bootstrap
+
+risk:
+  risk_per_trade: 0.01
+  max_position_pct: 0.25
+
+final_watchlist:
+  watchlist_size: 10
+  benchmark_symbol: VNINDEX
+  min_history_days: 120
+  min_price: 5.0
+  min_value_ma20: 10000000000
+  min_volume_ma20: 50000
+  max_atr_pct: 0.08
+  max_relaxed_atr_pct: 0.12
+  max_distance_ma20: 0.18
+  max_relaxed_distance_ma20: 0.28
+  max_drawdown_60d: -0.30
+  weights:
+    trend: 25
+    momentum: 20
+    relative_strength: 20
+    liquidity: 10
+    volume: 5
+    risk: 10
+    signal: 10
+  paths:
+    features: data/processed/stock_features.parquet
+    benchmark: data/processed/benchmark_vnindex.parquet
+    meta_ranking: data/signals/meta_ranking.parquet
+    alpha_scores: data/signals/alpha_scores.parquet
+    output_csv: data/signals/final_watchlist.csv
+    output_parquet: data/signals/final_watchlist.parquet
+    output_excel: reports/final_watchlist.xlsx
