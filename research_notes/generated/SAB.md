@@ -5,34 +5,34 @@ Thesis đầu tư đối với SAB tập trung vào tín hiệu kiệt cung tíc
 
 ## 2. Quant Evidence
 - Phân loại Watchlist: `client_ready`
-- Nhãn phân loại kỹ thuật: `High`
+- Nhãn phân loại kỹ thuật: `Medium-High`
 - Cấp độ dòng tiền (Cashflow Label): `IMPROVING`
-- Điểm số composite dòng tiền: 78.7/100
+- Điểm số composite dòng tiền: 59.6/100
 - Trạng thái dòng tiền: `DRY_UP_WATCH`
 - Trạng thái xác nhận dòng tiền: `WATCH`
-- Tỷ trọng danh mục gợi ý: 4.23%
-- Giá trị phân bổ vốn dự kiến: 40,178,850 VND
+- Tỷ trọng danh mục gợi ý: 22.69%
+- Giá trị phân bổ vốn dự kiến: 199,996,250 VND
 - Biến động phân vị (volatility percentile): 3.6%
 
 
 ## 3. Sector Context
 Cổ phiếu thuộc ngành `Food & Beverage`.
 - Xếp hạng dòng tiền ngành: #6 toàn thị trường.
-- Điểm số dòng tiền ngành: 26.9/100.
+- Điểm số dòng tiền ngành: 26.5/100.
 - Nhãn ngành: `WEAK` (Chất lượng điểm số: `MEDIUM`).
 - Số lượng mã giao dịch hoạt động trong ngành: 9 mã.
-- Các mã dẫn đầu dòng tiền cùng ngành: SAB, BHN, VNM.
+- Các mã dẫn đầu dòng tiền cùng ngành: BHN, SMB, MCM.
 
 
 ## 4. Cashflow Confirmation
-- Điểm số Money Flow: 78.7
+- Điểm số Money Flow: 59.6
 - Trạng thái dòng tiền: `DRY_UP_WATCH`
 - Xác nhận từ hệ thống: `WATCH`
-- Thuyết minh định lượng: Theo dõi kiệt cung (Dry-up): giá giữ nền ổn định, volume cạn kiệt (0.63x trung bình).
+- Thuyết minh định lượng: Theo dõi kiệt cung (Dry-up): giá giữ nền ổn định, volume cạn kiệt (0.12x trung bình).
 
 
 ## 5. Technical Setup
-Cổ phiếu thiết lập vùng kiệt cung chặt chẽ (dry-up setup). Giá dao động trong biên độ rất hẹp (-0.9%), khối lượng giao dịch cạn kiệt ở mức 0.63x trung bình, cho thấy lực bán đã dừng hoàn toàn.
+Cổ phiếu thiết lập vùng kiệt cung chặt chẽ (dry-up setup). Giá dao động trong biên độ rất hẹp (0.1%), khối lượng giao dịch cạn kiệt ở mức 0.12x trung bình, cho thấy lực bán đã dừng hoàn toàn.
 
 ## 6. Risk Factors
 - Rủi ro thị trường: Rủi ro chung từ biến động không thuận lợi của chỉ số VNINDEX.

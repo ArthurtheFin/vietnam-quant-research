@@ -1,42 +1,41 @@
 # VPB Research Note
 
 ## 1. Investment Thesis
-Cổ phiếu VPB ngành Banking đang thể hiện luận điểm đầu tư đột phá rất mạnh. Đà bứt phá giá được hậu thuẫn tối đa bởi sự gia tăng mạnh mẽ từ dòng tiền lớn (volume ratio đạt 2.10x trung bình). Thesis kỳ vọng đà tăng giá có thể tiếp diễn nếu dòng tiền tiếp tục được duy trì ổn định.
+Luận điểm đầu tư của VPB tập trung vào xu hướng cải thiện tích cực của dòng tiền ngắn hạn trong ngành Banking. Quantitative indicators ghi nhận sự đồng thuận giữa dòng tiền đi lên và trạng thái phục hồi kỹ thuật, mở ra triển vọng nắm giữ trung hạn khả quan.
 
 ## 2. Quant Evidence
 - Phân loại Watchlist: `client_ready`
 - Nhãn phân loại kỹ thuật: `High`
-- Cấp độ dòng tiền (Cashflow Label): `STRONG`
-- Điểm số composite dòng tiền: 92.0/100
-- Trạng thái dòng tiền: `CONFIRMED_INFLOW`
-- Trạng thái xác nhận dòng tiền: `STRONG_CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 3.39%
-- Giá trị phân bổ vốn dự kiến: 32,187,400 VND
-- Biến động phân vị (volatility percentile): 5.6%
+- Cấp độ dòng tiền (Cashflow Label): `IMPROVING`
+- Điểm số composite dòng tiền: 82.6/100
+- Trạng thái dòng tiền: `NEUTRAL`
+- Trạng thái xác nhận dòng tiền: `CONFIRMED`
+- Tỷ trọng danh mục gợi ý: 6.46%
+- Biến động phân vị (volatility percentile): 6.0%
 
 
 ## 3. Sector Context
 Cổ phiếu thuộc ngành `Banking`.
 - Xếp hạng dòng tiền ngành: #1 toàn thị trường.
-- Điểm số dòng tiền ngành: 48.7/100.
-- Nhãn ngành: `NEUTRAL` (Chất lượng điểm số: `HIGH`).
+- Điểm số dòng tiền ngành: 36.6/100.
+- Nhãn ngành: `WEAK` (Chất lượng điểm số: `HIGH`).
 - Số lượng mã giao dịch hoạt động trong ngành: 20 mã.
-- Các mã dẫn đầu dòng tiền cùng ngành: HDB, VPB, TCB.
+- Các mã dẫn đầu dòng tiền cùng ngành: TCB, VPB, OCB.
 
 
 ## 4. Cashflow Confirmation
-- Điểm số Money Flow: 92.0
-- Trạng thái dòng tiền: `CONFIRMED_INFLOW`
-- Xác nhận từ hệ thống: `STRONG_CONFIRMED`
-- Thuyết minh định lượng: Xác nhận mạnh: volume tăng mạnh 2.10x trung bình, giá tăng 4.3%.
+- Điểm số Money Flow: 82.6
+- Trạng thái dòng tiền: `NEUTRAL`
+- Xác nhận từ hệ thống: `CONFIRMED`
+- Thuyết minh định lượng: Xác nhận: dòng tiền đang cải thiện (trạng thái NEUTRAL, volume ratio 0.28x).
 
 
 ## 5. Technical Setup
-Thiết lập kỹ thuật đang ở trạng thái bứt phá xu hướng (breakout). Đường giá vượt lên các vùng kháng cự ngắn hạn đi kèm khối lượng giao dịch đột biến đạt 2.10x trung bình 20 phiên, xác nhận xu hướng tăng.
+Đồ thị vận động tích lũy trung tính, chưa bứt phá khỏi kênh giá hẹp hiện tại và dao động quanh các đường trung bình động.
 
 ## 6. Risk Factors
 - Rủi ro thị trường: Rủi ro chung từ biến động không thuận lợi của chỉ số VNINDEX.
-- Rủi ro kỹ thuật: Volatility phân vị ở mức 5.6%, có thể xảy ra các nhịp rung lắc ngắn hạn.
+- Rủi ro kỹ thuật: Volatility phân vị ở mức 6.0%, có thể xảy ra các nhịp rung lắc ngắn hạn.
 
 ## 7. Invalidation Conditions
 1. Đường giá cắt xuống các vùng hỗ trợ kỹ thuật quan trọng ngắn hạn (đặc biệt là đường MA20 hoặc biên dưới nền giá tích lũy).
@@ -45,11 +44,11 @@ Thiết lập kỹ thuật đang ở trạng thái bứt phá xu hướng (break
 
 ## 8. Action Plan
 Kịch bản hành động được đề xuất:
-- Thao tác thực tế: Khuyến nghị MUA/GIA TĂNG tỷ trọng khi đạt điểm breakout.
+- Thao tác thực tế: Khuyến nghị NẮM GIỮ hoặc TÍCH LŨY THÊM tại vùng nền giá.
 - Nên giải ngân từng phần khi có sự đồng thuận từ thị trường chung và điểm mua kỹ thuật đạt chuẩn, tuyệt đối tuân thủ kỷ luật cắt lỗ nếu vi phạm vùng hỗ trợ.
 
 ## 9. Client Explanation
-Cổ phiếu này đang thu hút dòng tiền lớn rất mạnh mẽ, đi kèm đà tăng giá rõ rệt. Đây là tín hiệu cho thấy các nhà đầu tư tổ chức đang gia nhập tích cực. Quý khách có thể cân nhắc tích lũy thêm cổ phiếu này.
+Dòng tiền ngắn hạn đang cải thiện và ủng hộ đà phục hồi của cổ phiếu. Đây là trạng thái an toàn để nắm giữ hoặc gia tăng vị thế từng phần ở vùng giá hợp lý.
 
 ## 10. Disclaimer
 Báo cáo phân tích này chỉ mang tính chất tham khảo cho khách hàng, không cấu thành một lời kỳ vọng tối ưu hóa danh mục hay khuyến nghị mua bán tuyệt đối trong mọi tình huống. Nhà đầu tư nên tự chịu trách nhiệm về quyết định giao dịch của mình.

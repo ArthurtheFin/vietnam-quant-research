@@ -198,6 +198,7 @@ def validate_pipeline_metadata(payload: dict[str, object]) -> dict[str, object]:
             "sector_board",
             "cashflow_board",
             "research_notes",
+            "universe_update",
         ),
         label="pipeline_metadata.json",
     )

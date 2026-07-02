@@ -169,6 +169,7 @@ def _build_online_update_metadata(enabled: bool) -> dict[str, object]:
         "recommended_action": None,
         "warnings": [],
         "steps": [],
+        "failed_symbols": [],
     }
 
 
@@ -302,9 +303,25 @@ def _ensure_online_ready() -> None:
         raise SystemExit(str(exc)) from exc
 
 
-def _run_step(step: dict[str, object]) -> dict[str, object]:
+def _run_step(step: dict[str, object], args_context: argparse.Namespace = None) -> dict[str, object]:
     script = str(step["script"])
     cmd = [sys.executable, script]
+    if step["name"] == "update_daily_data" and args_context:
+        update_scope = getattr(args_context, "update_scope", None)
+        if update_scope:
+            cmd.extend(["--scope", update_scope])
+        batch_id = getattr(args_context, "batch_id", None)
+        if batch_id is not None:
+            cmd.extend(["--batch-id", str(batch_id)])
+        batch_count = getattr(args_context, "batch_count", None)
+        if batch_count is not None:
+            cmd.extend(["--batch-count", str(batch_count)])
+        update_symbols = getattr(args_context, "update_symbols", None)
+        if update_symbols:
+            cmd.extend(["--symbols", update_symbols])
+        workers = getattr(args_context, "workers", None)
+        if workers is not None:
+            cmd.extend(["--workers", str(workers)])
     LOGGER.info("Running step `%s` via `%s`", step["name"], " ".join(cmd))
     started = time.time()
     result = subprocess.run(
@@ -649,6 +666,33 @@ def _build_pipeline_metadata(
     if online_update and online_update.get("warnings"):
         warnings.extend(str(item) for item in online_update.get("warnings", []))
 
+    summary_path = PROJECT_ROOT / "data/output/update_daily_data_summary.json"
+    summary_data = {}
+    if summary_path.exists():
+        try:
+            with open(summary_path, "r", encoding="utf-8") as f:
+                summary_data = json.load(f)
+        except Exception:
+            pass
+
+    sf = freshness.get("symbol_freshness") or {}
+    total_uni = sf.get("total_symbols") or watchlist_counts.get("stock_features", {}).get("symbols", 0) or 501
+    fresh_cnt = sf.get("symbols_at_baseline_date") or 0
+    stale_cnt = sf.get("stale_symbol_count") or 0
+    fresh_ratio = 1.0 - (sf.get("stale_symbol_ratio") or 0.0)
+
+    universe_update = {
+        "scope": summary_data.get("update_scope") or ("offline" if mode == "offline" else "unknown"),
+        "attempted_count": summary_data.get("attempted_count") or 0,
+        "succeeded_count": summary_data.get("succeeded_count") or 0,
+        "failed_count": summary_data.get("failed_count") or 0,
+        "total_universe_count": total_uni,
+        "fresh_symbol_count": fresh_cnt,
+        "stale_symbol_count": stale_cnt,
+        "fresh_coverage_ratio": fresh_ratio,
+        "status": summary_data.get("status") or ("OK" if stale_cnt == 0 else "WARNING")
+    }
+
     payload = {
         "run_timestamp": utc_now_iso(),
         "run_mode": mode,
@@ -664,6 +708,8 @@ def _build_pipeline_metadata(
         "errors": errors,
         "freshness_status": freshness.get("status"),
         "benchmark_status": _benchmark_status(freshness),
+        "symbol_freshness": freshness.get("symbol_freshness"),
+        "universe_update": universe_update,
         "generated_files": generated_files,
         "portfolio_stack": portfolio_stack or _default_portfolio_stack_metadata(),
         "sector_board": sector_board or _default_sector_board_metadata(),
@@ -687,6 +733,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--build-cashflow", action="store_true", help="Build cashflow board outputs after watchlists are available.")
     parser.add_argument("--build-research-notes", action="store_true", help="Build research notes after watchlists, cashflow and portfolio.")
     parser.add_argument("--update-index", action="store_true", help="Refresh raw index/VNINDEX data before generating features in online mode.")
+    parser.add_argument("--update-scope", default="core", choices=["core", "full", "batch", "custom"], help="Scope for updating daily data.")
+    parser.add_argument("--batch-id", type=int, default=0, help="Batch ID (for batch scope).")
+    parser.add_argument("--batch-count", type=int, default=10, help="Total batches (for batch scope).")
+    parser.add_argument("--update-symbols", type=str, help="Comma-separated symbols (for custom scope).")
+    parser.add_argument("--workers", type=int, help="Override concurrent workers.")
     args = parser.parse_args(argv)
 
     mode = "online" if args.online else "offline"
@@ -700,6 +751,17 @@ def main(argv: list[str] | None = None) -> int:
         ("--build-research-notes", args.build_research_notes),
         ("--update-index", args.update_index),
     ] if enabled]
+    if args.update_scope:
+        flags_used.append(f"--update-scope {args.update_scope}")
+    if args.batch_id != 0:
+        flags_used.append(f"--batch-id {args.batch_id}")
+    if args.batch_count != 10:
+        flags_used.append(f"--batch-count {args.batch_count}")
+    if args.update_symbols:
+        flags_used.append(f"--update-symbols {args.update_symbols}")
+    if args.workers:
+        flags_used.append(f"--workers {args.workers}")
+
     if mode == "online":
         _ensure_online_ready()
     steps_to_run = _resolve_steps_to_run(mode=mode, update_index=args.update_index)
@@ -708,7 +770,23 @@ def main(argv: list[str] | None = None) -> int:
     step_reports: list[dict[str, object]] = []
     online_update_metadata = _build_online_update_metadata(enabled=(mode == "online"))
     for step in steps_to_run:
-        report = _run_step(step)
+        report = _run_step(step, args_context=args)
+        if mode == "online" and report["name"] == "update_daily_data":
+            summary_path = Path("data/output/update_daily_data_summary.json")
+            if summary_path.exists():
+                import json
+                try:
+                    with open(summary_path, "r", encoding="utf-8") as f:
+                        summary_data = json.load(f)
+                    failed_syms = summary_data.get("failed_symbols", [])
+                    if failed_syms:
+                        report["status"] = "WARNING"
+                        report["error_category"] = "PROVIDER_RATE_LIMIT_PARTIAL"
+                        report["error_message"] = f"Failed to update symbols: {', '.join(failed_syms)}"
+                        report["recommended_action"] = "Rerun online update later or use offline mode if cached data is acceptable."
+                        online_update_metadata["failed_symbols"] = failed_syms
+                except Exception as e:
+                    LOGGER.warning("Could not read update_daily_data_summary.json: %s", e)
         step_reports.append(report)
         if mode == "online" and report["name"] in ONLINE_STEP_NAMES:
             online_update_metadata["steps"].append(
@@ -777,7 +855,7 @@ def main(argv: list[str] | None = None) -> int:
             LOGGER.error("Pipeline stopped at step `%s`", step["name"])
             return 1
 
-    freshness = evaluate_freshness(base_dir=PROJECT_ROOT, strict=args.strict_freshness)
+    freshness = evaluate_freshness(base_dir=PROJECT_ROOT, strict=args.strict_freshness, scope=args.update_scope)
     sector_board_metadata = _default_sector_board_metadata()
     if args.build_sector:
         sector_result = _run_sector_board()

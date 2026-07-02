@@ -7,27 +7,27 @@ Luận điểm đầu tư của VIC tập trung vào xu hướng cải thiện t
 - Phân loại Watchlist: `client_ready`
 - Nhãn phân loại kỹ thuật: `High`
 - Cấp độ dòng tiền (Cashflow Label): `IMPROVING`
-- Điểm số composite dòng tiền: 73.6/100
+- Điểm số composite dòng tiền: 60.9/100
 - Trạng thái dòng tiền: `WEAK_FLOW`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 4.40%
+- Tỷ trọng danh mục gợi ý: 13.48%
 - Biến động phân vị (volatility percentile): 17.5%
 
 
 ## 3. Sector Context
 Cổ phiếu thuộc ngành `Financial Services`.
-- Xếp hạng dòng tiền ngành: #16 toàn thị trường.
-- Điểm số dòng tiền ngành: 23.9/100.
+- Xếp hạng dòng tiền ngành: #13 toàn thị trường.
+- Điểm số dòng tiền ngành: 24.7/100.
 - Nhãn ngành: `WEAK` (Chất lượng điểm số: `HIGH`).
 - Số lượng mã giao dịch hoạt động trong ngành: 22 mã.
-- Các mã dẫn đầu dòng tiền cùng ngành: VPI, VIC, DXG.
+- Các mã dẫn đầu dòng tiền cùng ngành: VPI, DXG, VHM.
 
 
 ## 4. Cashflow Confirmation
-- Điểm số Money Flow: 73.6
+- Điểm số Money Flow: 60.9
 - Trạng thái dòng tiền: `WEAK_FLOW`
 - Xác nhận từ hệ thống: `CONFIRMED`
-- Thuyết minh định lượng: Xác nhận: dòng tiền đang cải thiện (trạng thái WEAK_FLOW, volume ratio 0.53x).
+- Thuyết minh định lượng: Xác nhận: dòng tiền đang cải thiện (trạng thái WEAK_FLOW, volume ratio 0.10x).
 
 
 ## 5. Technical Setup

@@ -146,6 +146,7 @@ def test_validate_pipeline_metadata_rejects_absolute_paths() -> None:
         "cashflow_board": {"enabled": False},
         "research_notes": {"enabled": False},
         "online_update": {"enabled": False},
+        "universe_update": {"scope": "offline"},
     }
 
     with pytest.raises(ValueError, match="absolute filesystem paths"):
