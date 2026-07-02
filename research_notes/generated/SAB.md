@@ -7,36 +7,36 @@ Thesis đầu tư đối với SAB tập trung vào tín hiệu kiệt cung tíc
 - Phân loại Watchlist: `client_ready`
 - Nhãn phân loại kỹ thuật: `High`
 - Cấp độ dòng tiền (Cashflow Label): `IMPROVING`
-- Điểm số composite dòng tiền: 77.3/100
+- Điểm số composite dòng tiền: 78.7/100
 - Trạng thái dòng tiền: `DRY_UP_WATCH`
 - Trạng thái xác nhận dòng tiền: `WATCH`
-- Tỷ trọng danh mục gợi ý: 8.72%
-- Giá trị phân bổ vốn dự kiến: 82,838,700 VND
-- Biến động phân vị (volatility percentile): 6.3%
+- Tỷ trọng danh mục gợi ý: 4.23%
+- Giá trị phân bổ vốn dự kiến: 40,178,850 VND
+- Biến động phân vị (volatility percentile): 3.6%
 
 
 ## 3. Sector Context
 Cổ phiếu thuộc ngành `Food & Beverage`.
 - Xếp hạng dòng tiền ngành: #6 toàn thị trường.
-- Điểm số dòng tiền ngành: 27.0/100.
+- Điểm số dòng tiền ngành: 26.9/100.
 - Nhãn ngành: `WEAK` (Chất lượng điểm số: `MEDIUM`).
 - Số lượng mã giao dịch hoạt động trong ngành: 9 mã.
-- Các mã dẫn đầu dòng tiền cùng ngành: SAB, BHN, SMB.
+- Các mã dẫn đầu dòng tiền cùng ngành: SAB, BHN, VNM.
 
 
 ## 4. Cashflow Confirmation
-- Điểm số Money Flow: 77.3
+- Điểm số Money Flow: 78.7
 - Trạng thái dòng tiền: `DRY_UP_WATCH`
 - Xác nhận từ hệ thống: `WATCH`
-- Thuyết minh định lượng: Theo dõi kiệt cung (Dry-up): giá giữ nền ổn định, volume cạn kiệt (0.25x trung bình).
+- Thuyết minh định lượng: Theo dõi kiệt cung (Dry-up): giá giữ nền ổn định, volume cạn kiệt (0.63x trung bình).
 
 
 ## 5. Technical Setup
-Cổ phiếu thiết lập vùng kiệt cung chặt chẽ (dry-up setup). Giá dao động trong biên độ rất hẹp (-0.8%), khối lượng giao dịch cạn kiệt ở mức 0.25x trung bình, cho thấy lực bán đã dừng hoàn toàn.
+Cổ phiếu thiết lập vùng kiệt cung chặt chẽ (dry-up setup). Giá dao động trong biên độ rất hẹp (-0.9%), khối lượng giao dịch cạn kiệt ở mức 0.63x trung bình, cho thấy lực bán đã dừng hoàn toàn.
 
 ## 6. Risk Factors
 - Rủi ro thị trường: Rủi ro chung từ biến động không thuận lợi của chỉ số VNINDEX.
-- Rủi ro kỹ thuật: Volatility phân vị ở mức 6.3%, có thể xảy ra các nhịp rung lắc ngắn hạn.
+- Rủi ro kỹ thuật: Volatility phân vị ở mức 3.6%, có thể xảy ra các nhịp rung lắc ngắn hạn.
 
 ## 7. Invalidation Conditions
 1. Đường giá cắt xuống các vùng hỗ trợ kỹ thuật quan trọng ngắn hạn (đặc biệt là đường MA20 hoặc biên dưới nền giá tích lũy).

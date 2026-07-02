@@ -5,30 +5,30 @@ Luận điểm đầu tư của ACB tập trung vào xu hướng cải thiện t
 
 ## 2. Quant Evidence
 - Phân loại Watchlist: `client_ready`
-- Nhãn phân loại kỹ thuật: `High`
+- Nhãn phân loại kỹ thuật: `Medium-High`
 - Cấp độ dòng tiền (Cashflow Label): `IMPROVING`
-- Điểm số composite dòng tiền: 61.4/100
+- Điểm số composite dòng tiền: 70.8/100
 - Trạng thái dòng tiền: `NEUTRAL`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 11.03%
-- Giá trị phân bổ vốn dự kiến: 104,766,000 VND
-- Biến động phân vị (volatility percentile): 60.3%
+- Tỷ trọng danh mục gợi ý: 28.69%
+- Giá trị phân bổ vốn dự kiến: 171,596,400 VND
+- Biến động phân vị (volatility percentile): 55.2%
 
 
 ## 3. Sector Context
 Cổ phiếu thuộc ngành `Banking`.
-- Xếp hạng dòng tiền ngành: #2 toàn thị trường.
-- Điểm số dòng tiền ngành: 34.3/100.
-- Nhãn ngành: `WEAK` (Chất lượng điểm số: `HIGH`).
+- Xếp hạng dòng tiền ngành: #1 toàn thị trường.
+- Điểm số dòng tiền ngành: 48.7/100.
+- Nhãn ngành: `NEUTRAL` (Chất lượng điểm số: `HIGH`).
 - Số lượng mã giao dịch hoạt động trong ngành: 20 mã.
-- Các mã dẫn đầu dòng tiền cùng ngành: TPB, OCB, NAB.
+- Các mã dẫn đầu dòng tiền cùng ngành: HDB, VPB, TCB.
 
 
 ## 4. Cashflow Confirmation
-- Điểm số Money Flow: 61.4
+- Điểm số Money Flow: 70.8
 - Trạng thái dòng tiền: `NEUTRAL`
 - Xác nhận từ hệ thống: `CONFIRMED`
-- Thuyết minh định lượng: Xác nhận: dòng tiền đang cải thiện (trạng thái NEUTRAL, volume ratio 0.05x).
+- Thuyết minh định lượng: Xác nhận: dòng tiền đang cải thiện (trạng thái NEUTRAL, volume ratio 0.49x).
 
 
 ## 5. Technical Setup
@@ -36,7 +36,7 @@ Cổ phiếu thuộc ngành `Banking`.
 
 ## 6. Risk Factors
 - Rủi ro thị trường: Rủi ro chung từ biến động không thuận lợi của chỉ số VNINDEX.
-- Rủi ro kỹ thuật: Volatility phân vị ở mức 60.3%, có thể xảy ra các nhịp rung lắc ngắn hạn.
+- Rủi ro kỹ thuật: Volatility phân vị ở mức 55.2%, có thể xảy ra các nhịp rung lắc ngắn hạn.
 
 ## 7. Invalidation Conditions
 1. Đường giá cắt xuống các vùng hỗ trợ kỹ thuật quan trọng ngắn hạn (đặc biệt là đường MA20 hoặc biên dưới nền giá tích lũy).
