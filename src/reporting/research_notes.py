@@ -354,7 +354,13 @@ def generate_research_notes(inputs: dict, template_str: str) -> tuple[pd.DataFra
     cr = inputs["client_ready_watchlist"]
     if cr.empty or "symbol" not in cr.columns:
         return pd.DataFrame(), {}
-        
+
+    if "eligibility_status" in cr.columns:
+        cr = cr[cr["eligibility_status"] != "REJECTED"].copy()
+
+    if cr.empty:
+        return pd.DataFrame(), {}
+
     symbols = cr["symbol"].dropna().unique()
     notes_dict = {}
     index_rows = []

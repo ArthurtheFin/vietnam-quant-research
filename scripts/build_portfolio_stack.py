@@ -70,8 +70,83 @@ def main() -> int:
 
     candidates, source_metadata = load_default_portfolio_candidates(PROJECT_ROOT)
     source_metadata = _normalize_metadata(source_metadata)
+    warnings: list[str] = []
+    rejected_reasons = source_metadata.get("rejected_symbols_portfolio_gate", {})
+    if rejected_reasons:
+        for sym, reason in rejected_reasons.items():
+            warnings.append(f"Rejected symbol {sym} from portfolio construction due to eligibility: {reason}")
+
     if candidates.empty:
-        raise SystemExit("No portfolio candidates available from client_ready_watchlist / trading_watchlist.")
+        warnings.append("No portfolio candidates available after eligibility gate filtering.")
+        
+        empty_weights = pd.DataFrame(columns=["symbol", "equal_weight", "inverse_volatility", "risk_parity", "hrp"])
+        portfolio_weights_path = OUTPUT_DIR / "portfolio_weights.parquet"
+        save_parquet(empty_weights, portfolio_weights_path)
+        
+        empty_risk = {
+            "portfolio_volatility": 0.0,
+            "portfolio_variance": 0.0,
+            "diversification_ratio": 1.0,
+            "marginal_contributions": {},
+            "component_risk_contributions": {},
+            "relative_marginal_risk_contributions": {},
+            "portfolio_return": 0.0,
+            "sharpe_ratio": 0.0,
+            "tracking_error": 0.0,
+            "information_ratio": 0.0,
+            "beta": 0.0,
+            "active_share": 1.0,
+            "alpha": 0.0,
+            "r_squared": 0.0,
+            "warnings": warnings,
+            "generated_at": utc_now_iso(),
+            "used_symbols": [],
+            "missing_symbols": source_metadata.get("missing_symbols", []),
+            "rejected_symbols_portfolio_gate": rejected_reasons,
+        }
+        empty_risk.update(source_metadata)
+        portfolio_risk_report_path = OUTPUT_DIR / "portfolio_risk_report.json"
+        write_json(empty_risk, portfolio_risk_report_path)
+        
+        portfolio_candidates_path = OUTPUT_DIR / "portfolio_candidates.parquet"
+        save_parquet(pd.DataFrame(), portfolio_candidates_path)
+        
+        capital_plan_path = OUTPUT_DIR / "capital_plan.parquet"
+        save_parquet(pd.DataFrame(), capital_plan_path)
+        
+        generated_files = [
+            relative_path(portfolio_candidates_path, PROJECT_ROOT),
+            relative_path(portfolio_weights_path, PROJECT_ROOT),
+            relative_path(portfolio_risk_report_path, PROJECT_ROOT),
+            relative_path(capital_plan_path, PROJECT_ROOT),
+        ]
+        
+        stack_metadata = {
+            **source_metadata,
+            "status": "WARNING",
+            "warnings": warnings,
+            "generated_at": utc_now_iso(),
+            "source_watchlist": source_metadata.get("source_name"),
+            "source_file": source_metadata.get("source_path"),
+            "symbols_used": [],
+            "portfolio_symbols": [],
+            "missing_symbols": source_metadata.get("missing_symbols", []),
+            "candidate_rows": 0,
+            "return_matrix_rows": 0,
+            "return_matrix_symbols": 0,
+            "generated_files": generated_files,
+            "outputs": {
+                "portfolio_candidates": generated_files[0],
+                "portfolio_weights": generated_files[1],
+                "portfolio_risk_report": generated_files[2],
+                "capital_plan": generated_files[3],
+            },
+        }
+        validate_portfolio_stack_metadata(stack_metadata)
+        write_json(stack_metadata, OUTPUT_DIR / "portfolio_stack_metadata.json")
+        
+        print("=== Portfolio Stack Complete with WARNING (Empty candidates) ===")
+        return 0
 
     features = read_parquet(PROJECT_ROOT / "data/processed/stock_features.parquet")
     benchmark = read_parquet(PROJECT_ROOT / "data/processed/benchmark_vnindex.parquet")

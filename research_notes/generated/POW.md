@@ -10,7 +10,8 @@ Luận điểm đầu tư của POW tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 82.1/100
 - Trạng thái dòng tiền: `NEUTRAL`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 12.16%
+- Tỷ trọng danh mục gợi ý: 9.64%
+- Giá trị phân bổ vốn dự kiến: 14,750 VND
 - Biến động phân vị (volatility percentile): 27.4%
 
 

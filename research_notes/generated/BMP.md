@@ -10,8 +10,8 @@ Luận điểm đầu tư của BMP tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 65.9/100
 - Trạng thái dòng tiền: `NEUTRAL`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 12.71%
-- Giá trị phân bổ vốn dự kiến: 96,866,000 VND
+- Tỷ trọng danh mục gợi ý: 10.90%
+- Giá trị phân bổ vốn dự kiến: 103,488,000 VND
 - Biến động phân vị (volatility percentile): 42.5%
 
 

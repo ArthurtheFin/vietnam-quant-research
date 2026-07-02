@@ -15,6 +15,7 @@ from src.analytics.cashflow_board import (
     load_cashflow_inputs,
     write_cashflow_outputs,
 )
+from src.screening.final_watchlist import apply_post_cashflow_overlay
 from src.utils.logger import get_logger
 
 LOGGER = get_logger("build_cashflow_board")
@@ -47,6 +48,9 @@ def main() -> int:
         metadata=metadata,
         base_dir=PROJECT_ROOT,
     )
+
+    # Apply post-cashflow eligibility overlay
+    apply_post_cashflow_overlay(PROJECT_ROOT)
 
     LOGGER.info("Cashflow Board build status: %s", payload.get("status"))
     LOGGER.info("Latest date in data: %s", payload.get("latest_date"))

@@ -10,8 +10,8 @@ Thesis đầu tư đối với VAB tập trung vào tín hiệu kiệt cung tíc
 - Điểm số composite dòng tiền: 74.7/100
 - Trạng thái dòng tiền: `DRY_UP_WATCH`
 - Trạng thái xác nhận dòng tiền: `WATCH`
-- Tỷ trọng danh mục gợi ý: 11.40%
-- Giá trị phân bổ vốn dự kiến: 108,270,000 VND
+- Tỷ trọng danh mục gợi ý: 9.19%
+- Giá trị phân bổ vốn dự kiến: 87,277,500 VND
 - Biến động phân vị (volatility percentile): 36.5%
 
 

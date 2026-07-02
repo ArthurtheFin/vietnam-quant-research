@@ -10,7 +10,7 @@ Cổ phiếu CTS ngành Securities đang thể hiện luận điểm đầu tư 
 - Điểm số composite dòng tiền: 88.7/100
 - Trạng thái dòng tiền: `CONFIRMED_INFLOW`
 - Trạng thái xác nhận dòng tiền: `STRONG_CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 7.86%
+- Tỷ trọng danh mục gợi ý: 6.34%
 - Biến động phân vị (volatility percentile): 63.9%
 
 

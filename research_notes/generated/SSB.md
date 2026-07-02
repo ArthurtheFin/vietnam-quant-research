@@ -10,8 +10,8 @@ Luận điểm đầu tư của SSB tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 74.3/100
 - Trạng thái dòng tiền: `NEUTRAL`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 16.20%
-- Giá trị phân bổ vốn dự kiến: 63,600 VND
+- Tỷ trọng danh mục gợi ý: 14.42%
+- Giá trị phân bổ vốn dự kiến: 111,300 VND
 - Biến động phân vị (volatility percentile): 59.5%
 
 

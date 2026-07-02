@@ -107,15 +107,8 @@ final_cfg = cfg.get("final_watchlist", {})
 benchmark = read_parquet(final_cfg.get("paths", {}).get("benchmark", "data/processed/benchmark_vnindex.parquet"))
 analysis_as_of = _latest_date(ranked) or _latest_date(features) or _latest_date(stock_features)
 candidate_symbols = None
-auto_watchlist_latest = _latest_date(auto_watchlist_snapshot)
-if (
-    not auto_watchlist_snapshot.empty
-    and "symbol" in auto_watchlist_snapshot.columns
-    and analysis_as_of is not None
-    and auto_watchlist_latest is not None
-    and auto_watchlist_latest >= analysis_as_of
-):
-    candidate_symbols = auto_watchlist_snapshot["symbol"].dropna().astype(str).str.upper().tolist()
+candidate_symbols = None
+# Do not restrict candidate_symbols by auto_watchlist_top10 to allow full universe ranking
 
 watchlist_outputs = build_watchlist_tiers(
     features=stock_features,

@@ -10,8 +10,8 @@ Luận điểm đầu tư của MSB tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 76.8/100
 - Trạng thái dòng tiền: `NEUTRAL`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 5.67%
-- Giá trị phân bổ vốn dự kiến: 53,895,050 VND
+- Tỷ trọng danh mục gợi ý: 15.09%
+- Giá trị phân bổ vốn dự kiến: 143,342,650 VND
 - Biến động phân vị (volatility percentile): 31.7%
 
 

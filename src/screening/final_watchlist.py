@@ -9,6 +9,9 @@ import pandas as pd
 from src.data.loaders import read_parquet, save_parquet
 from src.data.validators import filter_primary_equity_symbols
 from src.utils.scoring import deep_merge
+from src.utils.logger import get_logger
+
+LOGGER = get_logger("final_watchlist")
 
 
 FINAL_WATCHLIST_COLUMNS = [
@@ -38,6 +41,11 @@ FINAL_WATCHLIST_COLUMNS = [
     "risk_reward_estimate",
     "reason",
     "warning",
+    "eligibility_status",
+    "eligibility_reason",
+    "latest_volume",
+    "cashflow_data_status",
+    "confirmation_status",
 ]
 
 
@@ -134,6 +142,25 @@ def build_watchlist_tiers(
     latest = _mark_filters(latest, cfg)
     latest = _apply_candidate_tiers(latest)
 
+    # Try to load cashflow data if available to apply eligibility gate
+    cashflow_board = None
+    wcc = None
+    cashflow_board_path = Path("data/output/cashflow_board.parquet")
+    wcc_path = Path("data/output/watchlist_cashflow_confirmation.parquet")
+
+    if cashflow_board_path.exists():
+        try:
+            cashflow_board = read_parquet(cashflow_board_path)
+        except Exception:
+            pass
+    if wcc_path.exists():
+        try:
+            wcc = read_parquet(wcc_path)
+        except Exception:
+            pass
+
+    latest = apply_eligibility_gate(latest, cashflow_board, wcc)
+
     latest = latest.sort_values(
         [
             "is_client_ready",
@@ -145,11 +172,31 @@ def build_watchlist_tiers(
         ascending=[False, False, False, False, True],
     ).reset_index(drop=True)
 
-    research = latest[latest["is_research_candidate"]].copy()
-    trading = latest[latest["is_trading_candidate"]].copy().head(size)
-    client_ready = latest[latest["is_client_ready"]].copy().head(size)
+    client_ready_candidates = latest[
+        (latest["candidate_tier"] == "Client Ready") & (latest["eligibility_status"] == "ELIGIBLE")
+    ].copy()
+    client_ready = client_ready_candidates.head(size)
+    client_ready_syms = set(client_ready["symbol"]) if not client_ready.empty else set()
 
-    for frame in (research, trading, client_ready):
+    trading_candidates = latest[
+        (latest["candidate_tier"].isin(["Client Ready", "Trading Watchlist"])) &
+        (latest["eligibility_status"] == "ELIGIBLE") &
+        (~latest["symbol"].isin(client_ready_syms))
+    ].copy()
+    trading = trading_candidates.head(20)
+    trading_syms = set(trading["symbol"]) if not trading.empty else set()
+
+    active_syms = client_ready_syms.union(trading_syms)
+
+    research = latest[
+        ((latest["eligibility_status"] == "ELIGIBLE") & (~latest["symbol"].isin(active_syms))) |
+        (latest["eligibility_status"] == "REJECTED")
+    ].copy()
+
+    all_scored = latest.copy()
+    eligible = latest[latest["eligibility_status"] == "ELIGIBLE"].copy()
+
+    for frame in (research, trading, client_ready, eligible, all_scored):
         if not frame.empty:
             frame["rank"] = np.arange(1, len(frame) + 1)
 
@@ -158,6 +205,8 @@ def build_watchlist_tiers(
         "research_candidates": research[FINAL_WATCHLIST_COLUMNS] if not research.empty else pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS),
         "trading_watchlist": trading[FINAL_WATCHLIST_COLUMNS] if not trading.empty else pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS),
         "client_ready_watchlist": client_ready[FINAL_WATCHLIST_COLUMNS] if not client_ready.empty else pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS),
+        "eligible_candidates": eligible[FINAL_WATCHLIST_COLUMNS] if not eligible.empty else pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS),
+        "all_scored_candidates": all_scored[FINAL_WATCHLIST_COLUMNS] if not all_scored.empty else pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS),
     }
 
 
@@ -216,6 +265,8 @@ def save_watchlist_outputs(
         "research_candidates": output_dir / "research_candidates",
         "trading_watchlist": output_dir / "trading_watchlist",
         "client_ready_watchlist": output_dir / "client_ready_watchlist",
+        "eligible_candidates": output_dir / "eligible_candidates",
+        "all_scored_candidates": output_dir / "all_scored_candidates",
     }
     for name, stem in mapping.items():
         frame = outputs.get(name, pd.DataFrame())
@@ -225,6 +276,28 @@ def save_watchlist_outputs(
         save_parquet(frame, parquet_path)
         saved_paths[f"{name}_csv"] = csv_path
         saved_paths[f"{name}_parquet"] = parquet_path
+
+    # Write watchlist metadata JSON
+    from src.utils.pipeline_io import write_json
+    
+    meta_path = output_dir / "watchlist_metadata.json"
+    meta_data = {
+        "input_source": str(paths.get("features", "stock_features.parquet")),
+        "input_candidate_count": int(len(outputs.get("scored_universe", pd.DataFrame()))),
+        "eligible_candidate_count": int(len(outputs.get("eligible_candidates", pd.DataFrame()))),
+        "client_ready_count": int(len(outputs.get("client_ready_watchlist", pd.DataFrame()))),
+        "trading_watchlist_count": int(len(outputs.get("trading_watchlist", pd.DataFrame()))),
+        "research_candidate_count": int(len(outputs.get("research_candidates", pd.DataFrame()))),
+        "data_review_count": int(outputs.get("scored_universe", pd.DataFrame())["eligibility_status"].eq("REJECTED").sum()) if "scored_universe" in outputs else 0,
+        "client_ready_threshold": 60.0,
+        "trading_threshold": 55.0,
+        "generated_files": [str(stem.with_suffix(".parquet")) for stem in mapping.values()] + [str(meta_path)],
+        "generated_at": pd.Timestamp.now().isoformat(),
+        "warnings": []
+    }
+    write_json(meta_data, meta_path)
+    saved_paths["watchlist_metadata"] = meta_path
+    
     return saved_paths
 
 
@@ -596,3 +669,307 @@ def _reason_text(row: pd.Series) -> str:
     if not phrases:
         phrases.append("Điểm tổng hợp tốt hơn phần còn lại của vũ trụ")
     return ", ".join(phrases[:3]).capitalize() + "."
+
+
+def apply_eligibility_gate(
+    df: pd.DataFrame,
+    cashflow_board: pd.DataFrame | None = None,
+    watchlist_cashflow_confirmation: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    if df.empty:
+        return df.copy()
+
+    out = df.copy()
+
+    # Ensure columns exist
+    if "eligibility_status" not in out.columns:
+        out["eligibility_status"] = "ELIGIBLE"
+    if "eligibility_reason" not in out.columns:
+        out["eligibility_reason"] = "None"
+    if "latest_volume" not in out.columns:
+        out["latest_volume"] = np.nan
+    if "cashflow_data_status" not in out.columns:
+        out["cashflow_data_status"] = "OK"
+    if "confirmation_status" not in out.columns:
+        out["confirmation_status"] = "WATCH"
+
+    for idx, row in out.iterrows():
+        sym = row["symbol"]
+
+        close = row.get("close")
+        volume = row.get("latest_volume")
+        if pd.isna(volume) or volume is None:
+            volume = row.get("volume")
+
+        cf_row = None
+        wcc_row = None
+        if cashflow_board is not None and not cashflow_board.empty and sym in cashflow_board["symbol"].values:
+            cf_row = cashflow_board[cashflow_board["symbol"] == sym].iloc[0]
+            if pd.isna(volume) or volume is None or np.isnan(volume):
+                volume = cf_row.get("volume")
+        if watchlist_cashflow_confirmation is not None and not watchlist_cashflow_confirmation.empty and sym in watchlist_cashflow_confirmation["symbol"].values:
+            wcc_row = watchlist_cashflow_confirmation[watchlist_cashflow_confirmation["symbol"] == sym].iloc[0]
+
+        cf_status = cf_row.get("cashflow_data_status", "OK") if cf_row is not None else "OK"
+        confirm_status = wcc_row.get("confirmation_status", "WATCH") if wcc_row is not None else "WATCH"
+        cf_state = cf_row.get("cashflow_state", "NEUTRAL") if cf_row is not None else "NEUTRAL"
+        data_age = row.get("data_age_days", 0)
+
+        value_ma20 = row.get("value_ma20", cf_row.get("value_ma20", np.nan) if cf_row is not None else np.nan)
+        volume_ma20 = row.get("volume_ma20", cf_row.get("volume_ma20", np.nan) if cf_row is not None else np.nan)
+
+        reasons = []
+
+        if pd.isna(close) or close <= 0:
+            reasons.append("INVALID_CLOSE")
+
+        if pd.isna(volume) or volume <= 0:
+            reasons.append("ZERO_VOLUME_OR_MISSING_DATA")
+
+        if cf_status in ("ZERO_VOLUME", "MISSING_DATA", "CHECK_REQUIRED"):
+            reasons.append("CASHFLOW_CHECK_REQUIRED")
+
+        if confirm_status in ("CHECK_REQUIRED", "REJECT"):
+            reasons.append("CASHFLOW_CHECK_REQUIRED")
+
+        if not pd.isna(data_age) and data_age > 1:
+            reasons.append("STALE_DATA")
+
+        # Gating threshold is min_value_ma20 = 5 billion and min_volume_ma20 = 50k
+        if not pd.isna(value_ma20) and value_ma20 < 5_000_000_000.0:
+            if pd.isna(volume_ma20) or volume_ma20 < 50_000.0:
+                reasons.append("LOW_LIQUIDITY")
+
+        if cf_state == "DISTRIBUTION_RISK":
+            reasons.append("SEVERE_DISTRIBUTION_RISK")
+
+        # Fill values in output
+        out.at[idx, "latest_volume"] = volume if not pd.isna(volume) else 0.0
+        out.at[idx, "cashflow_data_status"] = cf_status
+        out.at[idx, "confirmation_status"] = confirm_status
+
+        if reasons:
+            out.at[idx, "eligibility_status"] = "REJECTED"
+            out.at[idx, "eligibility_reason"] = "; ".join(sorted(set(reasons)))
+            out.at[idx, "is_client_ready"] = False
+            out.at[idx, "confidence_label"] = "REVIEW_REQUIRED"
+
+            orig_tier = row.get("candidate_tier", "Research Candidate")
+            if orig_tier == "Client Ready":
+                out.at[idx, "candidate_tier"] = "Research Candidate"
+
+            exc = row.get("exclusion_reason", "")
+            reason_str = "; ".join(sorted(set(reasons)))
+            if not exc or pd.isna(exc) or exc == "":
+                out.at[idx, "exclusion_reason"] = f"Failed gates: {reason_str}"
+            else:
+                out.at[idx, "exclusion_reason"] = f"{exc}; Failed gates: {reason_str}"
+        else:
+            out.at[idx, "eligibility_status"] = "ELIGIBLE"
+            out.at[idx, "eligibility_reason"] = "None"
+
+    return out
+
+
+def apply_post_cashflow_overlay(base_dir: str | Path = ".") -> None:
+    base = Path(base_dir)
+
+    cf_path = base / "data/output/cashflow_board.parquet"
+    wcc_path = base / "data/output/watchlist_cashflow_confirmation.parquet"
+
+    if not cf_path.exists() or not wcc_path.exists():
+        LOGGER.warning("Cashflow board files do not exist. Skipping post-cashflow eligibility overlay.")
+        return
+
+    try:
+        cf = read_parquet(cf_path)
+        wcc = read_parquet(wcc_path)
+    except Exception as e:
+        LOGGER.error(f"Error loading cashflow data for overlay: {e}")
+        return
+
+    cr_path = base / "data/output/client_ready_watchlist.parquet"
+    tw_path = base / "data/output/trading_watchlist.parquet"
+    rc_path = base / "data/output/research_candidates.parquet"
+    fw_path = base / "data/signals/final_watchlist.parquet"
+
+    cr_df = read_parquet(cr_path) if cr_path.exists() else pd.DataFrame()
+    tw_df = read_parquet(tw_path) if tw_path.exists() else pd.DataFrame()
+    rc_df = read_parquet(rc_path) if rc_path.exists() else pd.DataFrame()
+    fw_df = read_parquet(fw_path) if fw_path.exists() else pd.DataFrame()
+
+    cr_gated = apply_eligibility_gate(cr_df, cf, wcc) if not cr_df.empty else pd.DataFrame()
+    tw_gated = apply_eligibility_gate(tw_df, cf, wcc) if not tw_df.empty else pd.DataFrame()
+    rc_gated = apply_eligibility_gate(rc_df, cf, wcc) if not rc_df.empty else pd.DataFrame()
+    fw_gated = apply_eligibility_gate(fw_df, cf, wcc) if not fw_df.empty else pd.DataFrame()
+
+    rejected_rows = []
+
+    final_cr = pd.DataFrame()
+    if not cr_gated.empty:
+        rejected_df = cr_gated[cr_gated["eligibility_status"] == "REJECTED"].copy()
+        for _, row in rejected_df.iterrows():
+            sym = row["symbol"]
+            cf_row = cf[cf["symbol"] == sym].iloc[0] if sym in cf["symbol"].values else None
+            wcc_row = wcc[wcc["symbol"] == sym].iloc[0] if sym in wcc["symbol"].values else None
+
+            reasons = str(row.get("eligibility_reason", ""))
+            action = "Không allocate vốn cho đến khi dữ liệu giao dịch hợp lệ."
+            if "ZERO_VOLUME" in reasons:
+                action = "Kiểm tra lại dữ liệu volume từ nguồn SSI/sàn trước khi đưa vào client-ready."
+
+            rejected_rows.append({
+                "symbol": sym,
+                "latest_date": str(row.get("date")),
+                "latest_volume": float(cf_row.get("volume", 0.0)) if cf_row is not None else 0.0,
+                "latest_close": float(row.get("close")),
+                "cashflow_data_status": str(cf_row.get("cashflow_data_status", "OK")) if cf_row is not None else "OK",
+                "confirmation_status": str(wcc_row.get("confirmation_status", "WATCH")) if wcc_row is not None else "WATCH",
+                "eligibility_status": "REJECTED",
+                "eligibility_reason": reasons,
+                "previous_tier": "Client Ready",
+                "recommended_action": action
+            })
+        final_cr = cr_gated[cr_gated["eligibility_status"] != "REJECTED"].copy()
+
+    final_tw = pd.DataFrame()
+    if not tw_gated.empty:
+        rejected_tw = tw_gated[tw_gated["eligibility_status"] == "REJECTED"].copy()
+        for _, row in rejected_tw.iterrows():
+            sym = row["symbol"]
+            if sym not in [r["symbol"] for r in rejected_rows]:
+                cf_row = cf[cf["symbol"] == sym].iloc[0] if sym in cf["symbol"].values else None
+                wcc_row = wcc[wcc["symbol"] == sym].iloc[0] if sym in wcc["symbol"].values else None
+                reasons = str(row.get("eligibility_reason", ""))
+                action = "Không allocate vốn cho đến khi dữ liệu giao dịch hợp lệ."
+                rejected_rows.append({
+                    "symbol": sym,
+                    "latest_date": str(row.get("date")),
+                    "latest_volume": float(cf_row.get("volume", 0.0)) if cf_row is not None else 0.0,
+                    "latest_close": float(row.get("close")),
+                    "cashflow_data_status": str(cf_row.get("cashflow_data_status", "OK")) if cf_row is not None else "OK",
+                    "confirmation_status": str(wcc_row.get("confirmation_status", "WATCH")) if wcc_row is not None else "WATCH",
+                    "eligibility_status": "REJECTED",
+                    "eligibility_reason": reasons,
+                    "previous_tier": "Trading Watchlist",
+                    "recommended_action": action
+                })
+        final_tw = tw_gated[tw_gated["eligibility_status"] != "REJECTED"].copy()
+
+    final_rc = rc_gated.copy() if not rc_gated.empty else pd.DataFrame()
+    for r in rejected_rows:
+        sym = r["symbol"]
+        if not final_rc.empty and sym in final_rc["symbol"].values:
+            idx = final_rc[final_rc["symbol"] == sym].index[0]
+            final_rc.at[idx, "eligibility_status"] = "REJECTED"
+            final_rc.at[idx, "eligibility_reason"] = r["eligibility_reason"]
+            final_rc.at[idx, "candidate_tier"] = "Research Candidate"
+            final_rc.at[idx, "is_client_ready"] = False
+        else:
+            orig_row = None
+            for df in (cr_gated, tw_gated):
+                if not df.empty and sym in df["symbol"].values:
+                    orig_row = df[df["symbol"] == sym].iloc[0].copy()
+                    break
+            if orig_row is not None:
+                orig_row["eligibility_status"] = "REJECTED"
+                orig_row["eligibility_reason"] = r["eligibility_reason"]
+                orig_row["candidate_tier"] = "Research Candidate"
+                orig_row["is_client_ready"] = False
+                final_rc = pd.concat([final_rc, pd.DataFrame([orig_row])], ignore_index=True)
+
+    # Load and process eligible_candidates and all_scored_candidates in overlay
+    ec_path = base / "data/output/eligible_candidates.parquet"
+    asc_path = base / "data/output/all_scored_candidates.parquet"
+
+    ec_df = read_parquet(ec_path) if ec_path.exists() else pd.DataFrame()
+    asc_df = read_parquet(asc_path) if asc_path.exists() else pd.DataFrame()
+
+    ec_gated = apply_eligibility_gate(ec_df, cf, wcc) if not ec_df.empty else pd.DataFrame()
+    asc_gated = apply_eligibility_gate(asc_df, cf, wcc) if not asc_df.empty else pd.DataFrame()
+
+    final_ec = ec_gated[ec_gated["eligibility_status"] == "ELIGIBLE"].copy() if not ec_gated.empty else pd.DataFrame()
+    final_asc = asc_gated.copy() if not asc_gated.empty else pd.DataFrame()
+
+    for df in (final_cr, final_tw, final_rc, final_ec, final_asc):
+        if not df.empty:
+            df["rank"] = np.arange(1, len(df) + 1)
+
+    if not final_cr.empty:
+        final_cr.to_csv(cr_path.with_suffix(".csv"), index=False)
+        save_parquet(final_cr, cr_path)
+    else:
+        pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS).to_csv(cr_path.with_suffix(".csv"), index=False)
+        save_parquet(pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS), cr_path)
+
+    if not final_tw.empty:
+        final_tw.to_csv(tw_path.with_suffix(".csv"), index=False)
+        save_parquet(final_tw, tw_path)
+    else:
+        pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS).to_csv(tw_path.with_suffix(".csv"), index=False)
+        save_parquet(pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS), tw_path)
+
+    if not final_rc.empty:
+        final_rc.to_csv(rc_path.with_suffix(".csv"), index=False)
+        save_parquet(final_rc, rc_path)
+    else:
+        pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS).to_csv(rc_path.with_suffix(".csv"), index=False)
+        save_parquet(pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS), rc_path)
+
+    if not final_ec.empty:
+        final_ec.to_csv(ec_path.with_suffix(".csv"), index=False)
+        save_parquet(final_ec, ec_path)
+    else:
+        pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS).to_csv(ec_path.with_suffix(".csv"), index=False)
+        save_parquet(pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS), ec_path)
+
+    if not final_asc.empty:
+        final_asc.to_csv(asc_path.with_suffix(".csv"), index=False)
+        save_parquet(final_asc, asc_path)
+    else:
+        pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS).to_csv(asc_path.with_suffix(".csv"), index=False)
+        save_parquet(pd.DataFrame(columns=FINAL_WATCHLIST_COLUMNS), asc_path)
+
+    if not fw_gated.empty:
+        final_fw = fw_gated[fw_gated["eligibility_status"] != "REJECTED"].copy()
+        if not final_fw.empty:
+            final_fw["rank"] = np.arange(1, len(final_fw) + 1)
+            final_fw.to_csv(base / "data/signals/final_watchlist.csv", index=False)
+            save_parquet(final_fw, fw_path)
+
+    # Write data_review_watchlist
+    dr_path = base / "data/output/data_review_watchlist.parquet"
+    dr_cols = ["symbol", "latest_date", "latest_volume", "latest_close", "cashflow_data_status", "confirmation_status", "eligibility_status", "eligibility_reason", "previous_tier", "recommended_action"]
+    if rejected_rows:
+        dr_df = pd.DataFrame(rejected_rows)
+    else:
+        dr_df = pd.DataFrame(columns=dr_cols)
+
+    dr_df.to_csv(dr_path.with_suffix(".csv"), index=False)
+    save_parquet(dr_df, dr_path)
+
+    # Write watchlist metadata JSON
+    from src.utils.pipeline_io import write_json
+    meta_path = base / "data/output/watchlist_metadata.json"
+    meta_data = {
+        "input_source": "stock_features.parquet",
+        "input_candidate_count": int(len(final_asc)),
+        "eligible_candidate_count": int(len(final_ec)),
+        "client_ready_count": int(len(final_cr)),
+        "trading_watchlist_count": int(len(final_tw)),
+        "research_candidate_count": int(len(final_rc)),
+        "data_review_count": int(len(rejected_rows)) + (int(final_asc["eligibility_status"].eq("REJECTED").sum()) if not final_asc.empty else 0),
+        "client_ready_threshold": 60.0,
+        "trading_threshold": 55.0,
+        "generated_files": [
+            str(cr_path), str(tw_path), str(rc_path), str(ec_path), str(asc_path), str(dr_path), str(meta_path)
+        ],
+        "generated_at": pd.Timestamp.now().isoformat(),
+        "warnings": []
+    }
+    if not final_rc.empty:
+        meta_data["data_review_count"] = int(final_rc["eligibility_status"].eq("REJECTED").sum())
+    write_json(meta_data, meta_path)
+
+    LOGGER.info(f"Post-cashflow eligibility overlay applied. Rejected symbols count: {len(rejected_rows)}")
+

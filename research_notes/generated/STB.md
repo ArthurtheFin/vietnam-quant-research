@@ -10,7 +10,7 @@ Luận điểm đầu tư của STB tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 70.0/100
 - Trạng thái dòng tiền: `NEUTRAL`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 9.34%
+- Tỷ trọng danh mục gợi ý: 7.75%
 - Biến động phân vị (volatility percentile): 24.2%
 
 

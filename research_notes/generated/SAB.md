@@ -10,8 +10,8 @@ Thesis đầu tư đối với SAB tập trung vào tín hiệu kiệt cung tíc
 - Điểm số composite dòng tiền: 77.3/100
 - Trạng thái dòng tiền: `DRY_UP_WATCH`
 - Trạng thái xác nhận dòng tiền: `WATCH`
-- Tỷ trọng danh mục gợi ý: 5.70%
-- Giá trị phân bổ vốn dự kiến: 54,105,700 VND
+- Tỷ trọng danh mục gợi ý: 8.72%
+- Giá trị phân bổ vốn dự kiến: 82,838,700 VND
 - Biến động phân vị (volatility percentile): 6.3%
 
 
