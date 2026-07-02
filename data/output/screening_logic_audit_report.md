@@ -43,16 +43,16 @@ Below is the audit status of the current `client_ready_watchlist`:
 
 | Ticker | Close | Volume (Latest) | Cashflow Status | Confirmation | Risk Parity | Allocated NAV | Pass v1 Gate? | Failed Gates |
 |---|---|---|---|---|---|---|---|---|
-| **CTS** | 26,800 | 2,629,900 | OK | STRONG_CONFIRMED | N/A | N/A | Yes | None |
-| **MSB** | 15,950 | 1,556,400 | OK | CONFIRMED | N/A | 143,342,650 VND | Yes | None |
-| **STB** | 75,300 | 303,900 | OK | CONFIRMED | N/A | N/A | Yes | None |
-| **POW** | 14,750 | 2,895,000 | OK | CONFIRMED | N/A | 14,750 VND | Yes | None |
-| **BMP** | 154,000 | 7,200 | OK | CONFIRMED | N/A | 103,488,000 VND | Yes | None |
-| **SSB** | 15,900 | 426,000 | OK | CONFIRMED | N/A | 111,300 VND | Yes | None |
-| **VAB** | 11,250 | 201,000 | OK | WATCH | N/A | 87,277,500 VND | Yes | None |
-| **SAB** | 48,700 | 142,600 | OK | WATCH | N/A | 82,838,700 VND | Yes | None |
-| **ACB** | 22,800 | 1,312,700 | OK | CONFIRMED | N/A | 104,766,000 VND | Yes | None |
-| **PET** | 54,400 | 123,700 | OK | CONFIRMED | N/A | N/A | Yes | None |
+| **SSB** | 16,500 | 3,212,600 | OK | STRONG_CONFIRMED | N/A | N/A | Yes | None |
+| **STB** | 73,200 | 3,050,100 | OK | WATCH | N/A | N/A | Yes | None |
+| **TCB** | 34,300 | 14,899,400 | OK | STRONG_CONFIRMED | N/A | N/A | Yes | None |
+| **VIC** | 217,100 | 1,760,600 | OK | CONFIRMED | N/A | N/A | Yes | None |
+| **TPB** | 16,750 | 21,976,800 | OK | STRONG_CONFIRMED | N/A | 32,612,250 VND | Yes | None |
+| **LPB** | 53,100 | 1,406,000 | OK | CONFIRMED | N/A | N/A | Yes | None |
+| **VPB** | 27,700 | 25,427,300 | OK | STRONG_CONFIRMED | N/A | 32,187,400 VND | Yes | None |
+| **VCB** | 63,000 | 4,232,900 | OK | CONFIRMED | N/A | N/A | Yes | None |
+| **VIB** | 16,600 | 12,956,800 | OK | STRONG_CONFIRMED | N/A | 34,976,200 VND | Yes | None |
+| **HDB** | 26,600 | 20,462,000 | OK | STRONG_CONFIRMED | N/A | 176,411,200 VND | Yes | None |
 
 ---
 

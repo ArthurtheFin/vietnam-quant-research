@@ -110,6 +110,10 @@ def evaluate_freshness(
 
         latest = item["latest_timestamp"]
         if latest is None:
+            if spec.name == "trading_watchlist" and item.get("metadata", {}).get("rows", 0) == 0:
+                item["lag_days_vs_baseline"] = None
+                item["empty_allowed"] = True
+                continue
             message = f"Artifact has no usable date column: {spec.name}"
             if spec.severity == "error":
                 errors.append(message)

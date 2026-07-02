@@ -10,8 +10,7 @@ Cổ phiếu SSB ngành Banking đang thể hiện luận điểm đầu tư đ�
 - Điểm số composite dòng tiền: 87.6/100
 - Trạng thái dòng tiền: `CONFIRMED_INFLOW`
 - Trạng thái xác nhận dòng tiền: `STRONG_CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 30.02%
-- Giá trị phân bổ vốn dự kiến: 34,699,500 VND
+- Tỷ trọng danh mục gợi ý: 5.22%
 - Biến động phân vị (volatility percentile): 56.3%
 
 

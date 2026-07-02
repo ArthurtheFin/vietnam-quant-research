@@ -10,7 +10,7 @@ Luận điểm đầu tư của LPB tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 67.1/100
 - Trạng thái dòng tiền: `WEAK_FLOW`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 4.72%
+- Tỷ trọng danh mục gợi ý: 12.01%
 - Biến động phân vị (volatility percentile): 90.1%
 
 

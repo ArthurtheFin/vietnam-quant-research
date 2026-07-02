@@ -10,8 +10,7 @@ Cổ phiếu TCB ngành Banking đang thể hiện luận điểm đầu tư đ�
 - Điểm số composite dòng tiền: 91.6/100
 - Trạng thái dòng tiền: `CONFIRMED_INFLOW`
 - Trạng thái xác nhận dòng tiền: `STRONG_CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 3.58%
-- Giá trị phân bổ vốn dự kiến: 33,991,300 VND
+- Tỷ trọng danh mục gợi ý: 3.87%
 - Biến động phân vị (volatility percentile): 13.1%
 
 

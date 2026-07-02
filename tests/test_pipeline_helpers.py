@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pandas as pd
@@ -166,3 +167,34 @@ def test_default_sector_board_metadata_disabled() -> None:
 def test_default_cashflow_board_metadata_disabled() -> None:
     payload = daily_pipeline._default_cashflow_board_metadata()
     assert payload == {"enabled": False}
+
+def test_run_step_marks_partial_online_failures_as_warning(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(daily_pipeline, "PROJECT_ROOT", tmp_path)
+
+    def fake_run(*args, **kwargs):
+        return subprocess.CompletedProcess(
+            args=["python", "scripts/update_daily_data.py"],
+            returncode=0,
+            stdout="[FAILED] TPB chunk: 429 API calls quota exceeded",
+            stderr="",
+        )
+
+    monkeypatch.setattr(daily_pipeline.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        daily_pipeline,
+        "_read_artifact_summary",
+        lambda path: {"path": str(path), "exists": False, "rows": None, "columns": None, "symbol_count": None, "latest_date": None},
+    )
+
+    report = daily_pipeline._run_step(
+        {
+            "name": "update_daily_data",
+            "script": "scripts/update_daily_data.py",
+            "outputs": ["data/raw"],
+        }
+    )
+
+    assert report["status"] == "WARNING"
+    assert report["error_category"] == "PROVIDER_RATE_LIMIT_PARTIAL"
+    assert "partial fetch failures" in report["error_message"]
+

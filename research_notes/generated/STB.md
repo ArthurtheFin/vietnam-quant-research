@@ -10,7 +10,7 @@ Thesis đầu tư đối với STB tập trung vào tín hiệu kiệt cung tíc
 - Điểm số composite dòng tiền: 83.9/100
 - Trạng thái dòng tiền: `DRY_UP_WATCH`
 - Trạng thái xác nhận dòng tiền: `WATCH`
-- Tỷ trọng danh mục gợi ý: 21.00%
+- Tỷ trọng danh mục gợi ý: 3.95%
 - Biến động phân vị (volatility percentile): 35.7%
 
 

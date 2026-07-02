@@ -114,3 +114,31 @@ def test_metadata_validators_accept_required_keys() -> None:
 
     assert validate_pipeline_metadata(pipeline_payload) == pipeline_payload
     assert validate_portfolio_stack_metadata(portfolio_payload) == portfolio_payload
+
+def test_freshness_check_allows_empty_trading_watchlist(tmp_path) -> None:
+    base_rows = [{"symbol": "AAA", "date": "2026-06-30", "close": 10.0}]
+    dated_artifacts = [
+        "data/processed/clean_daily_ohlcv.parquet",
+        "data/processed/stock_features.parquet",
+        "data/signals/setup_signals.parquet",
+        "data/signals/alpha_scores.parquet",
+        "data/processed/benchmark_vnindex.parquet",
+        "data/signals/breakout_20d_trade_cards.parquet",
+        "data/signals/stealth_accumulation_latest.parquet",
+        "data/signals/meta_ranking.parquet",
+        "data/signals/final_watchlist.parquet",
+        "data/output/research_candidates.parquet",
+        "data/output/client_ready_watchlist.parquet",
+    ]
+    for artifact in dated_artifacts:
+        _write_frame(tmp_path / artifact, base_rows)
+
+    empty_trading = pd.DataFrame(columns=["symbol", "date", "final_score"])
+    empty_trading.to_parquet(tmp_path / "data/output/trading_watchlist.parquet", index=False)
+
+    report = evaluate_freshness(base_dir=tmp_path)
+
+    assert report["status"] == "OK"
+    messages = report["warnings"] + report["errors"]
+    assert not any("trading_watchlist" in message for message in messages)
+

@@ -145,6 +145,8 @@ def _classify_error(raw_error: str | None) -> str:
 
 
 def _recommended_action(error_category: str, mode: str, step_name: str) -> str | None:
+    if error_category == "PROVIDER_RATE_LIMIT_PARTIAL":
+        return "Rerun online update later or use offline mode if cached data is already fresh enough."
     if error_category == "PROVIDER_RATE_LIMIT":
         return "Wait and rerun online update later, or use offline mode if data is already fresh."
     if error_category == "PROVIDER_EMPTY_RESPONSE":
@@ -323,12 +325,20 @@ def _run_step(step: dict[str, object]) -> dict[str, object]:
     raw_error = (result.stderr or result.stdout).strip() if result.returncode != 0 else None
     error_category = _classify_error(raw_error) if raw_error else None
     error_message = _sanitize_error_message(raw_error)
+    status = "OK" if result.returncode == 0 else "ERROR"
+    stdout_lower = (result.stdout or "").lower()
+    if step["name"] in ONLINE_STEP_NAMES and result.returncode == 0 and "[failed]" in stdout_lower:
+        status = "WARNING"
+        error_category = "PROVIDER_RATE_LIMIT_PARTIAL" if any(
+            token in stdout_lower for token in ["429", "quota", "rate limit", "exceeded"]
+        ) else "UNKNOWN_ERROR"
+        error_message = "Online update completed with partial fetch failures; some symbols may have reused cached history."
     payload = {
         "name": step["name"],
         "script": script,
         "duration_seconds": duration,
         "return_code": int(result.returncode),
-        "status": "OK" if result.returncode == 0 else "ERROR",
+        "status": status,
         "outputs": summaries,
         "error_category": error_category,
         "error_message": error_message,
@@ -710,6 +720,18 @@ def main(argv: list[str] | None = None) -> int:
                     "recommended_action": report.get("recommended_action"),
                 }
             )
+            if report["status"] == "WARNING":
+                online_update_metadata.update(
+                    {
+                        "status": "PARTIAL_OK",
+                        "error_category": report.get("error_category"),
+                        "error_message": report.get("error_message"),
+                        "recommended_action": report.get("recommended_action"),
+                    }
+                )
+                if report.get("error_message"):
+                    online_update_metadata["warnings"].append(f"{report['name']}: {report['error_message']}")
+                continue
         if report["status"] != "OK":
             error_category = str(report.get("error_category") or "UNKNOWN_ERROR")
             error_message = report.get("error_message")

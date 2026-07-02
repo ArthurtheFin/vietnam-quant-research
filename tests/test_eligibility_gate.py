@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.screening.final_watchlist import apply_eligibility_gate, apply_post_cashflow_overlay
+from src.screening.final_watchlist import _redistribute_after_gate, apply_eligibility_gate, apply_post_cashflow_overlay
 from src.portfolio.input_resolver import load_default_portfolio_candidates
 from src.data.loaders import save_parquet
 
@@ -25,6 +25,9 @@ def sample_watchlist() -> pd.DataFrame:
                 "is_client_ready": True,
                 "confidence_label": "High",
                 "exclusion_reason": "",
+                "final_score": 82.0,
+                "trade_edge_score": 80.0,
+                "setup_quality_score": 78.0,
             },
             {
                 "symbol": "ABB",
@@ -37,6 +40,15 @@ def sample_watchlist() -> pd.DataFrame:
                 "is_client_ready": True,
                 "confidence_label": "Medium",
                 "exclusion_reason": "",
+                "final_score": 61.0,
+                "trade_edge_score": 58.0,
+                "setup_quality_score": 56.0,
+                "final_score": 65.0,
+                "trade_edge_score": 62.0,
+                "setup_quality_score": 60.0,
+                "final_score": 72.0,
+                "trade_edge_score": 68.0,
+                "setup_quality_score": 66.0,
             },
             {
                 "symbol": "BVB",
@@ -198,14 +210,22 @@ def test_post_cashflow_overlay_executes_successfully(
     assert len(dr_df) == 3
     assert set(dr_df["symbol"]) == {"ABB", "BVB", "XYZ"}
 
-    # Verify that rejected symbols were appended to research_candidates
+    # Verify that rejected symbols stay isolated in data review and do not overlap research/client/trading
     rc_path = tmp_path / "data/output/research_candidates.parquet"
     assert rc_path.exists()
     rc_df = pd.read_parquet(rc_path)
-    assert "ABB" in rc_df["symbol"].values
-    assert "BVB" in rc_df["symbol"].values
-    assert "XYZ" in rc_df["symbol"].values
-    assert rc_df[rc_df["symbol"] == "ABB"].iloc[0]["eligibility_status"] == "REJECTED"
+    assert rc_df.empty
+
+    tw_path = tmp_path / "data/output/trading_watchlist.parquet"
+    tw_df = pd.read_parquet(tw_path)
+    assert tw_df.empty
+
+    assert set(dr_df["symbol"]).isdisjoint(set(rc_df.get("symbol", pd.Series(dtype=str))))
+    assert set(dr_df["symbol"]).isdisjoint(set(cr_updated["symbol"]))
+    assert set(dr_df["symbol"]).isdisjoint(set(tw_df.get("symbol", pd.Series(dtype=str))))
+
+    fw_updated = pd.read_parquet(tmp_path / "data/signals/final_watchlist.parquet")
+    assert fw_updated["symbol"].tolist() == ["CTS"]
 
 
 def test_watchlist_exclusivity() -> None:
@@ -271,4 +291,139 @@ def test_watchlist_exclusivity() -> None:
     assert "all_scored_candidates" in outputs
     assert len(outputs["client_ready_watchlist"]) <= 5
     assert len(outputs["trading_watchlist"]) <= 20
+
+def test_redistribute_after_gate_promotes_overflow_into_trading() -> None:
+    universe = pd.DataFrame(
+        [
+            {
+                "symbol": "AAA",
+                "date": pd.Timestamp("2026-06-30"),
+                "close": 10.0,
+                "final_score": 92.0,
+                "trade_edge_score": 88.0,
+                "setup_quality_score": 86.0,
+                "eligibility_status": "ELIGIBLE",
+                "cashflow_data_status": "OK",
+                "confirmation_status": "CONFIRMED",
+                "warning": "",
+                "is_stale_data": False,
+                "is_missing_backtest_evidence": False,
+                "is_weak_market_regime": False,
+            },
+            {
+                "symbol": "BBB",
+                "date": pd.Timestamp("2026-06-30"),
+                "close": 10.0,
+                "final_score": 87.0,
+                "trade_edge_score": 84.0,
+                "setup_quality_score": 82.0,
+                "eligibility_status": "ELIGIBLE",
+                "cashflow_data_status": "OK",
+                "confirmation_status": "CONFIRMED",
+                "warning": "",
+                "is_stale_data": False,
+                "is_missing_backtest_evidence": False,
+                "is_weak_market_regime": False,
+            },
+            {
+                "symbol": "CCC",
+                "date": pd.Timestamp("2026-06-30"),
+                "close": 10.0,
+                "final_score": 81.0,
+                "trade_edge_score": 80.0,
+                "setup_quality_score": 79.0,
+                "eligibility_status": "ELIGIBLE",
+                "cashflow_data_status": "OK",
+                "confirmation_status": "CONFIRMED",
+                "warning": "",
+                "is_stale_data": False,
+                "is_missing_backtest_evidence": False,
+                "is_weak_market_regime": False,
+            },
+            {
+                "symbol": "DDD",
+                "date": pd.Timestamp("2026-06-30"),
+                "close": 10.0,
+                "final_score": 78.0,
+                "trade_edge_score": 76.0,
+                "setup_quality_score": 75.0,
+                "eligibility_status": "ELIGIBLE",
+                "cashflow_data_status": "OK",
+                "confirmation_status": "NEUTRAL_CONFIRMED",
+                "warning": "",
+                "is_stale_data": False,
+                "is_missing_backtest_evidence": False,
+                "is_weak_market_regime": False,
+            },
+            {
+                "symbol": "EEE",
+                "date": pd.Timestamp("2026-06-30"),
+                "close": 10.0,
+                "final_score": 74.0,
+                "trade_edge_score": 73.0,
+                "setup_quality_score": 71.0,
+                "eligibility_status": "ELIGIBLE",
+                "cashflow_data_status": "OK",
+                "confirmation_status": "WATCH",
+                "warning": "",
+                "is_stale_data": False,
+                "is_missing_backtest_evidence": False,
+                "is_weak_market_regime": False,
+            },
+            {
+                "symbol": "FFF",
+                "date": pd.Timestamp("2026-06-30"),
+                "close": 10.0,
+                "final_score": 58.0,
+                "trade_edge_score": 58.0,
+                "setup_quality_score": 58.0,
+                "eligibility_status": "ELIGIBLE",
+                "cashflow_data_status": "OK",
+                "confirmation_status": "WATCH",
+                "warning": "",
+                "is_stale_data": False,
+                "is_missing_backtest_evidence": False,
+                "is_weak_market_regime": False,
+            },
+            {
+                "symbol": "GGG",
+                "date": pd.Timestamp("2026-06-30"),
+                "close": 10.0,
+                "final_score": 66.0,
+                "trade_edge_score": 64.0,
+                "setup_quality_score": 63.0,
+                "eligibility_status": "REJECTED",
+                "eligibility_reason": "ZERO_VOLUME_OR_MISSING_DATA",
+                "cashflow_data_status": "CHECK_REQUIRED",
+                "confirmation_status": "CHECK_REQUIRED",
+                "warning": "",
+                "is_stale_data": False,
+                "is_missing_backtest_evidence": False,
+                "is_weak_market_regime": False,
+            },
+        ]
+    )
+
+    outputs = _redistribute_after_gate(
+        universe,
+        {
+            "watchlist_size": 2,
+            "trading_watchlist_size": 4,
+            "client_ready_threshold": 85.0,
+            "trading_threshold": 60.0,
+        },
+    )
+
+    assert outputs["client_ready_watchlist"]["symbol"].tolist() == ["AAA", "BBB"]
+    assert outputs["trading_watchlist"]["symbol"].tolist() == ["CCC", "DDD", "EEE"]
+    assert outputs["research_candidates"]["symbol"].tolist() == ["FFF"]
+    assert outputs["data_review_watchlist"]["symbol"].tolist() == ["GGG"]
+
+    client_syms = set(outputs["client_ready_watchlist"]["symbol"])
+    trading_syms = set(outputs["trading_watchlist"]["symbol"])
+    research_syms = set(outputs["research_candidates"]["symbol"])
+
+    assert client_syms.isdisjoint(trading_syms)
+    assert client_syms.isdisjoint(research_syms)
+    assert trading_syms.isdisjoint(research_syms)
 

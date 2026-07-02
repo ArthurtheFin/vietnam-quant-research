@@ -10,8 +10,7 @@ Luận điểm đầu tư của VCB tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 85.5/100
 - Trạng thái dòng tiền: `ACCUMULATION`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 4.47%
-- Giá trị phân bổ vốn dự kiến: 42,399,000 VND
+- Tỷ trọng danh mục gợi ý: 41.46%
 - Biến động phân vị (volatility percentile): 2.0%
 
 

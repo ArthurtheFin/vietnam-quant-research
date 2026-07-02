@@ -10,7 +10,7 @@ Luận điểm đầu tư của VIC tập trung vào xu hướng cải thiện t
 - Điểm số composite dòng tiền: 73.6/100
 - Trạng thái dòng tiền: `WEAK_FLOW`
 - Trạng thái xác nhận dòng tiền: `CONFIRMED`
-- Tỷ trọng danh mục gợi ý: 3.29%
+- Tỷ trọng danh mục gợi ý: 4.40%
 - Biến động phân vị (volatility percentile): 17.5%
 
 
