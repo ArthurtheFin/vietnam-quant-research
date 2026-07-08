@@ -33,6 +33,8 @@ def run_portfolio_backtest(
     risk_off_regimes: tuple[str, ...] = ("Risk-off",),
     regime_cash_fraction: float = 1.0,
     stop_loss_pct: float | None = None,
+    take_profit_pct: float | None = None,
+    trend_break_col: str = "above_ma20",
 ) -> dict[str, Any]:
     """
     Simulates a historical rebalancing portfolio backtest.
@@ -49,6 +51,13 @@ def run_portfolio_backtest(
     from the value at last entry/rebalance. Cannot trigger before
     load_min_holding_sessions() sessions have been held (T+2.5 settlement,
     same constraint as C2's simulator-level stops).
+
+    take_profit_pct (optional, e.g. 0.10): once a position's unrealized gain
+    (from last entry/rebalance) reaches this threshold, the position is
+    "armed" but NOT sold mechanically -- it is only closed once the uptrend
+    structure breaks (features[trend_break_col] turns False that day), i.e.
+    winners run inside an intact uptrend and are taken off only on a
+    confirmed structural break. Same min_holding_sessions gate as stop-loss.
     """
     # 1. Prepare data
     df = features.sort_values(["symbol", "date"]).copy()
@@ -91,6 +100,7 @@ def run_portfolio_backtest(
     skipped_limit_up: list[dict] = []
     regime_adjustments: list[dict] = []
     stop_loss_exits: list[dict] = []
+    take_profit_exits: list[dict] = []
     price_bands, default_band = load_price_bands()
 
     # We loop day-by-day
@@ -141,9 +151,10 @@ def run_portfolio_backtest(
             nav = cash + total_holdings_val
             current_holdings = updated_holdings
 
-            # A2. Stop-loss: per-position, measured from last entry/rebalance
-            # value; cannot trigger before T+2.5 settlement (min_holding_sessions).
-            if stop_loss_pct is not None:
+            # A2. Stop-loss / structural take-profit: per-position, measured
+            # from last entry/rebalance value; cannot trigger before T+2.5
+            # settlement (min_holding_sessions).
+            if stop_loss_pct is not None or take_profit_pct is not None:
                 for sym in list(current_holdings.keys()):
                     pos = current_holdings[sym]
                     held_sessions = day_idx - pos["entry_day_idx"] + 1
@@ -153,25 +164,49 @@ def run_portfolio_backtest(
                     if entry_value <= 0:
                         continue
                     move = pos["value"] / entry_value - 1.0
-                    if move <= stop_loss_pct:
-                        exit_value = pos["value"]
-                        nav -= exit_value * transaction_cost_pct
-                        del current_holdings[sym]
-                        stop_loss_exits.append({
-                            "date": current_date.strftime("%Y-%m-%d"),
-                            "symbol": sym,
-                            "move_since_entry": move,
-                            "exit_value": exit_value,
-                        })
-                        trades_log.append({
-                            "date": current_date.strftime("%Y-%m-%d"),
-                            "symbol": sym,
-                            "type": "SELL",
-                            "size_amount": exit_value,
-                            "old_value": exit_value,
-                            "new_value": 0.0,
-                            "reason": "stop_loss",
-                        })
+
+                    exit_reason = None
+                    if stop_loss_pct is not None and move <= stop_loss_pct:
+                        exit_reason = "stop_loss"
+                    elif take_profit_pct is not None and move >= take_profit_pct:
+                        # Armed once the gain threshold is hit, but only
+                        # closed once the uptrend structure actually breaks --
+                        # let winners run inside an intact uptrend.
+                        trend_intact = True
+                        try:
+                            trend_val = df_indexed.loc[(sym, current_date), trend_break_col]
+                            if pd.notna(trend_val):
+                                trend_intact = bool(trend_val)
+                        except KeyError:
+                            pass
+                        if not trend_intact:
+                            exit_reason = "take_profit_trend_break"
+
+                    if exit_reason is None:
+                        continue
+
+                    exit_value = pos["value"]
+                    nav -= exit_value * transaction_cost_pct
+                    del current_holdings[sym]
+                    exit_record = {
+                        "date": current_date.strftime("%Y-%m-%d"),
+                        "symbol": sym,
+                        "move_since_entry": move,
+                        "exit_value": exit_value,
+                    }
+                    if exit_reason == "stop_loss":
+                        stop_loss_exits.append(exit_record)
+                    else:
+                        take_profit_exits.append(exit_record)
+                    trades_log.append({
+                        "date": current_date.strftime("%Y-%m-%d"),
+                        "symbol": sym,
+                        "type": "SELL",
+                        "size_amount": exit_value,
+                        "old_value": exit_value,
+                        "new_value": 0.0,
+                        "reason": exit_reason,
+                    })
 
         # B. Check if it is a rebalancing date
         # D1: decide with information available at the PRIOR session (T-1);
@@ -369,6 +404,7 @@ def run_portfolio_backtest(
         "skipped_limit_up": pd.DataFrame(skipped_limit_up),
         "regime_adjustments": pd.DataFrame(regime_adjustments),
         "stop_loss_exits": pd.DataFrame(stop_loss_exits),
+        "take_profit_exits": pd.DataFrame(take_profit_exits),
         "metrics": {
             "initial_nav": initial_nav,
             "final_nav": nav,
@@ -377,6 +413,7 @@ def run_portfolio_backtest(
             "sharpe_ratio": sharpe,
             "total_trades": len(trades_log),
             "stop_loss_exit_count": len(stop_loss_exits),
+            "take_profit_exit_count": len(take_profit_exits),
             "regime_adjustment_count": len(regime_adjustments),
         }
     }

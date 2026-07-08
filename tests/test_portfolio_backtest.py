@@ -197,3 +197,75 @@ def test_regime_filter_absent_by_default_matches_prior_behavior() -> None:
     )
     assert result["regime_adjustments"].empty
     assert result["metrics"]["regime_adjustment_count"] == 0
+
+
+def test_take_profit_holds_winner_while_uptrend_intact() -> None:
+    """New: gain >=10% must NOT be sold mechanically while above_ma20 stays True."""
+    dates = pd.bdate_range("2025-01-01", periods=15)
+    rows, ranking_rows = [], []
+    for d_idx, d in enumerate(dates):
+        # AAA grinds up +2%/day from day 6 onward, always above its MA20.
+        r1 = 0.02 if d_idx >= 6 else 0.0
+        rows.append({
+            "symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0,
+            "return_1d": r1, "above_ma20": True,
+        })
+        ranking_rows.append({"symbol": "AAA", "date": d, "final_score": 90.0})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+        take_profit_pct=0.10,
+    )
+    assert result["take_profit_exits"].empty, "must not take profit while the uptrend structure is intact"
+
+
+def test_take_profit_exits_only_on_trend_break_after_gain_threshold() -> None:
+    """New: gain >=10% AND above_ma20 flips False -> take profit; gain alone must not."""
+    dates = pd.bdate_range("2025-01-01", periods=15)
+    rows, ranking_rows = [], []
+    for d_idx, d in enumerate(dates):
+        r1 = 0.02 if d_idx >= 6 else 0.0
+        # Trend breaks (above_ma20=False) starting day 10, well after the +10% gain
+        # threshold is crossed (~day 9: 4 days of +2% from day6 => ~8%, day9 ~+12%).
+        above_ma20 = d_idx < 10
+        rows.append({
+            "symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0,
+            "return_1d": r1, "above_ma20": above_ma20,
+        })
+        ranking_rows.append({"symbol": "AAA", "date": d, "final_score": 90.0})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+        take_profit_pct=0.10,
+    )
+    exits = result["take_profit_exits"]
+    assert not exits.empty, "must exit once trend breaks after the gain threshold is crossed"
+    assert (exits["move_since_entry"] >= 0.10).all()
+    assert result["metrics"]["take_profit_exit_count"] >= 1
+
+
+def test_take_profit_disabled_by_default() -> None:
+    """New: take_profit_pct=None (default) must not change any existing behavior."""
+    dates = pd.bdate_range("2025-01-01", periods=15)
+    rows = [{"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0,
+             "return_1d": 0.02, "above_ma20": False} for d in dates]
+    ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5, portfolio_size=1, allocation_method="equal_weight",
+        min_value_ma20=0.0, require_above_ma200=False,
+    )
+    assert result["take_profit_exits"].empty
+    assert result["metrics"]["take_profit_exit_count"] == 0
