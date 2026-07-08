@@ -273,19 +273,30 @@ def build_capital_plan(
             continue
 
         kelly_risk = None
+        kelly_note = None
         if p_win_col and avg_gain_col and avg_loss_col:
             p_win = row.get(p_win_col)
             avg_gain = row.get(avg_gain_col)
             avg_loss = row.get(avg_loss_col)
             if pd.notna(p_win) and pd.notna(avg_gain) and pd.notna(avg_loss):
-                raw_kelly_risk = fractional_kelly_fraction(
-                    p_win=float(p_win),
-                    avg_gain=abs(float(avg_gain)),
-                    avg_loss=abs(float(avg_loss)),
-                    kelly_fraction=kelly_fraction,
-                )
-                if raw_kelly_risk > 0:
-                    kelly_risk = raw_kelly_risk
+                # avg_loss must be a genuine loss statistic (negative return);
+                # abs() of an arbitrary positive stat silently corrupts Kelly.
+                if float(avg_loss) >= 0:
+                    kelly_note = (
+                        f"Kelly disabled: {avg_loss_col} is non-negative "
+                        f"({float(avg_loss):.4f}) — not a loss statistic"
+                    )
+                elif float(avg_gain) <= 0:
+                    kelly_note = f"Kelly disabled: {avg_gain_col} is non-positive"
+                else:
+                    raw_kelly_risk = fractional_kelly_fraction(
+                        p_win=float(p_win),
+                        avg_gain=float(avg_gain),
+                        avg_loss=abs(float(avg_loss)),
+                        kelly_fraction=kelly_fraction,
+                    )
+                    if raw_kelly_risk > 0:
+                        kelly_risk = raw_kelly_risk
 
         resolved_conviction = resolve_conviction_score(row, conviction_col=conviction_col)
 
@@ -312,6 +323,7 @@ def build_capital_plan(
                 "conviction_score_resolved": resolved_conviction,
                 "edge_tier": row.get("edge_tier"),
                 "volatility_regime": row.get(regime_col),
+                "kelly_note": kelly_note,
                 **sizing,
             }
         )

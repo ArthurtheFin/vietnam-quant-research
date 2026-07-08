@@ -222,7 +222,8 @@ def main() -> int:
         nav=1_000_000_000,
         p_win_col="win_rate" if "win_rate" in candidates.columns else None,
         avg_gain_col="avg_return" if "avg_return" in candidates.columns else None,
-        avg_loss_col="median_return" if "median_return" in candidates.columns else None,
+        # Kelly requires a true loss statistic; median_return is not one (audit H3).
+        avg_loss_col="avg_loss" if "avg_loss" in candidates.columns else None,
         max_gross_exposure=0.95,
     )
     if not capital_plan.empty:

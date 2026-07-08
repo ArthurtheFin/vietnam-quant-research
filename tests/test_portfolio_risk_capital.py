@@ -295,3 +295,52 @@ def test_mean_variance_optimization_and_frontier():
         assert "weights" in pt
         assert round(float(pt["weights"].sum()), 6) == 1.0
 
+
+
+def test_kelly_disabled_when_avg_loss_input_is_not_a_loss():
+    """H3: passing a positive return stat (e.g. median_return) as avg_loss must not drive Kelly."""
+    from src.capital.management import build_capital_plan
+
+    candidates = pd.DataFrame(
+        [
+            {
+                "symbol": "AAA", "close": 25000.0, "atr_pct_14": 0.03,
+                "trade_edge_score": 80.0, "volatility_regime": "Normal Vol",
+                "win_rate": 0.60, "avg_return": 0.05, "median_return": 0.03,
+            }
+        ]
+    )
+    plan = build_capital_plan(
+        candidates,
+        nav=1_000_000_000,
+        p_win_col="win_rate",
+        avg_gain_col="avg_return",
+        avg_loss_col="median_return",  # mis-wired: a positive return stat
+    )
+    row = plan.iloc[0]
+    assert row["kelly_scale"] == 1.0, "Kelly must be disabled on non-loss avg_loss input"
+    assert "kelly_note" in plan.columns and "non-negative" in str(row["kelly_note"])
+
+
+def test_kelly_active_with_true_loss_statistic():
+    """H3 control: a genuine negative avg_loss keeps Kelly sizing functional."""
+    from src.capital.management import build_capital_plan
+
+    candidates = pd.DataFrame(
+        [
+            {
+                "symbol": "BBB", "close": 25000.0, "atr_pct_14": 0.03,
+                "trade_edge_score": 80.0, "volatility_regime": "Normal Vol",
+                "win_rate": 0.60, "avg_gain": 0.06, "avg_loss": -0.03,
+            }
+        ]
+    )
+    plan = build_capital_plan(
+        candidates,
+        nav=1_000_000_000,
+        p_win_col="win_rate",
+        avg_gain_col="avg_gain",
+        avg_loss_col="avg_loss",
+    )
+    row = plan.iloc[0]
+    assert row["kelly_scale"] != 1.0, "true loss stats should engage Kelly overlay"
