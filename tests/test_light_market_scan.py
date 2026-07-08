@@ -10,10 +10,11 @@ from src.screening.light_market_scan import (
 def test_light_market_scan_builds_ranked_snapshot():
     dates = pd.date_range("2025-01-01", periods=160, freq="D")
     rows = []
+    # Prices are raw VND (audit C1: min_price is 10,000 VND, not a bare "10.0").
     specs = [
-        ("AAA", "Banking", 100.0, 12_000_000_000.0),
-        ("BBB", "Securities", 50.0, 15_000_000_000.0),
-        ("CCC", "Retail", 40.0, 9_000_000_000.0),
+        ("AAA", "Banking", 100_000.0, 12_000_000_000.0),
+        ("BBB", "Securities", 50_000.0, 15_000_000_000.0),
+        ("CCC", "Retail", 40_000.0, 9_000_000_000.0),
     ]
     for symbol, sector, base, value in specs:
         for i, d in enumerate(dates):
@@ -22,10 +23,10 @@ def test_light_market_scan_builds_ranked_snapshot():
                     "symbol": symbol,
                     "sector": sector,
                     "date": d,
-                    "open": base + i * 0.8,
-                    "high": base + i * 0.8 + 1.5,
-                    "low": base + i * 0.8 - 1.0,
-                    "close": base + i * 0.8 + (i % 7) * 0.1,
+                    "open": base + i * 80.0,
+                    "high": base + i * 80.0 + 150.0,
+                    "low": base + i * 80.0 - 100.0,
+                    "close": base + i * 80.0 + (i % 7) * 10.0,
                     "volume": 1_000_000 + i * 500,
                     "value": value + i * 10_000_000,
                 }

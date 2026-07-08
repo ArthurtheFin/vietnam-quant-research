@@ -16,7 +16,7 @@ windows:
   min_history: 60
 
 filters:
-  min_price: 10.0
+  min_price: 10000.0  # VND; audit C1 (was 10.0 -- effectively no floor)
   min_avg_value_20d: 25000000000
   allowed_volatility_regimes:
     - Low Vol

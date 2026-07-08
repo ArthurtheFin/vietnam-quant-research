@@ -20,7 +20,7 @@ DEFAULT_LIGHT_SCAN_CONFIG: dict[str, Any] = {
     "min_history": 120,
     "top_n": 10,
     "filters": {
-        "min_price": 10.0,
+        "min_price": 10000.0,  # VND (audit C1)
         "min_avg_value_20d": 8_000_000_000.0,
         "min_median_value_20d": 5_000_000_000.0,
     },

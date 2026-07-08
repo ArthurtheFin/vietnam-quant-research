@@ -33,7 +33,7 @@ DEFAULT_SCREEN_CONFIG: dict[str, Any] = {
         "min_history": 60,
     },
     "filters": {
-        "min_price": 10.0,
+        "min_price": 10000.0,  # VND (audit C1)
         "min_avg_value_20d": 10_000_000_000.0,
         "allowed_volatility_regimes": ["Low Vol", "Normal Vol", "High Vol", "Stress Vol"],
         "allowed_market_regimes": ["Neutral", "Risk-off", "Unknown"],

@@ -145,3 +145,32 @@ def test_final_watchlist_excludes_missing_backtest_from_client_ready() -> None:
 
     assert not watchlist.empty
     assert watchlist["warning"].str.contains("Missing backtest evidence", na=False).sum() == 0
+
+
+def test_min_price_threshold_is_vnd_not_a_bare_number():
+    """C1: a 3,000 VND penny stock must fail the price filter (old threshold: 5.0)."""
+    from src.screening.final_watchlist import _mark_filters, DEFAULT_FINAL_WATCHLIST_CONFIG
+
+    df = pd.DataFrame(
+        [
+            {
+                "symbol": "PENNY", "close": 3000.0, "history_days": 300,
+                "value_ma20": 20_000_000_000.0, "volume_ma20": 100_000.0,
+                "above_ma50": True, "above_ma200": True,
+                "return_20d": 0.05, "return_60d": 0.05,
+                "atr_pct_14": 0.03, "distance_ma20": 0.02,
+            },
+            {
+                "symbol": "BLUE", "close": 65000.0, "history_days": 300,
+                "value_ma20": 20_000_000_000.0, "volume_ma20": 100_000.0,
+                "above_ma50": True, "above_ma200": True,
+                "return_20d": 0.05, "return_60d": 0.05,
+                "atr_pct_14": 0.03, "distance_ma20": 0.02,
+            },
+        ]
+    )
+    out = _mark_filters(df, DEFAULT_FINAL_WATCHLIST_CONFIG)
+    penny = out.set_index("symbol").loc["PENNY"]
+    blue = out.set_index("symbol").loc["BLUE"]
+    assert not bool(penny["strict_pass"]), "3,000 VND stock must fail min_price (was passing at threshold=5.0)"
+    assert bool(blue["strict_pass"])

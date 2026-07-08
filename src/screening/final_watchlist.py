@@ -55,7 +55,7 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     "trading_watchlist_size": 20,
     "benchmark_symbol": "VNINDEX",
     "min_history_days": 120,
-    "min_price": 5.0,
+    "min_price": 5000.0,  # VND; close prices are raw VND, not thousands (audit C1)
     "min_value_ma20": 5_000_000_000.0,
     "min_volume_ma20": 50_000.0,
     "max_atr_pct": 0.08,
