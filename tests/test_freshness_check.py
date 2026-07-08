@@ -284,7 +284,7 @@ def test_update_daily_data_scope_core(tmp_path, monkeypatch) -> None:
     assert summary["update_scope"] == "core"
 
 
-def test_update_daily_data_scope_full(tmp_path, monkeypatch) -> None:
+def test_update_daily_data_scope_tracked(tmp_path, monkeypatch) -> None:
     import yaml
     cfg_data = {"universe": {"start_date": "2020-01-01", "watchlist": ["AAA"]}}
     (tmp_path / "config").mkdir(parents=True, exist_ok=True)
@@ -317,7 +317,7 @@ def test_update_daily_data_scope_full(tmp_path, monkeypatch) -> None:
     import scripts.update_daily_data
     monkeypatch.setattr(scripts.update_daily_data, "update_symbol_history", mock_update)
 
-    code = scripts.update_daily_data.main(["--scope", "full"])
+    code = scripts.update_daily_data.main(["--scope", "tracked"])
     assert code == 0
     assert sorted(attempted) == ["S1", "S2", "S3"]
 
@@ -330,8 +330,8 @@ def test_update_daily_data_scope_batch(tmp_path, monkeypatch) -> None:
     with open(tmp_path / "config/strategy_config.yaml", "w") as f:
         yaml.dump(cfg_data, f)
 
-    rows = [{"symbol": f"S{i}", "date": "2026-07-01", "close": 10.0} for i in range(1, 7)]
-    _write_frame(tmp_path / "data/processed/clean_daily_ohlcv.parquet", rows)
+    sec_rows = [{"symbol": f"S{i}", "date": "2026-07-01", "close": 10.0} for i in range(1, 7)]
+    _write_frame(tmp_path / "data/raw/securities/HOSE.parquet", sec_rows)
 
     monkeypatch.chdir(tmp_path)
 
@@ -405,3 +405,37 @@ def test_freshness_check_active_stale_always_error(tmp_path) -> None:
         assert report["status"] == "ERROR"
 
 
+
+
+def test_full_universe_reads_real_securities_lists(tmp_path) -> None:
+    """B1: scope=full must come from exchange listings, not previously-fetched data."""
+    import sys
+    if "scripts.update_daily_data" in sys.modules:
+        del sys.modules["scripts.update_daily_data"]
+    import scripts.update_daily_data as udd
+
+    _write_frame(tmp_path / "data/raw/securities/HOSE.parquet",
+                 [{"symbol": "AAA"}, {"symbol": "BBB"}])
+    _write_frame(tmp_path / "data/raw/securities/HNX.parquet",
+                 [{"symbol": "CCC"}, {"symbol": "AAA"}])
+    # previously-fetched data must NOT drive scope=full
+    _write_frame(tmp_path / "data/processed/clean_daily_ohlcv.parquet",
+                 [{"symbol": "OLD1", "date": "2026-07-01", "close": 10.0}])
+
+    symbols = udd.get_full_universe_symbols(tmp_path)
+    assert symbols == ["AAA", "BBB", "CCC"]
+
+
+def test_full_universe_fails_loudly_without_securities_lists(tmp_path) -> None:
+    """B1: no securities lists => actionable SystemExit, no silent fallback."""
+    import sys
+    import pytest
+    if "scripts.update_daily_data" in sys.modules:
+        del sys.modules["scripts.update_daily_data"]
+    import scripts.update_daily_data as udd
+
+    _write_frame(tmp_path / "data/processed/clean_daily_ohlcv.parquet",
+                 [{"symbol": "OLD1", "date": "2026-07-01", "close": 10.0}])
+
+    with pytest.raises(SystemExit, match="update_securities"):
+        udd.get_full_universe_symbols(tmp_path)

@@ -185,7 +185,7 @@ def check_symbol_freshness(base_dir: str | Path, baseline_date: pd.Timestamp, sc
     if scope == "core":
         if len(stale_core) > 0:
             status = "WARNING"
-    elif scope == "full":
+    elif scope in ("full", "tracked"):
         if stale_symbol_ratio > 0.10:
             status = "WARNING"
     elif scope == "batch":
@@ -362,7 +362,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate freshness/alignment of pipeline artifacts.")
     parser.add_argument("--base-dir", default=".", help="Project root containing data/ and src/.")
     parser.add_argument("--strict", action="store_true", help="Treat stale warning-level artifacts as errors.")
-    parser.add_argument("--scope", default="core", choices=["core", "full", "batch", "custom"], help="Update scope context.")
+    parser.add_argument("--scope", default="core", choices=["core", "tracked", "full", "batch", "custom"], help="Update scope context.")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     report = evaluate_freshness(base_dir=args.base_dir, strict=args.strict, scope=args.scope)

@@ -36,6 +36,38 @@ def _classify_fetch_error(exc: Exception) -> str:
 
 
 def get_full_universe_symbols(base_dir=".") -> list[str]:
+    """Real listed universe: union of exchange securities lists (audit B1).
+
+    Reads data/raw/securities/*.parquet produced by scripts/update_securities.py.
+    Fails loudly when the lists are missing instead of quietly shrinking the
+    universe to whatever was fetched before.
+    """
+    base = Path(base_dir)
+    files = sorted((base / "data/raw/securities").glob("*.parquet"))
+    if not files:
+        raise SystemExit(
+            "No securities lists found in data/raw/securities/. "
+            "Run `python scripts/update_securities.py` first (requires SSI FCData credentials), "
+            "or use --scope tracked for the previously-fetched symbol set."
+        )
+    from src.data.validators import filter_primary_equity_symbols
+
+    symbols: set[str] = set()
+    for path in files:
+        df = pd.read_parquet(path)
+        col = next((c for c in df.columns if str(c).lower() == "symbol"), None)
+        if col is None:
+            raise SystemExit(f"Securities file {path} has no symbol column; refusing to guess.")
+        frame = pd.DataFrame({"symbol": df[col].dropna().astype(str).str.upper()})
+        frame = filter_primary_equity_symbols(frame)
+        symbols.update(frame["symbol"].tolist())
+    if not symbols:
+        raise SystemExit("Securities lists contained no primary equity symbols.")
+    return sorted(symbols)
+
+
+def get_tracked_universe_symbols(base_dir=".") -> list[str]:
+    """Symbols already present in local processed data (the old, self-referential 'full')."""
     base = Path(base_dir)
     for name in ("data/processed/stock_features.parquet", "data/processed/clean_daily_ohlcv.parquet"):
         path = base / name
@@ -81,7 +113,14 @@ def main(argv: list[str] | None = None) -> int:
     from src.validation.freshness_check import ensure_core_universe
 
     parser = argparse.ArgumentParser(description="Update daily stock price history.")
-    parser.add_argument("--scope", default="core", choices=["core", "full", "batch", "custom"], help="Update scope.")
+    parser.add_argument(
+        "--scope",
+        default="core",
+        choices=["core", "tracked", "full", "batch", "custom"],
+        help="Update scope. `full`/`batch` use the real listed universe from "
+        "data/raw/securities (run update_securities.py first); `tracked` is the "
+        "previously-fetched symbol set.",
+    )
     parser.add_argument("--batch-id", type=int, default=0, help="Batch ID (for scope=batch).")
     parser.add_argument("--batch-count", type=int, default=10, help="Total batch count (for scope=batch).")
     parser.add_argument("--symbols", type=str, help="Comma-separated symbols (for scope=custom).")
@@ -107,6 +146,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if scope == "core":
         watchlist = ensure_core_universe(PROJECT_ROOT)
+    elif scope == "tracked":
+        watchlist = get_tracked_universe_symbols(PROJECT_ROOT)
     elif scope == "full":
         watchlist = get_full_universe_symbols(PROJECT_ROOT)
     elif scope == "batch":
@@ -192,7 +233,12 @@ def main(argv: list[str] | None = None) -> int:
         recommended_action = "Rerun online update later or use offline mode if cached data is acceptable."
 
     freshness_metrics = calculate_freshness_metrics(PROJECT_ROOT)
-    total_uni_count = freshness_metrics["total"] or len(get_full_universe_symbols(PROJECT_ROOT))
+    total_uni_count = freshness_metrics["total"]
+    if not total_uni_count:
+        if scope in ("full", "batch"):
+            total_uni_count = len(get_full_universe_symbols(PROJECT_ROOT))
+        else:
+            total_uni_count = len(get_tracked_universe_symbols(PROJECT_ROOT))
     coverage = freshness_metrics["ratio"]
 
     summary = {

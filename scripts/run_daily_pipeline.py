@@ -742,7 +742,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-cashflow", action="store_true", help="Skip the full cashflow board + confirmation build after watchlists.")
     parser.add_argument("--build-research-notes", action="store_true", help="Build research notes after watchlists, cashflow and portfolio.")
     parser.add_argument("--update-index", action="store_true", help="Refresh raw index/VNINDEX data before generating features in online mode.")
-    parser.add_argument("--update-scope", default="core", choices=["core", "full", "batch", "custom"], help="Scope for updating daily data.")
+    parser.add_argument("--update-scope", default="core", choices=["core", "tracked", "full", "batch", "custom"], help="Scope for updating daily data.")
     parser.add_argument("--batch-id", type=int, default=0, help="Batch ID (for batch scope).")
     parser.add_argument("--batch-count", type=int, default=10, help="Total batches (for batch scope).")
     parser.add_argument("--update-symbols", type=str, help="Comma-separated symbols (for custom scope).")
