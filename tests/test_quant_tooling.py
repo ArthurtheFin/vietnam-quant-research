@@ -237,3 +237,56 @@ def test_breakout_eligibility_unvalidated_on_thin_validation():
     if not eligibility.empty:
         assert (eligibility["edge_tier"] == "Unvalidated").all()
         assert (~eligibility["eligible"]).all()
+
+
+def test_backtest_skips_limit_up_entries():
+    """D2: a buy cannot fill when the entry bar gaps to the ceiling (+7% HOSE)."""
+    from src.backtest.simulator import backtest_entries_with_fixed_stop
+
+    dates = pd.date_range("2025-01-01", periods=6, freq="B")
+    prices = pd.DataFrame(
+        {
+            "symbol": ["AAA"] * len(dates),
+            "market": ["HOSE"] * len(dates),
+            "date": dates,
+            "open": [100, 100, 107.0, 108, 108, 108],  # entry bar opens limit-up
+            "high": [101, 101, 107.0, 109, 109, 109],
+            "low": [99, 99, 107.0, 107, 107, 107],
+            "close": [100, 100, 107.0, 108, 108, 108],
+        }
+    )
+    entries = pd.DataFrame([{"symbol": "AAA", "date": dates[1]}])
+    trades = backtest_entries_with_fixed_stop(
+        entries_df=entries, price_df=prices, holding_period=3, stop_loss=None, cost=0.0
+    )
+    assert trades.empty, "limit-up entry bar must be skipped, not filled at the ceiling"
+    assert trades.attrs.get("skipped_limit_up", 0) == 1
+
+
+def test_backtest_floor_stop_slips_to_next_session():
+    """D2: a stop hit on a floor-locked bar (close==low, -7%) cannot fill at the stop price."""
+    from src.backtest.simulator import backtest_entries_with_fixed_stop
+
+    dates = pd.date_range("2025-01-01", periods=7, freq="B")
+    prices = pd.DataFrame(
+        {
+            "symbol": ["AAA"] * len(dates),
+            "market": ["HOSE"] * len(dates),
+            "date": dates,
+            "open": [100, 100, 100, 93.0, 88.0, 88, 88],
+            "high": [101, 101, 101, 96.0, 89.0, 89, 89],
+            "low": [99, 99, 99, 93.0, 87.0, 88, 88],
+            # day 3: floor-locked (-7%, close == low); day 4 closes lower at 88
+            "close": [100, 100, 100, 93.0, 88.0, 88, 88],
+        }
+    )
+    entries = pd.DataFrame([{"symbol": "AAA", "date": dates[1]}])
+    trades = backtest_entries_with_fixed_stop(
+        entries_df=entries, price_df=prices, holding_period=4, stop_loss=-0.05, cost=0.0
+    )
+    assert len(trades) == 1
+    trade = trades.iloc[0]
+    assert trade["exit_reason"] == "stop_loss_floor_slip"
+    # exit at NEXT session close (88), worse than the nominal -5% stop (95)
+    assert trade["exit_price"] == 88.0
+    assert trade["gross_return"] < -0.05

@@ -12,6 +12,7 @@ from src.portfolio.construction import (
     inverse_volatility_allocation,
     shrink_covariance,
 )
+from src.backtest.simulator import _band_for_row, load_price_bands
 from src.portfolio.returns import estimate_expected_returns
 from src.portfolio.risk import calculate_portfolio_volatility
 from src.validation.metrics import calculate_cagr, calculate_max_drawdown, calculate_sharpe
@@ -61,6 +62,8 @@ def run_portfolio_backtest(
     equity_curve = []
     dates_list = []
     trades_log = []
+    skipped_limit_up: list[dict] = []
+    price_bands, default_band = load_price_bands()
     
     # We loop day-by-day
     for day_idx, current_date in enumerate(all_dates):
@@ -162,10 +165,25 @@ def run_portfolio_backtest(
                 score_col = "final_score" if "final_score" in merged.columns else "meta_score"
                 if score_col in merged.columns:
                     merged = merged.sort_values(score_col, ascending=False)
-                
+
                 selected_symbols = merged.head(portfolio_size).index.tolist()
             else:
                 selected_symbols = []
+
+            # D2: cannot buy a symbol that is limit-up on the execution day.
+            if selected_symbols:
+                exec_day = df[df["date"] == current_date].set_index("symbol")
+                tradable = []
+                for sym in selected_symbols:
+                    if sym in exec_day.index:
+                        row = exec_day.loc[sym]
+                        r1 = row.get("return_1d")
+                        band = _band_for_row(row, price_bands, default_band)
+                        if pd.notna(r1) and float(r1) >= band * 0.98:
+                            skipped_limit_up.append({"date": current_date.strftime("%Y-%m-%d"), "symbol": sym})
+                            continue
+                    tradable.append(sym)
+                selected_symbols = tradable
                 
             # 2. Calculate new weights for selected symbols
             new_weights = pd.Series(0.0, index=symbols_universe(df))
@@ -254,6 +272,7 @@ def run_portfolio_backtest(
         "benchmark_curve": bench_nav,
         "benchmark_symbol": benchmark_source,
         "trades_log": pd.DataFrame(trades_log),
+        "skipped_limit_up": pd.DataFrame(skipped_limit_up),
         "metrics": {
             "initial_nav": initial_nav,
             "final_nav": nav,

@@ -70,3 +70,32 @@ def test_no_rebalance_on_first_day_without_prior_information() -> None:
     trades = result["trades_log"]
     first_date = pd.bdate_range("2025-01-01", periods=1)[0].strftime("%Y-%m-%d")
     assert trades[trades["date"] == first_date].empty, "day 0 has no prior information to trade on"
+
+
+def test_limit_up_symbol_is_not_bought_on_execution_day() -> None:
+    """D2: a +7% (HOSE ceiling) execution-day move means the buy cannot fill."""
+    dates = pd.bdate_range("2025-01-01", periods=15)
+    t_index = 5
+    rows, ranking_rows = [], []
+    for d_idx, d in enumerate(dates):
+        for sym in ("AAA", "BBB"):
+            r1 = 0.001
+            if sym == "AAA" and d_idx == t_index:
+                r1 = 0.07  # limit-up on execution day
+            rows.append({"symbol": sym, "market": "HOSE", "date": d, "close": 100.0, "return_1d": r1})
+            ranking_rows.append({"symbol": sym, "date": d, "final_score": 90.0 if sym == "AAA" else 50.0})
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+    )
+    t_date = dates[t_index].strftime("%Y-%m-%d")
+    buys_at_t = result["trades_log"]
+    buys_at_t = buys_at_t[(buys_at_t["date"] == t_date) & (buys_at_t["type"] == "BUY")] if not buys_at_t.empty else buys_at_t
+    assert buys_at_t.empty or "AAA" not in set(buys_at_t["symbol"]), "limit-up symbol must be skipped"
+    skipped = result["skipped_limit_up"]
+    assert not skipped.empty and "AAA" in set(skipped["symbol"])

@@ -1,7 +1,35 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+
+# D2: daily price-band limits per exchange. Heuristic detection only — the SSI
+# feed carries no official reference price, so ceiling/floor is inferred from
+# the close-to-close move (band * 0.98 tolerance for rounding).
+DEFAULT_PRICE_BANDS = {"HOSE": 0.07, "HNX": 0.10, "UPCOM": 0.15}
+DEFAULT_PRICE_BAND = 0.07
+
+
+def load_price_bands(config_path: str | Path = "config/vn_market_rules.yaml") -> tuple[dict[str, float], float]:
+    try:
+        import yaml
+
+        with open(config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        bands = {str(k).upper(): float(v) for k, v in (data.get("price_bands") or {}).items()}
+        default = float(data.get("default_price_band", DEFAULT_PRICE_BAND))
+        return (bands or DEFAULT_PRICE_BANDS), default
+    except Exception:
+        return DEFAULT_PRICE_BANDS, DEFAULT_PRICE_BAND
+
+
+def _band_for_row(row: pd.Series, bands: dict[str, float], default: float) -> float:
+    market = row.get("market")
+    if market is None or (isinstance(market, float) and pd.isna(market)):
+        return default
+    return bands.get(str(market).upper(), default)
 
 
 def filter_non_overlapping_signals(
@@ -88,6 +116,8 @@ def backtest_entries_with_fixed_stop(
     open_col: str = "open",
 ) -> pd.DataFrame:
     trades: list[dict] = []
+    skipped_limit_up = 0
+    bands, default_band = load_price_bands()
 
     entries = entries_df.copy()
     prices = price_df.copy()
@@ -117,6 +147,13 @@ def backtest_entries_with_fixed_stop(
         if future.empty or pd.isna(entry_price) or entry_price <= 0:
             continue
 
+        # D2: a limit-up gap at entry cannot fill (no sellers at the ceiling).
+        prev_close = symbol_prices.loc[i, price_col]
+        band = _band_for_row(entry_row, bands, default_band)
+        if pd.notna(prev_close) and prev_close > 0 and (entry_price / prev_close - 1) >= band * 0.98:
+            skipped_limit_up += 1
+            continue
+
         future["close_return"] = future[price_col] / entry_price - 1
         future["low_return"] = future[low_col] / entry_price - 1 if low_col in future.columns else future["close_return"]
         future["high_return"] = future[high_col] / entry_price - 1 if high_col in future.columns else future["close_return"]
@@ -134,6 +171,25 @@ def backtest_entries_with_fixed_stop(
                 exit_row = stop_hit.iloc[0]
                 gross_return = float(stop_loss)
                 exit_price = float(entry_price * (1 + stop_loss))
+
+                # D2: a floor-locked stop bar (close == low, move <= -band) cannot
+                # fill at the stop price; slip the exit to the next session's close.
+                j = int(exit_row.name)
+                prev_close_j = symbol_prices[price_col].shift(1).get(j)
+                bar_band = _band_for_row(exit_row, bands, default_band)
+                floor_locked = (
+                    pd.notna(prev_close_j)
+                    and prev_close_j > 0
+                    and (exit_row[price_col] / prev_close_j - 1) <= -bar_band * 0.98
+                    and low_col in symbol_prices.columns
+                    and exit_row[price_col] == exit_row[low_col]
+                )
+                if floor_locked and j + 1 < len(symbol_prices):
+                    slip_row = symbol_prices.loc[j + 1]
+                    exit_reason = "stop_loss_floor_slip"
+                    exit_row = slip_row
+                    exit_price = float(slip_row[price_col])
+                    gross_return = float(exit_price / entry_price - 1)
 
         trades.append(
             {
@@ -155,7 +211,9 @@ def backtest_entries_with_fixed_stop(
             }
         )
 
-    return pd.DataFrame(trades)
+    out = pd.DataFrame(trades)
+    out.attrs["skipped_limit_up"] = skipped_limit_up
+    return out
 
 
 def backtest_entries_with_atr_stop(
@@ -171,6 +229,8 @@ def backtest_entries_with_atr_stop(
     open_col: str = "open",
 ) -> pd.DataFrame:
     trades: list[dict] = []
+    skipped_limit_up = 0
+    bands, default_band = load_price_bands()
     entries = entries_df.copy()
     prices = price_df.copy()
 
@@ -203,6 +263,13 @@ def backtest_entries_with_atr_stop(
         if future.empty:
             continue
 
+        # D2: a limit-up gap at entry cannot fill (no sellers at the ceiling).
+        prev_close = symbol_prices.loc[i, price_col]
+        band = _band_for_row(entry_row, bands, default_band)
+        if pd.notna(prev_close) and prev_close > 0 and (entry_price / prev_close - 1) >= band * 0.98:
+            skipped_limit_up += 1
+            continue
+
         future["close_return"] = future[price_col] / entry_price - 1
         future["low_return"] = future[low_col] / entry_price - 1 if low_col in future.columns else future["close_return"]
         future["high_return"] = future[high_col] / entry_price - 1 if high_col in future.columns else future["close_return"]
@@ -219,6 +286,24 @@ def backtest_entries_with_atr_stop(
             exit_row = stop_hit.iloc[0]
             gross_return = float(stop_loss)
             exit_price = float(entry_price * (1 + stop_loss))
+
+            # D2: floor-locked stop bar cannot fill; slip to next session's close.
+            j = int(exit_row.name)
+            prev_close_j = symbol_prices[price_col].shift(1).get(j)
+            bar_band = _band_for_row(exit_row, bands, default_band)
+            floor_locked = (
+                pd.notna(prev_close_j)
+                and prev_close_j > 0
+                and (exit_row[price_col] / prev_close_j - 1) <= -bar_band * 0.98
+                and low_col in symbol_prices.columns
+                and exit_row[price_col] == exit_row[low_col]
+            )
+            if floor_locked and j + 1 < len(symbol_prices):
+                slip_row = symbol_prices.loc[j + 1]
+                exit_reason = "atr_stop_floor_slip"
+                exit_row = slip_row
+                exit_price = float(slip_row[price_col])
+                gross_return = float(exit_price / entry_price - 1)
 
         trades.append(
             {
@@ -241,7 +326,9 @@ def backtest_entries_with_atr_stop(
             }
         )
 
-    return pd.DataFrame(trades)
+    out = pd.DataFrame(trades)
+    out.attrs["skipped_limit_up"] = skipped_limit_up
+    return out
 
 
 def sweep_fixed_stop_losses(
