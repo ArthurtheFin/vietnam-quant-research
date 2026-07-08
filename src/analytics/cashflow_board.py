@@ -589,10 +589,23 @@ def build_cashflow_watchlist_confirmation(
                     reason = "Theo dõi trung tính: dòng tiền chưa có sự đột phá."
                     action_note = "Tiếp tục quan sát thêm."
                     
+        # I1 guard: trạng thái xác nhận dòng tiền phải đồng thuận label + state + volume.
+        # Ngoại lệ: state ACCUMULATION (stealth) — volume thấp là bản chất của tín hiệu.
+        if status in ("STRONG_CONFIRMED", "CONFIRMED") and state != "ACCUMULATION":
+            vol_ok = pd.notna(vol_ratio) and float(vol_ratio) >= 0.7
+            if state == "WEAK_FLOW" or not vol_ok:
+                status = "WATCH"
+                vol_text = f"{vol_ratio:.2f}x" if pd.notna(vol_ratio) else "N/A"
+                reason = (
+                    f"Mâu thuẫn tín hiệu: nhãn dòng tiền tích cực ({label}) nhưng trạng thái {state}, "
+                    f"volume ratio {vol_text} — hạ về theo dõi chờ xác nhận."
+                )
+                action_note = "Chưa hành động; chờ volume xác nhận (>= 0.7x trung bình 20 phiên)."
+
         status_list.append(status)
         reason_list.append(reason)
         action_note_list.append(action_note)
-        
+
     merged["confirmation_status"] = status_list
     merged["cashflow_reason"] = reason_list
     merged["cashflow_action_note"] = action_note_list

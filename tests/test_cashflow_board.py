@@ -375,3 +375,52 @@ def test_cashflow_board_calibration_v1_1() -> None:
     assert "n_zero_volume_symbols" in meta
     assert "confirmation_counts" in meta
     assert "sector_score_warnings" in meta
+
+
+def test_confirmation_guard_downgrades_contradictory_improving() -> None:
+    """I1: label IMPROVING + state WEAK_FLOW + volume 0.10x must NOT be CONFIRMED."""
+    symbol_cf = pd.DataFrame(
+        [
+            {
+                "symbol": "VVV", "sector": "Real Estate", "cashflow_score": 60.9,
+                "cashflow_state": "WEAK_FLOW", "cashflow_label": "IMPROVING",
+                "volume_ratio_20d": 0.10, "return_5d": 0.01, "cashflow_data_status": "OK",
+            },
+            {
+                "symbol": "GGG", "sector": "Banking", "cashflow_score": 75.0,
+                "cashflow_state": "CONFIRMED_INFLOW", "cashflow_label": "IMPROVING",
+                "volume_ratio_20d": 1.20, "return_5d": 0.03, "cashflow_data_status": "OK",
+            },
+        ]
+    )
+    confirm = build_cashflow_watchlist_confirmation(
+        symbol_cf,
+        client_ready=pd.DataFrame([{"symbol": "VVV"}, {"symbol": "GGG"}]),
+        trading_watchlist=pd.DataFrame(),
+        research_candidates=pd.DataFrame(),
+    )
+    confirm_map = dict(zip(confirm["symbol"], confirm["confirmation_status"]))
+    assert confirm_map["VVV"] == "WATCH", "contradictory IMPROVING must downgrade to WATCH"
+    assert confirm_map["GGG"] == "CONFIRMED", "consistent IMPROVING must stay CONFIRMED"
+    vvv_reason = confirm.set_index("symbol").loc["VVV", "cashflow_reason"]
+    assert "Mâu thuẫn" in vvv_reason
+
+
+def test_confirmation_guard_keeps_stealth_accumulation_exempt() -> None:
+    """I1: low-volume ACCUMULATION on trading tier is legit stealth — not downgraded."""
+    symbol_cf = pd.DataFrame(
+        [
+            {
+                "symbol": "SSS", "sector": "IT", "cashflow_score": 62.0,
+                "cashflow_state": "ACCUMULATION", "cashflow_label": "IMPROVING",
+                "volume_ratio_20d": 0.50, "return_5d": 0.01, "cashflow_data_status": "OK",
+            },
+        ]
+    )
+    confirm = build_cashflow_watchlist_confirmation(
+        symbol_cf,
+        client_ready=pd.DataFrame(),
+        trading_watchlist=pd.DataFrame([{"symbol": "SSS"}]),
+        research_candidates=pd.DataFrame(),
+    )
+    assert confirm.set_index("symbol").loc["SSS", "confirmation_status"] == "CONFIRMED"
