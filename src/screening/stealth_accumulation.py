@@ -339,6 +339,7 @@ def prepare_stealth_accumulation_features(
     distribution_df: pd.DataFrame | None = None,
     market_df: pd.DataFrame | None = None,
     config: dict[str, Any] | None = None,
+    benchmark_df: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     if price_df.empty:
         return pd.DataFrame()
@@ -409,15 +410,40 @@ def prepare_stealth_accumulation_features(
         df[sector_col] = df[sector_col].fillna(mapped_sector)
     df[sector_col] = df[sector_col].fillna(unknown_sector)
 
-    daily_market = (
-        df.groupby("date")["return_1d"]
-        .mean()
-        .rename("market_proxy_return_1d")
-        .reset_index()
-        .sort_values("date")
-    )
+    # G2: prefer the real VNINDEX benchmark as market proxy. The old equal-weight
+    # mean of the input basket compared symbols against themselves (bank-heavy).
+    market_proxy_source = "internal_equal_weight"
+    daily_market = pd.DataFrame()
+    bench = benchmark_df
+    if bench is None or bench.empty:
+        bench_path = (cfg.get("backtest") or {}).get("benchmark_path")
+        if bench_path:
+            bench = _read_optional_frame(bench_path)
+    if bench is not None and not bench.empty and "date" in bench.columns:
+        bench = bench.copy()
+        bench["date"] = pd.to_datetime(bench["date"], errors="coerce")
+        bench = bench.dropna(subset=["date"]).sort_values("date")
+        if "return_1d" not in bench.columns and "close" in bench.columns:
+            bench["return_1d"] = pd.to_numeric(bench["close"], errors="coerce").pct_change()
+        if "return_1d" in bench.columns:
+            daily_market = (
+                bench[["date", "return_1d"]]
+                .rename(columns={"return_1d": "market_proxy_return_1d"})
+                .drop_duplicates(subset=["date"], keep="last")
+                .reset_index(drop=True)
+            )
+            market_proxy_source = "benchmark_vnindex"
+    if daily_market.empty:
+        daily_market = (
+            df.groupby("date")["return_1d"]
+            .mean()
+            .rename("market_proxy_return_1d")
+            .reset_index()
+            .sort_values("date")
+        )
     daily_market["market_proxy_return_20d"] = _rolling_compound_return(daily_market["market_proxy_return_1d"], market_window)
     df = df.merge(daily_market, on="date", how="left")
+    df["market_proxy_source"] = market_proxy_source
 
     sector_daily = (
         df.groupby(["date", sector_col])["return_1d"]
@@ -485,6 +511,12 @@ def prepare_stealth_accumulation_features(
     df["relative_strength_20d"] = df["return_20d"] - df["market_proxy_return_20d"]
     df["sector_relative_strength_20d"] = df["return_20d"] - df["sector_proxy_return_20d"]
     df["sector_tailwind_20d"] = df["sector_proxy_return_20d"] - df["market_proxy_return_20d"]
+
+    # G2: a 1-2 name "sector" proxy is mostly the symbol itself — self-comparison.
+    # Neutralize sector RS there (NaN ranks to 50 in cross-sectional scoring).
+    sector_sizes = df.groupby(sector_col)["symbol"].transform("nunique")
+    df["sector_rs_reliable"] = sector_sizes >= 3
+    df.loc[~df["sector_rs_reliable"], ["sector_relative_strength_20d", "sector_tailwind_20d"]] = np.nan
 
     df["history_days"] = grouped.cumcount() + 1
     df["liquidity_pass"] = (df["avg_value_20d"] >= float(cfg["filters"]["min_avg_value_20d"])) & (df["close"] >= float(cfg["filters"]["min_price"]))
@@ -990,6 +1022,7 @@ def run_stealth_accumulation_screen(
     distribution_df: pd.DataFrame | None = None,
     market_df: pd.DataFrame | None = None,
     config: dict[str, Any] | None = None,
+    benchmark_df: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     return prepare_stealth_accumulation_features(
         price_df=price_df,
@@ -997,4 +1030,5 @@ def run_stealth_accumulation_screen(
         distribution_df=distribution_df,
         market_df=market_df,
         config=config,
+        benchmark_df=benchmark_df,
     )

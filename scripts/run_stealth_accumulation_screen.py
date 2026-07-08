@@ -22,9 +22,12 @@ config = load_screen_config("config/screens/stealth_accumulation.yaml")
 # Use stock_features directly — it already contains clean OHLCV + all computed features
 features_df = read_parquet("data/processed/stock_features.parquet")
 market_df = read_parquet("data/processed/market_features.parquet")
+benchmark_df = read_parquet("data/processed/benchmark_vnindex.parquet")
 
 if features_df.empty:
     raise SystemExit("No features data found. Run scripts/generate_features.py first.")
+if benchmark_df.empty:
+    print("WARNING: benchmark_vnindex.parquet missing — market proxy falls back to the basket itself (audit G2).")
 
 # Run stealth accumulation screening
 # features_df serves as both price_df and feature source
@@ -34,6 +37,7 @@ screen_df = prepare_stealth_accumulation_features(
     distribution_df=features_df,
     market_df=market_df,
     config=config,
+    benchmark_df=benchmark_df,
 )
 
 latest_df = latest_screen_snapshot(screen_df, top_n=config["output"]["top_n"], only_watchlist=False)

@@ -107,8 +107,10 @@ def test_sector_relative_strength_and_breadth_scores_behave_as_expected():
     specs = [
         ("AAA", "Banking", _series(100, 125, 0.6), 250_000),
         ("BBB", "Banking", _series(100, 110, 0.5), 240_000),
+        ("EEE", "Banking", _series(100, 115, 0.4), 245_000),  # >=3 names: sector RS stays reliable (G2)
         ("CCC", "Retail", _series(100, 140, 0.7), 260_000),
         ("DDD", "Retail", _series(100, 136, 0.8), 255_000),
+        ("FFF", "Retail", _series(100, 132, 0.5), 250_000),
     ]
     for symbol, sector, close, volume in specs:
         open_ = close.shift(1).fillna(close.iloc[0] * 0.995)
@@ -437,3 +439,62 @@ def test_stealth_accumulation_stage_s_squeeze():
     assert latest["accumulation_stage"] == "Stage S: Tight Squeeze"
     assert latest["watchlist_flag"] == True
 
+
+
+def test_market_proxy_uses_real_benchmark_when_available():
+    """G2: relative strength must be measured vs VNINDEX, not vs the basket itself."""
+    dates = pd.date_range("2024-01-01", periods=100, freq="D")
+    rows = []
+    for sym, drift in (("AAA", 0.002), ("BBB", 0.001)):
+        price = 20.0
+        for d in dates:
+            price *= 1 + drift
+            rows.append({
+                "symbol": sym, "market": "HOSE", "date": d,
+                "open": price, "high": price * 1.01, "low": price * 0.99,
+                "close": price, "volume": 1_000_000, "value": price * 1_000_000,
+            })
+    price_df = pd.DataFrame(rows)
+
+    bench_price = 1000.0
+    bench_rows = []
+    for d in dates:
+        bench_price *= 1.0005
+        bench_rows.append({"date": d, "close": bench_price})
+    benchmark_df = pd.DataFrame(bench_rows)
+    benchmark_df["return_1d"] = benchmark_df["close"].pct_change()
+
+    out = run_stealth_accumulation_screen(price_df=price_df, benchmark_df=benchmark_df)
+    assert (out["market_proxy_source"] == "benchmark_vnindex").all()
+    bench_check = benchmark_df[["date", "return_1d"]].rename(columns={"return_1d": "bench_return_1d"})
+    merged_check = out.dropna(subset=["market_proxy_return_1d"]).merge(bench_check, on="date")
+    assert np.allclose(merged_check["market_proxy_return_1d"], merged_check["bench_return_1d"])
+
+    out_no_bench = run_stealth_accumulation_screen(price_df=price_df, config={"backtest": {"benchmark_path": None}})
+    assert (out_no_bench["market_proxy_source"] == "internal_equal_weight").all()
+
+
+def test_single_name_sector_rs_is_neutralized():
+    """G2: a sector containing one symbol must not self-compare for sector RS."""
+    dates = pd.date_range("2024-01-01", periods=100, freq="D")
+    rows = []
+    for sym in ("AAA", "BBB", "CCC", "DDD"):
+        price = 20.0
+        for d in dates:
+            price *= 1.001
+            rows.append({
+                "symbol": sym, "market": "HOSE", "date": d,
+                "open": price, "high": price * 1.01, "low": price * 0.99,
+                "close": price, "volume": 1_000_000, "value": price * 1_000_000,
+            })
+    price_df = pd.DataFrame(rows)
+    config = {
+        "backtest": {"benchmark_path": None},
+        "sector": {"symbol_map": {"AAA": "Banking", "BBB": "Banking", "CCC": "Banking", "DDD": "Lonely"}},
+    }
+    out = run_stealth_accumulation_screen(price_df=price_df, config=config)
+    lonely = out[out["symbol"] == "DDD"]
+    banking = out[out["symbol"] == "AAA"]
+    assert (~lonely["sector_rs_reliable"]).all()
+    assert lonely["sector_relative_strength_20d"].isna().all()
+    assert banking["sector_rs_reliable"].all()
