@@ -49,7 +49,7 @@ def test_freshness_check_warns_on_stale_benchmark(tmp_path) -> None:
         [{"symbol": "VNINDEX", "date": "2026-06-28", "close": 1000.0}],
     )
 
-    report = evaluate_freshness(base_dir=tmp_path)
+    report = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"))
 
     assert report["status"] in {"WARNING", "ERROR"}
     assert any("benchmark_vnindex is stale" in message for message in report["warnings"] + report["errors"])
@@ -156,7 +156,7 @@ def test_freshness_check_allows_empty_trading_watchlist(tmp_path) -> None:
     empty_trading = pd.DataFrame(columns=["symbol", "date", "final_score"])
     empty_trading.to_parquet(tmp_path / "data/output/trading_watchlist.parquet", index=False)
 
-    report = evaluate_freshness(base_dir=tmp_path)
+    report = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-06-30 20:00"))
 
     assert report["status"] == "OK"
     messages = report["warnings"] + report["errors"]
@@ -173,7 +173,7 @@ def test_symbol_freshness_ratio_warning(tmp_path) -> None:
     _write_frame(tmp_path / "data/output/client_ready_watchlist.parquet", [{"symbol": "SYM0", "date": "2026-06-30", "final_score": 80.0}])
     _write_frame(tmp_path / "data/output/portfolio_weights.parquet", [{"symbol": "SYM0", "date": "2026-06-30", "weight": 0.1}])
 
-    report = evaluate_freshness(base_dir=tmp_path, scope="full")
+    report = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"), scope="full")
     assert report["symbol_freshness"]["status"] == "WARNING"
     assert report["symbol_freshness"]["stale_symbol_count"] == 2
     assert report["symbol_freshness"]["stale_symbol_ratio"] == 0.20
@@ -187,7 +187,7 @@ def test_symbol_freshness_client_ready_stale_error(tmp_path) -> None:
     _write_all_mock_dated_files(tmp_path, rows)
     _write_frame(tmp_path / "data/output/client_ready_watchlist.parquet", [{"symbol": "BBB", "final_score": 80.0}])
 
-    report = evaluate_freshness(base_dir=tmp_path)
+    report = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"))
     assert report["symbol_freshness"]["status"] == "ERROR"
     assert "BBB" in report["symbol_freshness"]["stale_client_ready_symbols"]
 
@@ -378,13 +378,13 @@ def test_freshness_check_scopes(tmp_path) -> None:
     _write_frame(tmp_path / "data/output/client_ready_watchlist.parquet", [{"symbol": "CORE1", "date": "2026-07-02", "final_score": 80.0}])
     _write_frame(tmp_path / "data/output/portfolio_weights.parquet", [{"symbol": "CORE1", "date": "2026-07-02", "weight": 0.1}])
 
-    report_core = evaluate_freshness(base_dir=tmp_path, scope="core")
+    report_core = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"), scope="core")
     assert report_core["status"] == "OK"
 
-    report_full = evaluate_freshness(base_dir=tmp_path, scope="full")
+    report_full = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"), scope="full")
     assert report_full["status"] == "WARNING"
 
-    report_batch = evaluate_freshness(base_dir=tmp_path, scope="batch")
+    report_batch = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"), scope="batch")
     assert report_batch["status"] == "OK"
 
 
@@ -401,7 +401,7 @@ def test_freshness_check_active_stale_always_error(tmp_path) -> None:
     _write_frame(tmp_path / "data/output/client_ready_watchlist.parquet", [{"symbol": "CORE1", "date": "2026-06-30", "final_score": 80.0}])
 
     for scope in ("core", "full", "batch"):
-        report = evaluate_freshness(base_dir=tmp_path, scope=scope)
+        report = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"), scope=scope)
         assert report["status"] == "ERROR"
 
 
@@ -439,3 +439,39 @@ def test_full_universe_fails_loudly_without_securities_lists(tmp_path) -> None:
 
     with pytest.raises(SystemExit, match="update_securities"):
         udd.get_full_universe_symbols(tmp_path)
+
+
+def test_calendar_freshness_detects_frozen_dataset(tmp_path) -> None:
+    """B2: a dataset whose max date lags the real trading calendar must not report OK."""
+    rows = [{"symbol": "AAA", "date": "2026-07-02", "close": 10.0}]  # Thursday
+    _write_frame(tmp_path / "data/processed/clean_daily_ohlcv.parquet", rows)
+    _write_frame(tmp_path / "data/processed/stock_features.parquet", rows)
+
+    # Wednesday next week, evening: data is 3 sessions behind (Jul 3, 6, 7... through Jul 8)
+    report = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-08 20:00"))
+    assert report["status"] == "ERROR"
+    assert any("frozen" in e.lower() for e in report["errors"])
+    cal = report["calendar_freshness"]
+    assert cal["lag_sessions"] >= 2
+
+    # Same evening as the data date: calendar is satisfied (other artifacts may warn)
+    report_ok = evaluate_freshness(base_dir=tmp_path, now=pd.Timestamp("2026-07-02 20:00"))
+    assert report_ok["calendar_freshness"]["lag_sessions"] == 0
+    assert not any("frozen" in e.lower() for e in report_ok["errors"])
+
+
+def test_expected_latest_trading_date_calendar_rules() -> None:
+    """B2: weekday/holiday/cutoff rules for the expected session."""
+    from src.validation.freshness_check import expected_latest_trading_date
+
+    # Wednesday morning (before 16:00) -> Tuesday
+    assert expected_latest_trading_date(pd.Timestamp("2026-07-08 09:00")) == pd.Timestamp("2026-07-07")
+    # Wednesday evening -> Wednesday
+    assert expected_latest_trading_date(pd.Timestamp("2026-07-08 20:00")) == pd.Timestamp("2026-07-08")
+    # Monday morning -> previous Friday
+    assert expected_latest_trading_date(pd.Timestamp("2026-07-06 09:00")) == pd.Timestamp("2026-07-03")
+    # Saturday -> Friday
+    assert expected_latest_trading_date(pd.Timestamp("2026-07-04 12:00")) == pd.Timestamp("2026-07-03")
+    # Holiday skipping: Sep 2 2026 (Wednesday) is National Day
+    holidays = {pd.Timestamp("2026-09-02").date()}
+    assert expected_latest_trading_date(pd.Timestamp("2026-09-02 20:00"), holidays) == pd.Timestamp("2026-09-01")

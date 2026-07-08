@@ -244,6 +244,7 @@ def main(argv: list[str] | None = None) -> int:
     summary = {
         "status": status,
         "update_scope": scope,
+        "market_latest_date": market_latest_date.strftime("%Y-%m-%d") if market_latest_date is not None else None,
         "attempted_symbols": watchlist,
         "succeeded_symbols": succeeded_symbols,
         "failed_symbols": failed_symbols,

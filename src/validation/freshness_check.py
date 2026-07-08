@@ -111,6 +111,80 @@ def ensure_core_universe(base_dir: str | Path = ".") -> list[str]:
     return current_watchlist
 
 
+def load_market_holidays(base_dir: str | Path = ".") -> set:
+    """Known VN market holidays from config/vn_market_holidays.csv (fixed solar dates only;
+    lunar holidays such as Tet must be added manually — see OPERATIONS.md)."""
+    path = Path(base_dir) / "config/vn_market_holidays.csv"
+    if not path.exists():
+        return set()
+    try:
+        df = pd.read_csv(path)
+        return set(pd.to_datetime(df["date"], errors="coerce").dropna().dt.date)
+    except Exception:
+        return set()
+
+
+def expected_latest_trading_date(
+    now: pd.Timestamp | None = None,
+    holidays: set | None = None,
+) -> pd.Timestamp:
+    """Most recent HOSE session whose EOD data should exist by `now` (audit B2).
+
+    Weekday approximation + configured holidays. Before 16:00 Asia/Ho_Chi_Minh the
+    current session's EOD data may not be published yet, so the previous session
+    is expected instead.
+    """
+    holidays = holidays or set()
+    if now is None:
+        now = pd.Timestamp.now(tz="Asia/Ho_Chi_Minh")
+    now = pd.Timestamp(now)
+    if now.tzinfo is not None:
+        now = now.tz_convert("Asia/Ho_Chi_Minh").tz_localize(None)
+    candidate = now.normalize()
+    if now.hour < 16:
+        candidate -= pd.Timedelta(days=1)
+    while candidate.weekday() >= 5 or candidate.date() in holidays:
+        candidate -= pd.Timedelta(days=1)
+    return candidate
+
+
+def trading_sessions_behind(
+    baseline_date: pd.Timestamp,
+    expected_date: pd.Timestamp,
+    holidays: set | None = None,
+) -> int:
+    """Number of trading sessions strictly after baseline_date up to expected_date."""
+    holidays = holidays or set()
+    baseline = pd.Timestamp(baseline_date).normalize()
+    expected = pd.Timestamp(expected_date).normalize()
+    sessions = 0
+    day = baseline + pd.Timedelta(days=1)
+    while day <= expected:
+        if day.weekday() < 5 and day.date() not in holidays:
+            sessions += 1
+        day += pd.Timedelta(days=1)
+    return sessions
+
+
+def _market_latest_date_from_summary(base_dir: str | Path) -> pd.Timestamp | None:
+    """VNINDEX-confirmed latest market date persisted by update_daily_data (preferred over
+    the weekday approximation because it reflects real sessions, including lunar holidays)."""
+    import json
+
+    path = Path(base_dir) / "data/output/update_daily_data_summary.json"
+    if not path.exists():
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            summary = json.load(f)
+        raw = summary.get("market_latest_date")
+        if raw:
+            return pd.Timestamp(raw).normalize()
+    except Exception:
+        pass
+    return None
+
+
 def check_symbol_freshness(base_dir: str | Path, baseline_date: pd.Timestamp, scope: str = "core") -> dict[str, object]:
     base = Path(base_dir)
     ohlcv_path = base / "data/processed/clean_daily_ohlcv.parquet"
@@ -214,6 +288,7 @@ def evaluate_freshness(
     base_dir: str | Path = ".",
     strict: bool = False,
     scope: str = "core",
+    now: pd.Timestamp | None = None,
 ) -> dict[str, object]:
     inspected = inspect_artifacts(base_dir=base_dir)
     warnings: list[str] = []
@@ -224,6 +299,37 @@ def evaluate_freshness(
         or inspected.get("stock_features", {}).get("latest_timestamp")
     )
     baseline_date = None if baseline_ts is None else pd.Timestamp(baseline_ts)
+
+    # B2: compare the dataset against the real trading calendar, not against itself.
+    calendar_freshness = None
+    if baseline_date is not None:
+        holidays = load_market_holidays(base_dir)
+        market_confirmed = _market_latest_date_from_summary(base_dir)
+        approx_expected = expected_latest_trading_date(now=now, holidays=holidays)
+        if market_confirmed is not None and abs((market_confirmed - approx_expected).days) <= 7:
+            expected = market_confirmed
+            expected_source = "vnindex_confirmed"
+        else:
+            expected = approx_expected
+            expected_source = "weekday_approximation"
+        lag_sessions = trading_sessions_behind(baseline_date.normalize(), expected, holidays)
+        calendar_freshness = {
+            "expected_trading_date": expected.date().isoformat(),
+            "expected_source": expected_source,
+            "baseline_date": baseline_date.date().isoformat(),
+            "lag_sessions": lag_sessions,
+        }
+        if lag_sessions == 1:
+            warnings.append(
+                f"Dataset may be frozen: latest data {baseline_date.date().isoformat()} is 1 trading "
+                f"session behind expected {expected.date().isoformat()} ({expected_source})."
+            )
+        elif lag_sessions >= 2:
+            errors.append(
+                f"Dataset frozen: latest data {baseline_date.date().isoformat()} is {lag_sessions} trading "
+                f"sessions behind expected {expected.date().isoformat()} ({expected_source}). "
+                f"Run scripts/update_daily_data.py before trusting any output."
+            )
 
     symbol_freshness = None
     if baseline_date is not None:
@@ -335,6 +441,7 @@ def evaluate_freshness(
         "errors": errors,
         "artifacts": artifact_summary,
         "symbol_freshness": symbol_freshness,
+        "calendar_freshness": calendar_freshness,
     }
 
 
