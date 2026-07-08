@@ -6,6 +6,7 @@ import pandas as pd
 
 from src.backtest.simulator import (
     backtest_entries_with_atr_stop,
+    backtest_entries_with_fixed_stop,
     filter_non_overlapping_signals,
     summarize_trades,
     summarize_trades_by_group,
@@ -89,6 +90,20 @@ def select_best_stop(summary: pd.DataFrame, min_trades: int = 50) -> pd.Series:
     if candidate.empty:
         raise ValueError("No stop-loss candidate satisfies the minimum trade threshold")
     return candidate.sort_values(["profit_factor", "avg_return"], ascending=[False, False]).iloc[0]
+
+
+def _select_best_stop_relaxed(summary: pd.DataFrame, thresholds: tuple[int, ...] = (50, 20, 5)) -> tuple[pd.Series, int]:
+    """Select the best stop, relaxing the min-trade threshold on small samples.
+
+    Returns (row, min_trades_used). The relaxation is recorded by the caller so
+    thin evidence is visible instead of silently blocking the pipeline."""
+    last_error: Exception | None = None
+    for threshold in thresholds:
+        try:
+            return select_best_stop(summary, min_trades=threshold), threshold
+        except ValueError as exc:
+            last_error = exc
+    raise last_error
 
 
 def build_setup_eligibility(
@@ -219,6 +234,8 @@ def run_breakout_research(
     cost: float = 0.004,
     stop_losses: list[float | None] | None = None,
     atr_multiples: list[float] | None = None,
+    validation_split: float | None = 0.7,
+    min_validation_trades: int = 50,
 ) -> dict[str, pd.DataFrame | dict | pd.Series]:
     stop_losses = stop_losses or [None, -0.05, -0.07, -0.10, -0.12]
     atr_multiples = atr_multiples or [1.5, 2.0, 2.5]
@@ -231,21 +248,48 @@ def run_breakout_research(
         cost=cost,
     )
 
+    # I3: select the stop on TRAIN entries only; report metrics on VALIDATION.
+    # Selecting and reporting on the same sample overstates the edge.
+    entries = entries.sort_values("date").reset_index(drop=True)
+    entry_dates = pd.to_datetime(entries["date"]) if not entries.empty else pd.Series(dtype="datetime64[ns]")
+    split_date = None
+    if validation_split is not None and not entries.empty:
+        candidate_split = entry_dates.quantile(validation_split)
+        train_mask = entry_dates <= candidate_split
+        if train_mask.any() and (~train_mask).any():
+            split_date = candidate_split
+    if split_date is not None:
+        train_entries = entries[entry_dates <= split_date].copy()
+        validation_entries = entries[entry_dates > split_date].copy()
+    else:
+        train_entries = entries.copy()
+        validation_entries = entries.copy()
+
     fixed_stop_summary, trades_by_stop = sweep_fixed_stop_losses(
-        entries_df=entries,
+        entries_df=train_entries,
         price_df=prepared,
         stop_losses=stop_losses,
         holding_period=holding_period,
         cost=cost,
     )
-    best_row = select_best_stop(fixed_stop_summary)
+    best_row, min_trades_used = _select_best_stop_relaxed(fixed_stop_summary)
     best_stop = None if best_row["stop_loss"] == "no_stop" else float(best_row["stop_loss"])
-    best_trades = trades_by_stop[best_stop].copy()
+
+    # Evaluate the train-selected stop on held-out entries.
+    validation_trades = backtest_entries_with_fixed_stop(
+        entries_df=validation_entries,
+        price_df=prepared,
+        holding_period=holding_period,
+        stop_loss=best_stop,
+        cost=cost,
+    )
+    validated = split_date is not None and len(validation_trades) >= min_validation_trades
+    best_trades = validation_trades.copy()
     by_symbol = summarize_trades_by_group(best_trades, group_col="symbol")
     by_regime = summarize_trades_by_group(best_trades, group_col="volatility_regime")
 
     atr_stop_summary, atr_trades_map = sweep_atr_multiples(
-        entries_df=entries,
+        entries_df=train_entries,
         price_df=prepared,
         atr_multiples=atr_multiples,
         atr_col="atr_pct_14",
@@ -264,6 +308,23 @@ def run_breakout_research(
         stop_loss=-0.10 if best_stop is None else best_stop,
         holding_period=holding_period,
     )
+    if not validated:
+        # Fail loudly: thin or absent held-out evidence must not masquerade as edge.
+        eligibility["edge_tier"] = "Unvalidated"
+        eligibility["eligible"] = False
+        eligibility["watchlist_eligible"] = False
+
+    stop_selection = {
+        "split_date": None if split_date is None else pd.Timestamp(split_date).date().isoformat(),
+        "train_entries": int(len(train_entries)),
+        "validation_entries": int(len(validation_entries)),
+        "validation_trades": int(len(validation_trades)),
+        "min_validation_trades": int(min_validation_trades),
+        "validated": bool(validated),
+        "selected_stop": best_stop,
+        "selection_min_trades_used": int(min_trades_used),
+        "selected_on": "train" if split_date is not None else "in_sample (degenerate timeline)",
+    }
 
     return {
         "prepared_features": prepared,
@@ -279,6 +340,7 @@ def run_breakout_research(
         "atr_trades_map": atr_trades_map,
         "eligibility": eligibility,
         "volatility_rule": vol_rule,
+        "stop_selection": stop_selection,
     }
 
 

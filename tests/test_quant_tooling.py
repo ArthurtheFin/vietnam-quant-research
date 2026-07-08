@@ -183,3 +183,57 @@ def test_forward_returns_from_next_open_excludes_gap():
     first = out.iloc[0]
     # close-based would be 110/100-1 = 10%; open-based is 110/105-1 ≈ 4.76%
     assert abs(first["forward_return_open_5d"] - (110.0 / 105.0 - 1)) < 1e-9
+
+
+def _synthetic_breakout_features(n_symbols: int = 4, n_days: int = 260, seed: int = 11) -> pd.DataFrame:
+    rng = np.random.default_rng(seed)
+    dates = pd.bdate_range("2024-01-02", periods=n_days)
+    rows = []
+    for k in range(n_symbols):
+        price = 100.0
+        for d in dates:
+            drift = rng.normal(0.0015, 0.02)
+            price = max(1.0, price * (1 + drift))
+            rows.append(
+                {
+                    "symbol": f"SYM{k}",
+                    "date": d,
+                    "open": price * (1 + rng.normal(0, 0.004)),
+                    "high": price * 1.015,
+                    "low": price * 0.985,
+                    "close": price,
+                    "volume": 1_000_000,
+                    "volume_zscore_20d": rng.normal(1.5, 0.5),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def test_breakout_stop_selection_is_out_of_sample():
+    """I3: the stop is chosen on train entries; reported stats come from validation."""
+    from src.backtest.breakout_research import run_breakout_research
+
+    features = _synthetic_breakout_features()
+    results = run_breakout_research(features, validation_split=0.7, min_validation_trades=1)
+
+    sel = results["stop_selection"]
+    assert sel["split_date"] is not None, "a time split must exist"
+    assert sel["selected_on"] == "train"
+    assert sel["train_entries"] + sel["validation_entries"] == len(results["non_overlap_entries"])
+    # reported trades are the validation trades of the train-selected stop
+    assert len(results["best_fixed_trades"]) == sel["validation_trades"]
+    if sel["validation_trades"] > 0:
+        split = pd.Timestamp(sel["split_date"])
+        assert (pd.to_datetime(results["best_fixed_trades"]["entry_date"]) > split).all()
+
+
+def test_breakout_eligibility_unvalidated_on_thin_validation():
+    """I3: too few held-out trades must be flagged, not passed off as edge."""
+    from src.backtest.breakout_research import run_breakout_research
+
+    features = _synthetic_breakout_features()
+    results = run_breakout_research(features, validation_split=0.7, min_validation_trades=10_000)
+    eligibility = results["eligibility"]
+    if not eligibility.empty:
+        assert (eligibility["edge_tier"] == "Unvalidated").all()
+        assert (~eligibility["eligible"]).all()
