@@ -12,6 +12,7 @@ from src.backtest.simulator import (
     sweep_atr_multiples,
     sweep_fixed_stop_losses,
 )
+from src.backtest.engine import attach_forward_returns_from_next_open
 from src.features.returns import add_returns
 from src.features.volatility import add_atr, add_realized_volatility, add_volatility_percentile, classify_volatility_regime
 
@@ -27,6 +28,11 @@ def ensure_breakout_features(
     required_return_cols = [f"forward_return_{h}d" for h in forward_horizons] + ["return_1d", "log_return_1d"]
     if any(col not in out.columns for col in required_return_cols):
         out = add_returns(out, horizons=list(sorted(set(forward_horizons))))
+
+    # I4: open-based forward returns (entry at next session's open) when open data exists
+    open_cols = [f"forward_return_open_{h}d" for h in forward_horizons]
+    if "open" in out.columns and any(col not in out.columns for col in open_cols):
+        out = attach_forward_returns_from_next_open(out, horizons=list(sorted(set(forward_horizons))))
 
     rolling_high_col = f"rolling_high_{breakout_window}d"
     breakout_col = f"breakout_{breakout_window}d"
@@ -59,12 +65,20 @@ def build_non_overlap_entries(
     cost: float = 0.004,
 ) -> tuple[pd.DataFrame, dict]:
     entries = filter_non_overlapping_signals(features, signal_col=signal_col, holding_period=holding_period)
-    forward_return_col = f"forward_return_{holding_period}d"
+    # I4: prefer entry at next session's open; close-of-signal-bar entries are untradeable.
+    open_return_col = f"forward_return_open_{holding_period}d"
+    if open_return_col in entries.columns and entries[open_return_col].notna().any():
+        forward_return_col = open_return_col
+        entry_basis = "next_open"
+    else:
+        forward_return_col = f"forward_return_{holding_period}d"
+        entry_basis = "signal_close (open column unavailable — same-bar bias present)"
     entries = entries.dropna(subset=[forward_return_col]).copy()
     entries[f"net_return_{holding_period}d"] = entries[forward_return_col] - cost
 
     baseline = entries.rename(columns={f"net_return_{holding_period}d": "net_return"})
     baseline_summary = summarize_trades(baseline, return_col="net_return")
+    baseline_summary["entry_basis"] = entry_basis
     return entries, baseline_summary
 
 

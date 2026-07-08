@@ -137,6 +137,8 @@ def test_backtest_entries_with_atr_stop_and_sweep():
         {
             "symbol": ["AAA", "AAA", "AAA"],
             "date": pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"]),
+            # I4 semantics: entry = open of the bar AFTER the signal (100.0 on Jan 2)
+            "open": [100.0, 100.0, 108.0],
             "close": [100.0, 96.0, 110.0],
             "low": [99.0, 93.0, 109.0],
             "high": [101.0, 97.0, 111.0],

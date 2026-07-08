@@ -135,3 +135,51 @@ def test_summarize_trades_reports_profit_factor():
 
     assert round(summary["profit_factor"], 4) == 3.0
     assert round(summary["stop_rate"], 4) == 0.3333
+
+
+def test_backtest_entry_uses_next_bar_open_not_signal_close():
+    """I4: entry must be the next session's open, not the close that produced the signal."""
+    from src.backtest.simulator import backtest_entries_with_fixed_stop
+
+    dates = pd.date_range("2025-01-01", periods=8, freq="B")
+    prices = pd.DataFrame(
+        {
+            "symbol": ["AAA"] * len(dates),
+            "date": dates,
+            # signal day close = 100; next day gaps to open 105 and everything closes at 110
+            "open": [100, 100, 105, 110, 110, 110, 110, 110],
+            "high": [101, 101, 111, 111, 111, 111, 111, 111],
+            "low": [99, 99, 104, 109, 109, 109, 109, 109],
+            "close": [100, 100, 110, 110, 110, 110, 110, 110],
+        }
+    )
+    entries = pd.DataFrame([{"symbol": "AAA", "date": dates[1]}])  # signal at close=100
+    trades = backtest_entries_with_fixed_stop(
+        entries_df=entries, price_df=prices, holding_period=3, stop_loss=None, cost=0.0
+    )
+    assert len(trades) == 1
+    trade = trades.iloc[0]
+    assert trade["entry_price"] == 105.0, (
+        f"entry must be next open 105, got {trade['entry_price']} — "
+        "close-of-signal-day entry is untradeable (same-bar bias)"
+    )
+    assert abs(trade["gross_return"] - (110.0 / 105.0 - 1)) < 1e-9
+
+
+def test_forward_returns_from_next_open_excludes_gap():
+    """I4: open-based forward returns must not credit the overnight gap to the strategy."""
+    from src.backtest.engine import attach_forward_returns_from_next_open
+
+    dates = pd.date_range("2025-01-01", periods=10, freq="B")
+    df = pd.DataFrame(
+        {
+            "symbol": ["AAA"] * len(dates),
+            "date": dates,
+            "open": [100, 105] + [110] * 8,
+            "close": [100] + [110] * 9,
+        }
+    )
+    out = attach_forward_returns_from_next_open(df, horizons=[5])
+    first = out.iloc[0]
+    # close-based would be 110/100-1 = 10%; open-based is 110/105-1 ≈ 4.76%
+    assert abs(first["forward_return_open_5d"] - (110.0 / 105.0 - 1)) < 1e-9

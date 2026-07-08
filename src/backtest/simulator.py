@@ -85,6 +85,7 @@ def backtest_entries_with_fixed_stop(
     price_col: str = "close",
     low_col: str = "low",
     high_col: str = "high",
+    open_col: str = "open",
 ) -> pd.DataFrame:
     trades: list[dict] = []
 
@@ -108,7 +109,10 @@ def backtest_entries_with_fixed_stop(
         if i + 1 >= len(symbol_prices):
             continue
 
-        entry_price = symbol_prices.loc[i, price_col]
+        # I4: enter at the NEXT session's open — the close that produced the
+        # signal is not tradeable. Fallback to next close when open is missing.
+        entry_row = symbol_prices.loc[i + 1]
+        entry_price = entry_row[open_col] if open_col in symbol_prices.columns and pd.notna(entry_row.get(open_col)) else entry_row[price_col]
         future = symbol_prices.loc[i + 1 : i + holding_period].copy()
         if future.empty or pd.isna(entry_price) or entry_price <= 0:
             continue
@@ -164,6 +168,7 @@ def backtest_entries_with_atr_stop(
     price_col: str = "close",
     low_col: str = "low",
     high_col: str = "high",
+    open_col: str = "open",
 ) -> pd.DataFrame:
     trades: list[dict] = []
     entries = entries_df.copy()
@@ -185,7 +190,10 @@ def backtest_entries_with_atr_stop(
         if i + 1 >= len(symbol_prices):
             continue
 
-        entry_price = symbol_prices.loc[i, price_col]
+        # I4: enter at the NEXT session's open; ATR is taken from the signal bar
+        # (information available at decision time).
+        entry_row = symbol_prices.loc[i + 1]
+        entry_price = entry_row[open_col] if open_col in symbol_prices.columns and pd.notna(entry_row.get(open_col)) else entry_row[price_col]
         atr_pct = symbol_prices.loc[i].get(atr_col, np.nan)
         if pd.isna(entry_price) or entry_price <= 0 or pd.isna(atr_pct):
             continue
