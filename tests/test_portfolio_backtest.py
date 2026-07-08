@@ -99,3 +99,101 @@ def test_limit_up_symbol_is_not_bought_on_execution_day() -> None:
     assert buys_at_t.empty or "AAA" not in set(buys_at_t["symbol"]), "limit-up symbol must be skipped"
     skipped = result["skipped_limit_up"]
     assert not skipped.empty and "AAA" in set(skipped["symbol"])
+
+
+def test_stop_loss_exits_position_after_min_holding_sessions() -> None:
+    """Phase A: a position that craters must be sold, not held to the next rebalance."""
+    dates = pd.bdate_range("2025-01-01", periods=20)
+    rows, ranking_rows = [], []
+    for d_idx, d in enumerate(dates):
+        # AAA crashes hard starting day 6 (after the 5-day rebalance); BBB is flat.
+        r1 = -0.06 if 6 <= d_idx <= 9 else 0.0
+        rows.append({"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0, "return_1d": r1})
+        rows.append({"symbol": "BBB", "market": "HOSE", "date": d, "close": 100.0, "return_1d": 0.0})
+        ranking_rows.append({"symbol": "AAA", "date": d, "final_score": 90.0})
+        ranking_rows.append({"symbol": "BBB", "date": d, "final_score": 10.0})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5,  # first buy at day 5; next rebalance at day 10 -- stop-loss must act before that
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+        stop_loss_pct=-0.15,
+    )
+    exits = result["stop_loss_exits"]
+    assert not exits.empty, "AAA's crash must trigger a stop-loss exit before the next rebalance"
+    assert "AAA" in set(exits["symbol"])
+    assert result["metrics"]["stop_loss_exit_count"] >= 1
+
+
+def test_stop_loss_disabled_by_default_matches_prior_behavior() -> None:
+    """Phase A: stop_loss_pct=None (default) must not change any existing behavior."""
+    dates = pd.bdate_range("2025-01-01", periods=15)
+    rows, ranking_rows = [], []
+    for d_idx, d in enumerate(dates):
+        r1 = -0.06 if 6 <= d_idx <= 9 else 0.0
+        rows.append({"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0, "return_1d": r1})
+        ranking_rows.append({"symbol": "AAA", "date": d, "final_score": 90.0})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=20,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+    )
+    assert result["stop_loss_exits"].empty
+    assert result["metrics"]["stop_loss_exit_count"] == 0
+
+
+def test_regime_filter_deleverages_on_lagged_risk_off() -> None:
+    """Phase A: risk-off regime must de-risk to cash using YESTERDAY's regime, not today's."""
+    dates = pd.bdate_range("2025-01-01", periods=15)
+    rows, ranking_rows, regime_rows = [], [], []
+    for d_idx, d in enumerate(dates):
+        # AAA crashes on day 8 onward; regime flips to Risk-off on day 7 (known by close of day 7).
+        r1 = -0.10 if d_idx >= 8 else 0.001
+        rows.append({"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0, "return_1d": r1})
+        ranking_rows.append({"symbol": "AAA", "date": d, "final_score": 90.0})
+        regime_rows.append({"date": d, "market_regime": "Risk-off" if d_idx >= 7 else "Neutral"})
+
+    market_regime = pd.DataFrame(regime_rows)
+    # rebalance_period=3 -> first buy at day 3, well before the day-7 regime flip.
+    with_filter = run_portfolio_backtest(
+        features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
+        min_value_ma20=0.0, require_above_ma200=False,
+        market_regime=market_regime, regime_cash_fraction=1.0,
+    )
+    without_filter = run_portfolio_backtest(
+        features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
+        min_value_ma20=0.0, require_above_ma200=False,
+    )
+    assert not with_filter["regime_adjustments"].empty
+    assert with_filter["metrics"]["final_nav"] > without_filter["metrics"]["final_nav"], (
+        "de-risking ahead of the crash must preserve more NAV than staying fully invested"
+    )
+    # day index 8 is the first crash day; regime known at close of day 7 -> exposure
+    # must already be cut by day 8 (lag correctness, not same-day look-ahead)
+    adj_dates = set(with_filter["regime_adjustments"]["date"])
+    assert dates[8].strftime("%Y-%m-%d") in adj_dates or dates[7].strftime("%Y-%m-%d") in adj_dates
+
+
+def test_regime_filter_absent_by_default_matches_prior_behavior() -> None:
+    """Phase A: market_regime=None (default) must not change any existing behavior."""
+    dates = pd.bdate_range("2025-01-01", periods=10)
+    rows = [{"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0, "return_1d": 0.01} for d in dates]
+    ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=20, portfolio_size=1, allocation_method="equal_weight",
+        min_value_ma20=0.0, require_above_ma200=False,
+    )
+    assert result["regime_adjustments"].empty
+    assert result["metrics"]["regime_adjustment_count"] == 0

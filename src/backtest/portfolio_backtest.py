@@ -12,7 +12,7 @@ from src.portfolio.construction import (
     inverse_volatility_allocation,
     shrink_covariance,
 )
-from src.backtest.simulator import _band_for_row, load_price_bands
+from src.backtest.simulator import _band_for_row, load_min_holding_sessions, load_price_bands
 from src.portfolio.returns import estimate_expected_returns
 from src.portfolio.risk import calculate_portfolio_volatility
 from src.validation.metrics import calculate_cagr, calculate_max_drawdown, calculate_sharpe
@@ -28,50 +28,102 @@ def run_portfolio_backtest(
     initial_nav: float = 1_000_000_000.0,
     min_value_ma20: float = 10_000_000_000.0,
     require_above_ma200: bool = True,
+    market_regime: pd.DataFrame | None = None,
+    regime_col: str = "market_regime",
+    risk_off_regimes: tuple[str, ...] = ("Risk-off",),
+    regime_cash_fraction: float = 1.0,
+    stop_loss_pct: float | None = None,
 ) -> dict[str, Any]:
     """
     Simulates a historical rebalancing portfolio backtest.
     Selects the top N stocks based on historical meta ranking score,
     applies liquidity and trend filters, rebalances weights, and tracks NAV.
+
+    market_regime (optional): DataFrame with ["date", regime_col]. When
+    provided, exposure is scaled down by regime_cash_fraction on days where
+    the PRIOR session's regime is in risk_off_regimes (lagged 1 day -- the
+    regime classifier uses same-day MA/breadth features, so using it same-day
+    would be look-ahead bias, same class of bug as D1).
+
+    stop_loss_pct (optional, e.g. -0.15): per-position stop-loss measured
+    from the value at last entry/rebalance. Cannot trigger before
+    load_min_holding_sessions() sessions have been held (T+2.5 settlement,
+    same constraint as C2's simulator-level stops).
     """
     # 1. Prepare data
     df = features.sort_values(["symbol", "date"]).copy()
     df["date"] = pd.to_datetime(df["date"])
-    
+
     # Get sorted unique timeline
     all_dates = sorted(df["date"].unique())
     if not all_dates:
         raise ValueError("Empty features date timeline")
-        
+
     # Index features by symbol and date for fast lookup
     df_indexed = df.set_index(["symbol", "date"])
-    
+
     # Load ranking scores
     ranking = meta_ranking.copy()
     ranking["date"] = pd.to_datetime(ranking["date"])
     ranking_indexed = ranking.set_index(["date", "symbol"])
-    
+
+    regime_by_date: pd.Series | None = None
+    if market_regime is not None and not market_regime.empty and regime_col in market_regime.columns:
+        reg = market_regime.copy()
+        reg["date"] = pd.to_datetime(reg["date"])
+        regime_by_date = reg.drop_duplicates(subset=["date"], keep="last").set_index("date")[regime_col]
+
+    min_holding_sessions = load_min_holding_sessions()
+
     # 2. Rebalancing dates
     rebalance_dates = all_dates[::rebalance_period]
     if all_dates[-1] not in rebalance_dates:
         rebalance_dates.append(all_dates[-1])
-        
+
     # State variables
     nav = initial_nav
-    current_holdings: dict[str, float] = {}  # symbol -> position value
+    # symbol -> {"value": current position value, "entry_value": value at last
+    # entry/rebalance, "entry_day_idx": day index of last entry/rebalance}
+    current_holdings: dict[str, dict[str, float]] = {}
     equity_curve = []
     dates_list = []
     trades_log = []
     skipped_limit_up: list[dict] = []
+    regime_adjustments: list[dict] = []
+    stop_loss_exits: list[dict] = []
     price_bands, default_band = load_price_bands()
-    
+
     # We loop day-by-day
     for day_idx, current_date in enumerate(all_dates):
+        # A0. Regime-based exposure scaling (lagged 1 day -- decided on
+        # yesterday's regime, applied before today's return).
+        if regime_by_date is not None and current_holdings:
+            lagged_date = all_dates[day_idx - 1] if day_idx > 0 else None
+            lagged_regime = regime_by_date.get(lagged_date) if lagged_date is not None else None
+            target_exposure = 1.0
+            if lagged_regime in risk_off_regimes:
+                target_exposure = 1.0 - regime_cash_fraction
+
+            held_value = sum(pos["value"] for pos in current_holdings.values())
+            current_exposure = held_value / nav if nav > 0 else 0.0
+            if held_value > 0 and abs(current_exposure - target_exposure) > 1e-6:
+                scale = target_exposure / current_exposure if current_exposure > 0 else 0.0
+                turnover = abs(held_value - target_exposure * nav)
+                nav -= turnover * transaction_cost_pct
+                for sym, pos in current_holdings.items():
+                    pos["value"] = pos["value"] * scale  # entry_value/entry_day_idx untouched
+                regime_adjustments.append({
+                    "date": current_date.strftime("%Y-%m-%d"),
+                    "lagged_regime": lagged_regime,
+                    "target_exposure": target_exposure,
+                    "turnover": turnover,
+                })
+
         # A. Update holdings value based on daily returns
         if current_holdings:
             total_holdings_val = 0.0
             updated_holdings = {}
-            for sym, pos_val in current_holdings.items():
+            for sym, pos in current_holdings.items():
                 try:
                     # Get daily return
                     daily_ret = df_indexed.loc[(sym, current_date), "return_1d"]
@@ -79,16 +131,48 @@ def run_portfolio_backtest(
                         daily_ret = 0.0
                 except KeyError:
                     daily_ret = 0.0
-                
-                new_val = pos_val * (1.0 + daily_ret)
-                updated_holdings[sym] = new_val
+
+                new_val = pos["value"] * (1.0 + daily_ret)
+                updated_holdings[sym] = {**pos, "value": new_val}
                 total_holdings_val += new_val
-                
+
             # Cash remaining is NAV - previous total holdings value
-            cash = nav - sum(current_holdings.values())
+            cash = nav - sum(pos["value"] for pos in current_holdings.values())
             nav = cash + total_holdings_val
             current_holdings = updated_holdings
-            
+
+            # A2. Stop-loss: per-position, measured from last entry/rebalance
+            # value; cannot trigger before T+2.5 settlement (min_holding_sessions).
+            if stop_loss_pct is not None:
+                for sym in list(current_holdings.keys()):
+                    pos = current_holdings[sym]
+                    held_sessions = day_idx - pos["entry_day_idx"] + 1
+                    if held_sessions < min_holding_sessions:
+                        continue
+                    entry_value = pos["entry_value"]
+                    if entry_value <= 0:
+                        continue
+                    move = pos["value"] / entry_value - 1.0
+                    if move <= stop_loss_pct:
+                        exit_value = pos["value"]
+                        nav -= exit_value * transaction_cost_pct
+                        del current_holdings[sym]
+                        stop_loss_exits.append({
+                            "date": current_date.strftime("%Y-%m-%d"),
+                            "symbol": sym,
+                            "move_since_entry": move,
+                            "exit_value": exit_value,
+                        })
+                        trades_log.append({
+                            "date": current_date.strftime("%Y-%m-%d"),
+                            "symbol": sym,
+                            "type": "SELL",
+                            "size_amount": exit_value,
+                            "old_value": exit_value,
+                            "new_value": 0.0,
+                            "reason": "stop_loss",
+                        })
+
         # B. Check if it is a rebalancing date
         # D1: decide with information available at the PRIOR session (T-1);
         # execution stays at the close of T. Same-bar selection was look-ahead.
@@ -197,24 +281,31 @@ def run_portfolio_backtest(
                 else:
                     # Fallback to equal weight
                     new_weights[selected_symbols] = 1.0 / len(selected_symbols)
-            
+
+            # Regime-scaled target exposure at this rebalance (same lag rule as A0).
+            rebalance_exposure = 1.0
+            if regime_by_date is not None:
+                lagged_regime_rb = regime_by_date.get(decision_date)
+                if lagged_regime_rb in risk_off_regimes:
+                    rebalance_exposure = 1.0 - regime_cash_fraction
+
             # 3. Rebalance portfolio and apply transaction costs
             # First, estimate target positions using current nav
             estimated_target = {}
             for sym in selected_symbols:
                 w = new_weights[sym]
-                estimated_target[sym] = nav * w
-                
+                estimated_target[sym] = nav * w * rebalance_exposure
+
             # Compute trade sizes and costs
             all_traded_symbols = set(current_holdings.keys()) | set(selected_symbols)
             total_turnover = 0.0
-            
+
             for sym in all_traded_symbols:
-                old_val = current_holdings.get(sym, 0.0)
+                old_val = current_holdings.get(sym, {}).get("value", 0.0)
                 new_val = estimated_target.get(sym, 0.0)
                 trade_size = abs(new_val - old_val)
                 total_turnover += trade_size
-                
+
                 if trade_size > 1.0:
                     trades_log.append({
                         "date": current_date.strftime("%Y-%m-%d"),
@@ -224,17 +315,20 @@ def run_portfolio_backtest(
                         "old_value": old_val,
                         "new_value": new_val,
                     })
-                    
+
             # Apply transaction costs to NAV
             tc_cost = total_turnover * transaction_cost_pct
             nav -= tc_cost
-            
-            # Set target holdings scaled to the new NAV
-            target_holdings = {}
+
+            # Set target holdings scaled to the new NAV; reset entry reference
+            # for every selected symbol (a rebalance resize is treated as a
+            # fresh entry for stop-loss purposes).
+            target_holdings: dict[str, dict[str, float]] = {}
             for sym in selected_symbols:
                 w = new_weights[sym]
-                target_holdings[sym] = nav * w
-                
+                value = nav * w * rebalance_exposure
+                target_holdings[sym] = {"value": value, "entry_value": value, "entry_day_idx": day_idx}
+
             current_holdings = target_holdings
             
         # C. Record daily equity value
@@ -273,6 +367,8 @@ def run_portfolio_backtest(
         "benchmark_symbol": benchmark_source,
         "trades_log": pd.DataFrame(trades_log),
         "skipped_limit_up": pd.DataFrame(skipped_limit_up),
+        "regime_adjustments": pd.DataFrame(regime_adjustments),
+        "stop_loss_exits": pd.DataFrame(stop_loss_exits),
         "metrics": {
             "initial_nav": initial_nav,
             "final_nav": nav,
@@ -280,6 +376,8 @@ def run_portfolio_backtest(
             "max_drawdown": max_dd,
             "sharpe_ratio": sharpe,
             "total_trades": len(trades_log),
+            "stop_loss_exit_count": len(stop_loss_exits),
+            "regime_adjustment_count": len(regime_adjustments),
         }
     }
 
