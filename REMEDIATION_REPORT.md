@@ -10,13 +10,23 @@ Nguồn: `AUDIT_REPORT.md` (40 phát hiện) → `IMPLEMENTATION_PLAN.md` (APPRO
 - **Notebook runner**: `scripts/run_all_notebooks.sh --list` verify bằng test (`test_notebook_runner_resolves_real_paths`) — resolve đúng 16 notebook thật, không path chết.
 - **Reproduce-trước/pass-sau**: mỗi fix logic tài chính (D1, D2, C2, G1, G2, G4, H1-H3, I1, I3, I4) đều có test viết ĐỂ FAIL trên hành vi cũ trước, xác nhận fail, rồi mới sửa code tới khi pass — chi tiết trong từng commit message.
 
-### Giới hạn của lần verify này (quan trọng)
+### Cập nhật: đã verify thêm bằng dữ liệu thật (repo gốc)
 
-**Không chạy được `run_daily_pipeline.py` end-to-end trên dữ liệu thật** — repo checkout này không có `data/processed/`, `data/raw/` (không có OHLCV, không có SSI credentials). Toàn bộ verify dựa trên:
-1. Unit/contract test với dữ liệu tổng hợp (synthetic fixtures) tái hiện đúng cơ chế lỗi.
-2. Đọc lại code diff thủ công đối chiếu với plan.
+Ban đầu worktree này không có `.env`/`data/` (bị `.gitignore`, không tự động có trong git worktree). Sau khi bạn xác nhận và cho phép, đã copy `.env` + `data/processed` + `data/raw` (bao gồm `data/raw/securities/` — danh sách niêm yết thật) từ repo gốc vào worktree để chạy verify thật. **Các file output được regenerate trong lúc verify (research_notes/*.md, final_watchlist.csv/xlsx) đã được revert về bản gốc sau khi xem xong** — chỉ giữ lại code + test trong lịch sử commit, không lẫn output data vào git history.
 
-→ **Các con số hiệu suất "trước/sau" thật (Sharpe/CAGR/watchlist thật đổi bao nhiêu %) chưa thể tính** vì không có dữ liệu giá thật để chạy lại. Khi bạn có `data/processed/*` thật (chạy `update_daily_data.py` + `generate_features.py` với SSI credentials), khuyến nghị chạy `scripts/run_daily_pipeline.py --offline` rồi so với bảng "expected output changes" trong `IMPLEMENTATION_PLAN.md` — đặc biệt xem: client_ready_watchlist có ngắn lại (SAB/BID, F1-demote), `--scope full` có báo lỗi đòi securities data không, freshness có chuyển ERROR không (vì data hiện tại đứng ở 2026-07-02).
+**Kết quả verify bằng dữ liệu thật (ngày dữ liệu: 2026-07-06):**
+
+| Fix | Bằng chứng thật |
+|---|---|
+| **B1** | `get_full_universe_symbols()` trả về **1,590 mã** (HOSE+HNX+UPCOM thật) so với `get_tracked_universe_symbols()` (universe "full" cũ) chỉ **501 mã** — xác nhận bằng số liệu thật: universe cũ chỉ phủ **31.5%** thị trường thật. |
+| **B2** | Data thật đứng ở 2026-07-06, hệ thống chạy lúc 2026-07-08 → tính đúng "trễ 1 phiên giao dịch" (`lag_sessions: 1`) → status `WARNING` (đúng — không phải `OK` giả như code cũ). |
+| **D5** | Chạy `scripts/run_meta_ranking.py` thật → guard bắt sống và tự động drop `forward_return_5d/10d/20d/60d` khỏi `meta_ranking.parquet` và `final_watchlist.parquet` — xác nhận các cột forward-looking THẬT SỰ đang chảy vào output production trước khi có D5. |
+| **G1** | Trên dữ liệu thật, sàn tuyệt đối demote đúng **4 mã thật** (HCM 76.21, ACB 71.02, HHP 70.46, STB 69.01 — đều có `final_score` vượt ngưỡng 60 nhưng `excess_return_20d` âm) từ "sẽ là Client Ready" xuống `Trading Watchlist`. |
+| **I1** | Chạy `build_cashflow_board.py` (full) thật → guard hạ đúng **VPI và BMP** (2 mã đang ở tier `client_ready` thật) từ `CONFIRMED` xuống `WATCH` vì `WEAK_FLOW` + volume ratio thấp (0.49x, 0.79x). Research note của BMP đổi từ luận điểm bullish "cải thiện tích cực" sang trung tính "tích lũy trung tính, cần theo dõi". |
+| **I2** | Research note VIC thật đổi "ngành Financial Services" → "ngành Real Estate"; nhóm dẫn đầu dòng tiền cùng ngành đổi từ `VPI, DXG, VHM` (sai ngành) sang `VHM, VIC, NVL` (đúng ngành). |
+| **H1/H2/H3/H6** | `build_portfolio_stack.py` chạy thật thành công: `allocator_used: "risk_parity"` (không fallback), NAV đọc từ `strategy_config.yaml` đúng, `kelly_scale=1.0` với `kelly_note=None` cho mọi mã thật (đúng — vì dữ liệu trade card thật hiện chưa có cột `avg_loss` thật, Kelly no-op an toàn thay vì bị corrupt bởi `median_return` như code cũ). |
+
+**Vẫn chưa chạy được** (cần thời gian/quyết định riêng, không thuộc phạm vi 1 lần verify): backtest engine đầy đủ (D1/D2/C2/G4) trên toàn bộ lịch sử giá thật để ra số Sharpe/CAGR trước-sau cụ thể — cơ chế đã verify đúng bằng test synthetic (mục 2), nhưng số % cụ thể trên dữ liệu VN thật cần một lần chạy `run_daily_pipeline.py` đầy đủ + `notebooks/04_watchlist_portfolio/20_portfolio_backtester.ipynb`, việc này bạn có thể tự chạy trong repo gốc (đã có đủ data) khi merge nhánh fix này về.
 
 ---
 
