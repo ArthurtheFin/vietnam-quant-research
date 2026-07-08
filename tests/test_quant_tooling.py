@@ -83,17 +83,19 @@ def test_backtest_entries_with_fixed_stop_exits_on_stop():
             "volatility_regime": ["Normal Vol"],
         }
     )
+    # C2 (T+2.5): the stop-eligible window starts at the 3rd held session, i.e.
+    # future.iloc[2] = index 3 here (future = loc[1:4], entry at index1).
     prices = pd.DataFrame(
         {
-            "symbol": ["AAA", "AAA", "AAA"],
-            "date": pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"]),
-            "close": [100.0, 98.0, 110.0],
-            "low": [99.0, 89.0, 109.0],
-            "high": [101.0, 100.0, 111.0],
+            "symbol": ["AAA"] * 4,
+            "date": pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04"]),
+            "close": [100.0, 100.0, 100.0, 110.0],
+            "low": [99.0, 99.0, 99.0, 89.0],
+            "high": [101.0, 101.0, 101.0, 111.0],
         }
     )
 
-    trades = backtest_entries_with_fixed_stop(entries, prices, holding_period=2, stop_loss=-0.05, cost=0.0)
+    trades = backtest_entries_with_fixed_stop(entries, prices, holding_period=3, stop_loss=-0.05, cost=0.0)
 
     assert trades.loc[0, "exit_reason"] == "stop_loss"
     assert round(float(trades.loc[0, "net_return"]), 4) == -0.05
@@ -267,22 +269,23 @@ def test_backtest_floor_stop_slips_to_next_session():
     """D2: a stop hit on a floor-locked bar (close==low, -7%) cannot fill at the stop price."""
     from src.backtest.simulator import backtest_entries_with_fixed_stop
 
-    dates = pd.date_range("2025-01-01", periods=7, freq="B")
+    dates = pd.date_range("2025-01-01", periods=8, freq="B")
     prices = pd.DataFrame(
         {
             "symbol": ["AAA"] * len(dates),
             "market": ["HOSE"] * len(dates),
             "date": dates,
-            "open": [100, 100, 100, 93.0, 88.0, 88, 88],
-            "high": [101, 101, 101, 96.0, 89.0, 89, 89],
-            "low": [99, 99, 99, 93.0, 87.0, 88, 88],
-            # day 3: floor-locked (-7%, close == low); day 4 closes lower at 88
-            "close": [100, 100, 100, 93.0, 88.0, 88, 88],
+            # entry (day index2) opens at 100; day index4 is the T+2.5-eligible
+            # (3rd held session) floor-locked bar; day index5 is the slip target
+            "open": [100, 100, 100, 100, 93.0, 88.0, 88, 88],
+            "high": [101, 101, 101, 101, 96.0, 89.0, 89, 89],
+            "low": [99, 99, 99, 99, 93.0, 87.0, 88, 88],
+            "close": [100, 100, 100, 100, 93.0, 88.0, 88, 88],
         }
     )
     entries = pd.DataFrame([{"symbol": "AAA", "date": dates[1]}])
     trades = backtest_entries_with_fixed_stop(
-        entries_df=entries, price_df=prices, holding_period=4, stop_loss=-0.05, cost=0.0
+        entries_df=entries, price_df=prices, holding_period=3, stop_loss=-0.05, cost=0.0
     )
     assert len(trades) == 1
     trade = trades.iloc[0]
@@ -290,3 +293,37 @@ def test_backtest_floor_stop_slips_to_next_session():
     # exit at NEXT session close (88), worse than the nominal -5% stop (95)
     assert trade["exit_price"] == 88.0
     assert trade["gross_return"] < -0.05
+
+
+def test_stop_loss_respects_t_plus_2_5_settlement():
+    """C2: shares cannot be sold before T+2.5 settlement; a stop hit on the entry
+    day or the day after must not trigger an immediate exit."""
+    from src.backtest.simulator import backtest_entries_with_fixed_stop
+
+    dates = pd.date_range("2025-01-01", periods=8, freq="B")
+    prices = pd.DataFrame(
+        {
+            "symbol": ["AAA"] * len(dates),
+            "market": ["HOSE"] * len(dates),
+            "date": dates,
+            "open": [100, 100, 100, 100, 100, 100, 100, 100],
+            # entry (idx2) and day+1 (idx3) crash through the stop but are within
+            # the T+2.5 protected window; the price recovers above the stop from
+            # the 3rd held session (idx4) onward, so a settlement-unaware backtest
+            # would wrongly stop out on day 0-1 while the correct one holds.
+            "close": [100, 100, 85.0, 84.0, 97.0, 97, 97, 97],
+            "low": [99, 99, 84.0, 83.0, 96.0, 96, 96, 96],
+            "high": [101, 101, 86.0, 85.0, 98.0, 98, 98, 98],
+        }
+    )
+    entries = pd.DataFrame([{"symbol": "AAA", "date": dates[1]}])
+    trades = backtest_entries_with_fixed_stop(
+        entries_df=entries, price_df=prices, holding_period=5, stop_loss=-0.05, cost=0.0
+    )
+    assert len(trades) == 1
+    trade = trades.iloc[0]
+    assert trade["exit_reason"] != "stop_loss", (
+        "stop cannot fill within the T+2.5 settlement window (entry day + 1 day)"
+    )
+    # earliest legal exit is the 3rd held session (index 2 of the future window) -> close 95
+    assert trade["holding_days_realized"] >= 2

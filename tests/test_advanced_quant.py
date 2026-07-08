@@ -133,21 +133,23 @@ def test_backtest_entries_with_atr_stop_and_sweep():
             "volatility_regime": ["Normal Vol"],
         }
     )
+    # C2 (T+2.5): the stop-eligible window starts at the 3rd held session, i.e.
+    # future.iloc[2] = index 3 here (future = loc[1:4], entry at index1).
     prices = pd.DataFrame(
         {
-            "symbol": ["AAA", "AAA", "AAA"],
-            "date": pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"]),
+            "symbol": ["AAA"] * 4,
+            "date": pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04"]),
             # I4 semantics: entry = open of the bar AFTER the signal (100.0 on Jan 2)
-            "open": [100.0, 100.0, 108.0],
-            "close": [100.0, 96.0, 110.0],
-            "low": [99.0, 93.0, 109.0],
-            "high": [101.0, 97.0, 111.0],
-            "atr_pct_14": [0.03, 0.03, 0.03],
+            "open": [100.0, 100.0, 100.0, 108.0],
+            "close": [100.0, 100.0, 100.0, 95.0],
+            "low": [99.0, 99.0, 99.0, 90.0],
+            "high": [101.0, 101.0, 101.0, 96.0],
+            "atr_pct_14": [0.03, 0.03, 0.03, 0.03],
         }
     )
 
-    trades = backtest_entries_with_atr_stop(entries, prices, atr_multiple=2.0, holding_period=2, cost=0.0)
-    summary, trade_map = sweep_atr_multiples(entries, prices, atr_multiples=[1.5, 2.0], holding_period=2, cost=0.0)
+    trades = backtest_entries_with_atr_stop(entries, prices, atr_multiple=2.0, holding_period=3, cost=0.0)
+    summary, trade_map = sweep_atr_multiples(entries, prices, atr_multiples=[1.5, 2.0], holding_period=3, cost=0.0)
 
     assert trades.loc[0, "exit_reason"] == "atr_stop"
     assert len(summary) == 2

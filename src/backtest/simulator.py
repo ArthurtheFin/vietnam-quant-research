@@ -10,6 +10,7 @@ import pandas as pd
 # the close-to-close move (band * 0.98 tolerance for rounding).
 DEFAULT_PRICE_BANDS = {"HOSE": 0.07, "HNX": 0.10, "UPCOM": 0.15}
 DEFAULT_PRICE_BAND = 0.07
+DEFAULT_MIN_HOLDING_SESSIONS = 3
 
 
 def load_price_bands(config_path: str | Path = "config/vn_market_rules.yaml") -> tuple[dict[str, float], float]:
@@ -23,6 +24,19 @@ def load_price_bands(config_path: str | Path = "config/vn_market_rules.yaml") ->
         return (bands or DEFAULT_PRICE_BANDS), default
     except Exception:
         return DEFAULT_PRICE_BANDS, DEFAULT_PRICE_BAND
+
+
+def load_min_holding_sessions(config_path: str | Path = "config/vn_market_rules.yaml") -> int:
+    """T+2.5 settlement (audit C2): shares cannot be sold before this many held
+    sessions (entry day counts as session 1)."""
+    try:
+        import yaml
+
+        with open(config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        return int(data.get("min_holding_sessions", DEFAULT_MIN_HOLDING_SESSIONS))
+    except Exception:
+        return DEFAULT_MIN_HOLDING_SESSIONS
 
 
 def _band_for_row(row: pd.Series, bands: dict[str, float], default: float) -> float:
@@ -118,6 +132,7 @@ def backtest_entries_with_fixed_stop(
     trades: list[dict] = []
     skipped_limit_up = 0
     bands, default_band = load_price_bands()
+    min_holding_sessions = load_min_holding_sessions()
 
     entries = entries_df.copy()
     prices = price_df.copy()
@@ -164,8 +179,11 @@ def backtest_entries_with_fixed_stop(
         exit_price = float(exit_row[price_col])
 
         if stop_loss is not None:
+            # C2: T+2.5 settlement — shares cannot be sold before
+            # min_holding_sessions have been held (entry day = session 1).
+            stoppable = future.iloc[max(min_holding_sessions - 1, 0):]
             # Conservative: stop takes priority when both could trigger on same bar
-            stop_hit = future[future["low_return"] <= stop_loss]
+            stop_hit = stoppable[stoppable["low_return"] <= stop_loss]
             if len(stop_hit) > 0:
                 exit_reason = "stop_loss"
                 exit_row = stop_hit.iloc[0]
@@ -231,6 +249,7 @@ def backtest_entries_with_atr_stop(
     trades: list[dict] = []
     skipped_limit_up = 0
     bands, default_band = load_price_bands()
+    min_holding_sessions = load_min_holding_sessions()
     entries = entries_df.copy()
     prices = price_df.copy()
 
@@ -279,8 +298,10 @@ def backtest_entries_with_atr_stop(
         gross_return = float(exit_row[price_col] / entry_price - 1)
         exit_price = float(exit_row[price_col])
 
+        # C2: T+2.5 settlement — shares cannot be sold before min_holding_sessions.
+        stoppable = future.iloc[max(min_holding_sessions - 1, 0):]
         # Conservative: stop takes priority when both could trigger on same bar
-        stop_hit = future[future["low_return"] <= stop_loss]
+        stop_hit = stoppable[stoppable["low_return"] <= stop_loss]
         if len(stop_hit) > 0:
             exit_reason = "atr_stop"
             exit_row = stop_hit.iloc[0]
