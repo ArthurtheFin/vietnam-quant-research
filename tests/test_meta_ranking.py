@@ -116,3 +116,94 @@ def test_build_meta_ranking_handles_sparse_inputs_and_uses_trade_signal_fallback
     aaa = ranked[ranked["symbol"] == "AAA"].iloc[0]
     assert bool(aaa["breakout_20d"]) is True
     assert aaa["volatility_regime"] == "Normal Vol"
+
+
+def test_thin_evidence_caps_priority_bucket():
+    """G5: a symbol backed by <=1 of 3 signal sources cannot be Prime/High Conviction
+    no matter how high the raw component scores read (old code had no such cap)."""
+    from src.analytics.meta_ranking import score_meta_ranking
+
+    data = pd.DataFrame(
+        [
+            {
+                "symbol": "THIN", "date": pd.Timestamp("2024-06-20"),
+                "trade_edge_score": 95.0, "setup_quality_score": 95.0,
+                "net_accumulation_score": 95.0, "breakout_quality_score": 95.0,
+                "relative_strength_score": 95.0, "breadth_support_score": 95.0,
+                "sector_support_score": 95.0, "market_support_score": 95.0,
+                "liquidity_score": 95.0, "fakeout_risk_score": 5.0,
+                "overextension_risk_score": 5.0, "upper_wick_risk_score": 5.0,
+                "volatility_spike_risk_score": 5.0, "exhaustion_volume_risk_score": 5.0,
+                "tail_risk_score": 5.0, "return_20d": 0.30, "return_5d": 0.10,
+                "volume_zscore_20d": 2.0, "avg_value_20d": 50_000_000_000.0,
+                "atr_pct_14": 0.01, "above_ma20": True, "above_ma50": True, "above_ma200": True,
+                "action": "Valid Breakout Setup", "volatility_rule": "Allowed",
+                "volatility_regime": "Low Vol", "edge_tier": "Strong Edge",
+                "breakout_20d": True, "watchlist_flag": True, "eligible": True,
+                "watchlist_eligible": True,
+                "insufficient_evidence": True,  # only 1 of 3 sources present
+            },
+            {
+                "symbol": "FULL", "date": pd.Timestamp("2024-06-20"),
+                "trade_edge_score": 95.0, "setup_quality_score": 95.0,
+                "net_accumulation_score": 95.0, "breakout_quality_score": 95.0,
+                "relative_strength_score": 95.0, "breadth_support_score": 95.0,
+                "sector_support_score": 95.0, "market_support_score": 95.0,
+                "liquidity_score": 95.0, "fakeout_risk_score": 5.0,
+                "overextension_risk_score": 5.0, "upper_wick_risk_score": 5.0,
+                "volatility_spike_risk_score": 5.0, "exhaustion_volume_risk_score": 5.0,
+                "tail_risk_score": 5.0, "return_20d": 0.30, "return_5d": 0.10,
+                "volume_zscore_20d": 2.0, "avg_value_20d": 50_000_000_000.0,
+                "atr_pct_14": 0.01, "above_ma20": True, "above_ma50": True, "above_ma200": True,
+                "action": "Valid Breakout Setup", "volatility_rule": "Allowed",
+                "volatility_regime": "Low Vol", "edge_tier": "Strong Edge",
+                "breakout_20d": True, "watchlist_flag": True, "eligible": True,
+                "watchlist_eligible": True,
+                "insufficient_evidence": False,  # all 3 sources present
+            },
+        ]
+    )
+    ranked = score_meta_ranking(data)
+    thin = ranked.set_index("symbol").loc["THIN"]
+    full = ranked.set_index("symbol").loc["FULL"]
+
+    assert thin["meta_score"] >= 75.0, "test setup must actually reach the Prime threshold"
+    assert thin["priority_bucket"] == "Secondary Watchlist", "thin evidence must cap the bucket"
+    assert full["priority_bucket"] == "Prime Candidate", "full evidence must NOT be capped"
+
+
+def test_synergy_bonus_does_not_double_count_action_label():
+    """G6: action label is already priced via action_score; synergy must not add it twice."""
+    from src.analytics.meta_ranking import score_meta_ranking
+
+    base = {
+        "symbol": "AAA", "date": pd.Timestamp("2024-06-20"),
+        "trade_edge_score": 50.0, "setup_quality_score": 50.0,
+        "net_accumulation_score": 50.0, "breakout_quality_score": 50.0,
+        "relative_strength_score": 50.0, "breadth_support_score": 50.0,
+        "sector_support_score": 50.0, "market_support_score": 50.0,
+        "liquidity_score": 50.0, "fakeout_risk_score": 35.0,
+        "overextension_risk_score": 35.0, "upper_wick_risk_score": 30.0,
+        "volatility_spike_risk_score": 35.0, "exhaustion_volume_risk_score": 30.0,
+        "tail_risk_score": 25.0, "return_20d": 0.05, "return_5d": 0.02,
+        "volume_zscore_20d": 0.5, "avg_value_20d": 10_000_000_000.0,
+        "atr_pct_14": 0.03, "above_ma20": True, "above_ma50": True, "above_ma200": True,
+        "volatility_rule": "Allowed", "volatility_regime": "Low Vol", "edge_tier": "Valid Edge",
+        "breakout_20d": False, "watchlist_flag": False, "eligible": False,
+        "watchlist_eligible": False, "insufficient_evidence": False,
+    }
+    no_signal = pd.DataFrame([{**base, "symbol": "NOSIG", "action": "No Signal"}])
+    valid_setup = pd.DataFrame([{**base, "symbol": "VALID", "action": "Valid Breakout Setup"}])
+
+    r_no = score_meta_ranking(no_signal).iloc[0]
+    r_valid = score_meta_ranking(valid_setup).iloc[0]
+
+    # action_score alone must account for the entire meta_score delta between the
+    # two rows -- old code added a further +3.0 synergy bonus on top of action_score.
+    action_score_delta = r_valid["action_score"] - r_no["action_score"]
+    meta_score_delta = r_valid["meta_score"] - r_no["meta_score"]
+    expected_delta = 0.30 * 0.10 * action_score_delta  # breakout_component weight 0.30, action_score weight 0.10
+    assert abs(meta_score_delta - expected_delta) < 1e-6, (
+        f"meta_score delta {meta_score_delta} must equal action_score's own weighted "
+        f"contribution {expected_delta}, not include an extra synergy bonus"
+    )

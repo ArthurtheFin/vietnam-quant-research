@@ -213,6 +213,16 @@ def prepare_meta_ranking_dataset(
     merged["trade_card_date"] = pd.to_datetime(_series_or_default(merged, "trade_card_date", pd.NaT))
     merged["stealth_date"] = pd.to_datetime(_series_or_default(merged, "stealth_date", pd.NaT))
     merged["analysis_date"] = _coalesce_series(merged["date"], merged["trade_card_date"], merged["stealth_date"])
+
+    # G5: how many of the 3 signal sources (features/trade_card/stealth) actually
+    # matched this symbol. A meta_score built mostly on default-50 filler must not
+    # look as trustworthy as one backed by real evidence from all sources.
+    has_features = merged["date"].notna()
+    has_trade_card = merged["trade_card_date"].notna()
+    has_stealth = merged["stealth_date"].notna()
+    sources_present = has_features.astype(int) + has_trade_card.astype(int) + has_stealth.astype(int)
+    merged["evidence_coverage"] = sources_present / 3.0
+    merged["insufficient_evidence"] = sources_present <= 1
     merged["close"] = _coalesce_series(
         _series_or_default(merged, "close", np.nan),
         _series_or_default(merged, "trade_card_close", np.nan),
@@ -342,14 +352,13 @@ def score_meta_ranking(
         + 0.10 * ranked["tail_risk_score"]
     ).clip(0.0, 100.0)
 
+    # G6: action label is already priced into breakout_component_score via
+    # action_score (10% weight) — bonusing the same label again here double-counts it.
     synergy_bonus = (
         ranked[signal_col].map(_to_bool).astype(float) * 4.0
         + ranked["watchlist_flag"].map(_to_bool).astype(float) * 3.0
         + ranked["eligible"].map(_to_bool).astype(float) * 2.0
         + ranked["watchlist_eligible"].map(_to_bool).astype(float) * 1.0
-        + (ranked["action"] == "Valid Breakout Setup").astype(float) * 3.0
-        + (ranked["action"] == "Watch - Limited Sample Breakout").astype(float) * 1.5
-        + (ranked["action"] == "Watchlist - Emerging").astype(float) * 1.0
     )
 
     ranked["meta_score"] = (
@@ -390,6 +399,12 @@ def score_meta_ranking(
         ],
         default="Low Priority",
     )
+    # G5: a symbol backed by <=1 of the 3 signal sources (mostly default-50 filler)
+    # cannot be a Prime/High-Conviction candidate no matter how high meta_score reads.
+    if "insufficient_evidence" in ranked.columns:
+        thin_evidence = ranked["insufficient_evidence"].fillna(False)
+        capped = thin_evidence & ranked["priority_bucket"].isin(["Prime Candidate", "High Conviction Watchlist"])
+        ranked.loc[capped, "priority_bucket"] = "Secondary Watchlist"
     ranked["meta_summary"] = ranked.apply(describe_meta_signal, axis=1, signal_col=signal_col)
     return ranked.sort_values(["meta_score", "trade_edge_score", "net_accumulation_score"], ascending=False).reset_index(drop=True)
 
