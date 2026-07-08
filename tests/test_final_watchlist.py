@@ -224,3 +224,39 @@ def test_rank_universe_size_exposed_in_reason_and_columns() -> None:
     assert (out["rank_universe_size"] == 7).all()
     text = _reason_text(out.iloc[0])
     assert "7 mã" in text
+
+
+def test_build_watchlist_tiers_drops_forward_columns_from_features() -> None:
+    """D5: forward_return_Nd columns in stock_features.parquet must be stripped
+    before scoring, not just at the final save step."""
+    features = _sample_features()
+    features["forward_return_5d"] = 0.05  # simulates src/features/returns.py output
+
+    meta = features.sort_values(["symbol", "date"]).groupby("symbol").tail(1)[["symbol", "date"]].copy()
+    meta["meta_score"] = np.linspace(40, 95, len(meta))
+    meta["trade_edge_score"] = meta["meta_score"]
+    meta["setup_quality_score"] = meta["meta_score"] - 5
+    meta["risk_penalty_score"] = 20
+
+    watchlist = build_final_watchlist(
+        features=features,
+        benchmark=_sample_benchmark(features),
+        meta_ranking=meta,
+        alpha_scores=pd.DataFrame(),
+        config={"min_value_ma20": 0, "min_volume_ma20": 0},
+    )
+    assert "forward_return_5d" not in watchlist.columns
+    assert not watchlist.empty
+
+
+def test_save_watchlist_outputs_drops_forward_columns(tmp_path) -> None:
+    """D5: save_watchlist_outputs is also called standalone (post-cashflow overlay)
+    and must guard independently, not rely on build_watchlist_tiers having run."""
+    from src.screening.final_watchlist import save_watchlist_outputs, DEFAULT_FINAL_WATCHLIST_CONFIG
+
+    frame = pd.DataFrame([{"symbol": "AAA", "final_score": 80.0, "forward_return_5d": 0.05}])
+    outputs = {"client_ready_watchlist": frame.copy(), "trading_watchlist": pd.DataFrame(),
+               "research_candidates": pd.DataFrame()}
+    save_watchlist_outputs(outputs, config=DEFAULT_FINAL_WATCHLIST_CONFIG, base_dir=tmp_path)
+    saved = pd.read_csv(tmp_path / "data/output/client_ready_watchlist.csv")
+    assert "forward_return_5d" not in saved.columns

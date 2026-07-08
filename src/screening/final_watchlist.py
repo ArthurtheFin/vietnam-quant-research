@@ -126,6 +126,11 @@ def build_watchlist_tiers(
         raise ValueError("stock_features is empty. Run scripts/generate_features.py first.")
 
     latest = _latest_feature_snapshot(features, as_of_date=as_of_date)
+    # D5: stock_features.parquet carries forward_return_Nd columns for backtest/
+    # research use; strip them here so no live scoring step can ever see them.
+    from src.validation.guards import assert_no_forward_columns
+
+    latest = assert_no_forward_columns(latest, context="final_watchlist.build_watchlist_tiers", mode="drop")
     if candidate_symbols is not None:
         normalized_candidates = {
             str(symbol).strip().upper()
@@ -214,11 +219,20 @@ def save_watchlist_outputs(
     config: dict[str, Any] | None = None,
     base_dir: str | Path = ".",
 ) -> dict[str, Path]:
+    from src.validation.guards import assert_no_forward_columns
+
     cfg = deep_merge(DEFAULT_FINAL_WATCHLIST_CONFIG, config or {})
     paths = cfg["paths"]
     base = Path(base_dir)
     output_dir = base / paths.get("output_dir", "data/output")
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    # D5: this can be called standalone (apply_post_cashflow_overlay) without going
+    # through build_watchlist_tiers' drop step -- guard independently here too.
+    outputs = {
+        name: assert_no_forward_columns(frame, context=f"final_watchlist.save_watchlist_outputs[{name}]", mode="drop")
+        for name, frame in outputs.items()
+    }
 
     saved_paths = save_final_watchlist(outputs.get("client_ready_watchlist", pd.DataFrame()), cfg, base_dir=base)
 
@@ -389,6 +403,9 @@ def _merge_latest_meta(df: pd.DataFrame, meta_ranking: pd.DataFrame | None, as_o
 
 
 def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
+    from src.validation.guards import assert_no_forward_columns
+
+    assert_no_forward_columns(df, context="final_watchlist._score", mode="raise")
     out = df.copy()
     weights = cfg["weights"]
     trend_raw = pd.concat(

@@ -223,6 +223,20 @@ def prepare_meta_ranking_dataset(
     sources_present = has_features.astype(int) + has_trade_card.astype(int) + has_stealth.astype(int)
     merged["evidence_coverage"] = sources_present / 3.0
     merged["insufficient_evidence"] = sources_present <= 1
+
+    # G3: the 3 sources are merged per-symbol without checking they refer to the
+    # same trading day -- flag when they disagree by more than 3 calendar days.
+    present_dates = pd.concat(
+        [
+            merged["date"].where(has_features),
+            merged["trade_card_date"].where(has_trade_card),
+            merged["stealth_date"].where(has_stealth),
+        ],
+        axis=1,
+    )
+    date_spread_days = (present_dates.max(axis=1) - present_dates.min(axis=1)).dt.days
+    merged["source_date_spread_days"] = date_spread_days
+    merged["signal_age_warning"] = date_spread_days.fillna(0) > 3
     merged["close"] = _coalesce_series(
         _series_or_default(merged, "close", np.nan),
         _series_or_default(merged, "trade_card_close", np.nan),
@@ -469,10 +483,16 @@ def save_meta_ranking_outputs(
     top_n: int = 20,
     min_score: float = 50.0,
 ) -> dict[str, Path]:
+    from src.validation.guards import assert_no_forward_columns
+
     out_dir_path = Path(out_dir)
     latest_path = out_dir_path / f"{prefix}.parquet"
     top_path = out_dir_path / f"{prefix}_watchlist.parquet"
     prime_path = out_dir_path / f"{prefix}_prime.parquet"
+
+    # D5: forward_/future_ columns are backtest-only labels; they must not ride
+    # into a live-scoring output artifact.
+    ranked = assert_no_forward_columns(ranked, context="meta_ranking.save_meta_ranking_outputs", mode="drop")
 
     save_parquet(ranked, latest_path)
     save_parquet(top_meta_candidates(ranked, top_n=top_n, min_score=min_score), top_path)

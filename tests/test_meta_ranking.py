@@ -207,3 +207,61 @@ def test_synergy_bonus_does_not_double_count_action_label():
         f"meta_score delta {meta_score_delta} must equal action_score's own weighted "
         f"contribution {expected_delta}, not include an extra synergy bonus"
     )
+
+
+def test_signal_age_warning_flags_source_date_mismatch():
+    """G3: sources merged per-symbol without checking they agree on trading day."""
+    from src.analytics.meta_ranking import prepare_meta_ranking_dataset
+
+    features = pd.DataFrame(
+        {
+            "symbol": ["AAA", "BBB"],
+            "date": pd.to_datetime(["2024-06-20", "2024-06-20"]),
+            "close": [100.0, 60.0],
+            "return_20d": [0.10, 0.03],
+        }
+    )
+    trade_cards = pd.DataFrame(
+        {
+            "symbol": ["AAA", "BBB"],
+            # AAA's trade card is 10 days stale relative to features; BBB's is fresh
+            "date": pd.to_datetime(["2024-06-10", "2024-06-20"]),
+            "close": [98.0, 60.0],
+            "breakout_20d": [True, False],
+            "action": ["Valid Breakout Setup", "No Signal"],
+        }
+    )
+    merged = prepare_meta_ranking_dataset(features=features, trade_cards=trade_cards, stealth=pd.DataFrame())
+    row = merged.set_index("symbol")
+    assert bool(row.loc["AAA", "signal_age_warning"]) is True
+    assert row.loc["AAA", "source_date_spread_days"] == 10
+    assert bool(row.loc["BBB", "signal_age_warning"]) is False
+
+
+def test_meta_ranking_save_drops_forward_columns():
+    """D5: a forward-looking column must be stripped before saving, not scored."""
+    import tempfile
+
+    from src.analytics.meta_ranking import save_meta_ranking_outputs
+
+    data = pd.DataFrame(
+        [{"symbol": "AAA", "date": pd.Timestamp("2024-06-20"), "meta_score": 80.0,
+          "trade_edge_score": 0.0, "net_accumulation_score": 0.0, "priority_bucket": "Prime Candidate",
+          "forward_return_5d": 0.05}]
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        paths = save_meta_ranking_outputs(data, out_dir=tmp)
+        saved = pd.read_parquet(paths["ranked"])
+        assert "forward_return_5d" not in saved.columns, "forward column must be dropped before saving"
+
+
+def test_final_watchlist_score_rejects_forward_columns():
+    """D5: forward-looking columns must never reach the live scoring function."""
+    import pytest
+
+    from src.screening.final_watchlist import _score, DEFAULT_FINAL_WATCHLIST_CONFIG
+
+    df = pd.DataFrame([{"symbol": "AAA", "forward_return_5d": 0.05}])
+    with pytest.raises(ValueError, match="forward-looking"):
+        _score(df, DEFAULT_FINAL_WATCHLIST_CONFIG)
+
