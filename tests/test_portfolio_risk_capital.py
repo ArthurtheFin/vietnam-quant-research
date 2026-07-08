@@ -344,3 +344,61 @@ def test_kelly_active_with_true_loss_statistic():
     )
     row = plan.iloc[0]
     assert row["kelly_scale"] != 1.0, "true loss stats should engage Kelly overlay"
+
+
+def _load_stack_module():
+    import importlib.util
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "scripts/build_portfolio_stack.py"
+    spec = importlib.util.spec_from_file_location("build_portfolio_stack", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_inverse_vol_never_uses_score_as_volatility():
+    """H1: missing atr_pct_14 must fall back to realized vol, not final_score."""
+    mod = _load_stack_module()
+    rng = np.random.default_rng(7)
+    dates = pd.date_range("2025-01-01", periods=120, freq="B")
+    return_matrix = pd.DataFrame(
+        {"CALM": rng.normal(0, 0.005, len(dates)), "WILD": rng.normal(0, 0.03, len(dates))},
+        index=dates,
+    )
+    candidates = pd.DataFrame(
+        [
+            {"symbol": "CALM", "final_score": 40.0},
+            {"symbol": "WILD", "final_score": 90.0},  # old bug: high score => tiny weight
+        ]
+    )
+    warnings: list[str] = []
+    vol = mod._resolve_inverse_vol_input(candidates, return_matrix, warnings)
+    assert vol["WILD"] > vol["CALM"], "vol input must reflect realized volatility"
+    assert any("realized vol" in w for w in warnings)
+
+    weights = mod.inverse_volatility_allocation(vol.abs().replace(0, 0.02))
+    assert weights["CALM"] > weights["WILD"], "calm asset must get the larger inverse-vol weight"
+
+
+def test_allocation_fallback_is_reported_loudly(monkeypatch):
+    """H2: risk_parity failure must be recorded, not silently relabeled."""
+    mod = _load_stack_module()
+
+    def _boom(*args, **kwargs):
+        raise ValueError("singular covariance")
+
+    monkeypatch.setattr(mod, "risk_parity_allocation", _boom)
+    dates = pd.date_range("2025-01-01", periods=60, freq="B")
+    return_matrix = pd.DataFrame(
+        {"AAA": np.linspace(0.001, 0.002, len(dates)), "BBB": np.linspace(0.002, 0.001, len(dates))},
+        index=dates,
+    )
+    vol = pd.Series({"AAA": 0.02, "BBB": 0.03})
+    warnings: list[str] = []
+    allocations, fallback_used = mod._build_allocations(
+        return_matrix, vol, return_matrix.cov(), warnings
+    )
+    assert "risk_parity" in fallback_used
+    assert any("risk_parity allocation failed" in w for w in warnings)
+    assert allocations["risk_parity"].round(6).eq(0.5).all(), "fallback should be equal weight"

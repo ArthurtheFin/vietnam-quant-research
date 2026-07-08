@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 
@@ -48,6 +49,53 @@ def _add_source_metadata(df: pd.DataFrame, metadata: dict[str, object]) -> pd.Da
     out["generated_at"] = utc_now_iso()
     out["symbols_used"] = ",".join(metadata.get("used_symbols", metadata.get("symbols", [])))
     return out
+
+
+def _resolve_inverse_vol_input(
+    candidates: pd.DataFrame,
+    return_matrix: pd.DataFrame,
+    warnings: list[str],
+) -> pd.Series:
+    """Volatility input for inverse-vol weights. Never substitutes a score for vol (audit H1)."""
+    if "atr_pct_14" in candidates.columns:
+        return (
+            candidates.set_index("symbol")
+            .reindex(return_matrix.columns)["atr_pct_14"]
+            .ffill()
+            .bfill()
+            .fillna(0.02)
+        )
+    warnings.append(
+        "atr_pct_14 missing from candidates; using annualized realized vol "
+        "from return matrix for inverse-volatility allocation"
+    )
+    realized = return_matrix.std(ddof=0) * np.sqrt(252.0)
+    return realized.replace(0.0, np.nan).fillna(0.02)
+
+
+def _build_allocations(
+    return_matrix: pd.DataFrame,
+    latest_vol: pd.Series,
+    covariance: pd.DataFrame,
+    warnings: list[str],
+) -> tuple[dict[str, pd.Series], set[str]]:
+    """Run each allocator; on failure substitute equal weight but record it loudly (audit H2)."""
+    fallback_used: set[str] = set()
+    allocations: dict[str, pd.Series] = {}
+    builders = {
+        "equal_weight": lambda: equal_weight_allocation(return_matrix.columns),
+        "inverse_volatility": lambda: inverse_volatility_allocation(latest_vol.abs().replace(0, 0.02)),
+        "risk_parity": lambda: risk_parity_allocation(covariance),
+        "hrp": lambda: hierarchical_risk_parity_allocation(returns=return_matrix),
+    }
+    for name, builder in builders.items():
+        try:
+            allocations[name] = builder()
+        except Exception as exc:
+            fallback_used.add(name)
+            warnings.append(f"{name} allocation failed ({exc}); equal-weight substituted")
+            allocations[name] = equal_weight_allocation(return_matrix.columns)
+    return allocations, fallback_used
 
 
 def _build_return_matrix(features: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
@@ -162,29 +210,14 @@ def main() -> int:
             + ", ".join(source_metadata.get("missing_symbols", []))
         )
 
-    latest_vol = (
-        candidates.set_index("symbol")
-        .reindex(return_matrix.columns)["atr_pct_14" if "atr_pct_14" in candidates.columns else "final_score"]
-        .ffill()
-        .bfill()
-        .fillna(0.02)
-    )
+    latest_vol = _resolve_inverse_vol_input(candidates, return_matrix, warnings)
     covariance = return_matrix.cov().fillna(0.0)
 
-    allocations: dict[str, pd.Series] = {}
-    for name, builder in {
-        "equal_weight": lambda: equal_weight_allocation(return_matrix.columns),
-        "inverse_volatility": lambda: inverse_volatility_allocation(latest_vol.abs().replace(0, 0.02)),
-        "risk_parity": lambda: risk_parity_allocation(covariance),
-        "hrp": lambda: hierarchical_risk_parity_allocation(returns=return_matrix),
-    }.items():
-        try:
-            allocations[name] = builder()
-        except Exception:
-            allocations[name] = equal_weight_allocation(return_matrix.columns)
+    allocations, fallback_used = _build_allocations(return_matrix, latest_vol, covariance, warnings)
 
     weights_table = pd.concat([series.rename(name) for name, series in allocations.items()], axis=1).fillna(0.0)
     weights_table = weights_table.reset_index().rename(columns={"index": "symbol"})
+    weights_table["allocation_fallbacks"] = ",".join(sorted(fallback_used))
     weights_table = _add_source_metadata(weights_table, source_metadata)
     portfolio_weights_path = OUTPUT_DIR / "portfolio_weights.parquet"
     save_parquet(weights_table, portfolio_weights_path)
@@ -208,7 +241,10 @@ def main() -> int:
     )
     risk_report.update(source_metadata)
     risk_report["generated_at"] = utc_now_iso()
-    risk_report["allocator_used"] = "risk_parity" if "risk_parity" in allocations else "equal_weight"
+    risk_report["allocator_used"] = (
+        "equal_weight (risk_parity FAILED)" if "risk_parity" in fallback_used else "risk_parity"
+    )
+    risk_report["allocation_fallbacks"] = sorted(fallback_used)
     risk_report["warnings"] = warnings
     portfolio_risk_report_path = OUTPUT_DIR / "portfolio_risk_report.json"
     write_json(risk_report, portfolio_risk_report_path)
