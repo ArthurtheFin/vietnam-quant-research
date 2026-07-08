@@ -87,15 +87,18 @@ def run_portfolio_backtest(
             current_holdings = updated_holdings
             
         # B. Check if it is a rebalancing date
-        if current_date in rebalance_dates and day_idx < len(all_dates) - 1:
-            # 1. Filter and select candidates as of this date
+        # D1: decide with information available at the PRIOR session (T-1);
+        # execution stays at the close of T. Same-bar selection was look-ahead.
+        if current_date in rebalance_dates and 0 < day_idx < len(all_dates) - 1:
+            decision_date = all_dates[day_idx - 1]
+            # 1. Filter and select candidates as of the decision date
             try:
-                scores_today = ranking_indexed.loc[current_date].copy()
+                scores_today = ranking_indexed.loc[decision_date].copy()
             except KeyError:
                 scores_today = pd.DataFrame()
-                
+
             try:
-                features_today = df[df["date"] == current_date].set_index("symbol")
+                features_today = df[df["date"] == decision_date].set_index("symbol")
             except Exception:
                 features_today = pd.DataFrame()
                 
