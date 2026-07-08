@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Executes every active notebook in order (00_archive excluded).
+# Notebook paths are resolved by glob so folder reorganizations cannot
+# silently turn this runner into a no-op again (audit J1).
+
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -7,34 +11,30 @@ cd "$PROJECT_ROOT"
 
 TIMEOUT_SECONDS="${NOTEBOOK_TIMEOUT_SECONDS:-1800}"
 
-NOTEBOOKS=(
-  "notebooks/01_validate_environment.ipynb"
-  "notebooks/02_fetch_daily_ohlcv.ipynb"
-  "notebooks/03_clean_validate_data.ipynb"
-  "notebooks/04_market_distribution.ipynb"
-  "notebooks/05_volatility_regime.ipynb"
-  "notebooks/06_market_regime.ipynb"
-  "notebooks/07_breakout_research.ipynb"
-  "notebooks/08_monte_carlo_simulation.ipynb"
-  "notebooks/09_stealth_accumulation_screen.ipynb"
-  "notebooks/10_benchmark_diagnostics.ipynb"
-  "notebooks/11_trade_card_generation.ipynb"
-  "notebooks/12_meta_ranking_optimization.ipynb"
-  "notebooks/13_advanced_quant_analysis.ipynb"
-  "notebooks/14_portfolio_construction.ipynb"
-  "notebooks/15_risk_management.ipynb"
-  "notebooks/16_capital_allocation.ipynb"
-  "notebooks/17_live_watchlist_dashboard.ipynb"
-  "notebooks/18_client_watchlist_report.ipynb"
-  "notebooks/19_validation_and_stress_test.ipynb"
-  "notebooks/20_portfolio_backtester.ipynb"
-)
+# Resolve active notebooks: numbered folders except 00_archive, sorted by path.
+# (while-read instead of mapfile: macOS ships bash 3.2)
+NOTEBOOKS=()
+while IFS= read -r nb; do
+  NOTEBOOKS+=("$nb")
+done < <(find notebooks -mindepth 2 -name "*.ipynb" \
+  -not -path "notebooks/00_archive/*" \
+  -not -path "*/.ipynb_checkpoints/*" | sort)
+
+if [[ "${1:-}" == "--list" ]]; then
+  printf '%s\n' "${NOTEBOOKS[@]}"
+  exit 0
+fi
+
+if [[ ${#NOTEBOOKS[@]} -eq 0 ]]; then
+  echo "[ERROR] No notebooks resolved under notebooks/ — check the repository layout." >&2
+  exit 1
+fi
 
 run_notebook() {
   local notebook="$1"
   if [[ ! -f "$notebook" ]]; then
-    echo "[SKIP] Missing notebook: $notebook"
-    return 0
+    echo "[ERROR] Missing notebook: $notebook" >&2
+    exit 1
   fi
 
   echo
@@ -51,15 +51,18 @@ run_notebook() {
   echo "[OK] $notebook"
 }
 
+RAN=0
 if [[ $# -gt 0 ]]; then
   for notebook in "$@"; do
     run_notebook "$notebook"
+    RAN=$((RAN + 1))
   done
 else
   for notebook in "${NOTEBOOKS[@]}"; do
     run_notebook "$notebook"
+    RAN=$((RAN + 1))
   done
 fi
 
 echo
-echo "All requested notebooks executed successfully."
+echo "Executed $RAN notebook(s) successfully."

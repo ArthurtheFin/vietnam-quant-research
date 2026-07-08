@@ -29,3 +29,19 @@ def test_cashflow_symbols_step_passes_symbol_only_flag() -> None:
     mod = _load_module("scripts/run_daily_pipeline.py", "run_daily_pipeline_contract2")
     step = next(s for s in mod.PIPELINE_STEPS if s["name"] == "build_cashflow_board_symbols")
     assert "--symbol-only" in step.get("args", [])
+
+
+def test_notebook_runner_resolves_real_paths() -> None:
+    """J1: the runner must list existing notebooks (no stale-path silent no-op)."""
+    result = subprocess.run(
+        ["bash", str(PROJECT_ROOT / "scripts/run_all_notebooks.sh"), "--list"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    paths = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    assert len(paths) >= 15, f"expected >=15 active notebooks, got {len(paths)}"
+    for p in paths:
+        assert (PROJECT_ROOT / p).is_file(), f"listed notebook does not exist: {p}"
+        assert "00_archive" not in p
