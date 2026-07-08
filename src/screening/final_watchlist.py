@@ -46,6 +46,7 @@ FINAL_WATCHLIST_COLUMNS = [
     "latest_volume",
     "cashflow_data_status",
     "confirmation_status",
+    "cashflow_verification",
 ]
 
 
@@ -154,13 +155,15 @@ def build_watchlist_tiers(
     if cashflow_board_path.exists():
         try:
             cashflow_board = read_parquet(cashflow_board_path)
-        except Exception:
-            pass
+        except Exception as exc:
+            LOGGER.warning("Failed to read cashflow board (%s); gate will treat it as missing.", exc)
+    else:
+        LOGGER.warning("Cashflow board artifact not found; Client Ready tier will be demoted (audit F1).")
     if wcc_path.exists():
         try:
             wcc = read_parquet(wcc_path)
-        except Exception:
-            pass
+        except Exception as exc:
+            LOGGER.warning("Failed to read watchlist cashflow confirmation (%s).", exc)
 
     latest = apply_eligibility_gate(latest, cashflow_board, wcc)
 
@@ -832,6 +835,24 @@ def apply_eligibility_gate(
 
     out = df.copy()
 
+    # F1: verify cashflow artifact presence/recency — never silently default to OK.
+    as_of = None
+    for col in ("analysis_as_of", "date"):
+        if col in out.columns:
+            as_of = pd.to_datetime(out[col], errors="coerce").max()
+            break
+
+    cashflow_verification = "VERIFIED"
+    if cashflow_board is None or cashflow_board.empty:
+        cashflow_verification = "UNVERIFIED_MISSING_ARTIFACT"
+    elif "date" in cashflow_board.columns and as_of is not None:
+        board_date = pd.to_datetime(cashflow_board["date"], errors="coerce").max()
+        if pd.isna(board_date) or board_date < as_of:
+            cashflow_verification = "UNVERIFIED_STALE_ARTIFACT"
+    elif "date" not in cashflow_board.columns:
+        LOGGER.warning("Cashflow board has no date column; recency cannot be verified.")
+    out["cashflow_verification"] = cashflow_verification
+
     # Ensure columns exist
     if "eligibility_status" not in out.columns:
         out["eligibility_status"] = "ELIGIBLE"
@@ -918,6 +939,19 @@ def apply_eligibility_gate(
         else:
             out.at[idx, "eligibility_status"] = "ELIGIBLE"
             out.at[idx, "eligibility_reason"] = "None"
+
+    # F1: without a same-day cashflow board, Client Ready cannot be certified —
+    # demote to Trading Watchlist (not a full reject) and say why.
+    if cashflow_verification != "VERIFIED" and "candidate_tier" in out.columns:
+        LOGGER.warning(
+            "Cashflow board %s — demoting Client Ready candidates to Trading Watchlist.",
+            cashflow_verification,
+        )
+        demote_mask = (out["eligibility_status"] == "ELIGIBLE") & (out["candidate_tier"] == "Client Ready")
+        for idx in out.index[demote_mask]:
+            out.at[idx, "is_client_ready"] = False
+            out.at[idx, "candidate_tier"] = "Trading Watchlist"
+            out.at[idx, "eligibility_reason"] = f"CASHFLOW_{cashflow_verification}"
 
     return out
 

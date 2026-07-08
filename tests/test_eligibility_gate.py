@@ -427,3 +427,57 @@ def test_redistribute_after_gate_promotes_overflow_into_trading() -> None:
     assert client_syms.isdisjoint(research_syms)
     assert trading_syms.isdisjoint(research_syms)
 
+
+
+def test_gate_demotes_client_ready_when_cashflow_board_stale(sample_watchlist) -> None:
+    """F1: gate must not treat a stale cashflow board as same-day confirmation."""
+    stale_board = pd.DataFrame(
+        [
+            {
+                "symbol": "CTS",
+                "date": pd.Timestamp("2026-06-27"),  # older than watchlist date 2026-06-30
+                "volume": 2629900.0,
+                "cashflow_data_status": "OK",
+                "cashflow_state": "NEUTRAL",
+                "value_ma20": 10_000_000_000.0,
+                "volume_ma20": 200_000.0,
+            }
+        ]
+    )
+    gated = apply_eligibility_gate(sample_watchlist, stale_board, None)
+    cts = gated[gated["symbol"] == "CTS"].iloc[0]
+    assert cts["eligibility_status"] == "ELIGIBLE"
+    assert cts["is_client_ready"] == False, "stale board must demote from Client Ready"
+    assert cts["candidate_tier"] == "Trading Watchlist"
+    assert "UNVERIFIED_STALE_ARTIFACT" in str(cts["eligibility_reason"])
+
+
+def test_gate_demotes_client_ready_when_cashflow_board_missing(sample_watchlist) -> None:
+    """F1: no cashflow artifact => no silent OK default; Client Ready requires verification."""
+    gated = apply_eligibility_gate(sample_watchlist, None, None)
+    cts = gated[gated["symbol"] == "CTS"].iloc[0]
+    assert cts["eligibility_status"] == "ELIGIBLE"
+    assert cts["is_client_ready"] == False
+    assert cts["candidate_tier"] == "Trading Watchlist"
+    assert "UNVERIFIED_MISSING_ARTIFACT" in str(cts["eligibility_reason"])
+
+
+def test_gate_keeps_client_ready_with_fresh_board(sample_watchlist) -> None:
+    """F1 control: same-day board keeps verified Client Ready intact."""
+    fresh_board = pd.DataFrame(
+        [
+            {
+                "symbol": "CTS",
+                "date": pd.Timestamp("2026-06-30"),
+                "volume": 2629900.0,
+                "cashflow_data_status": "OK",
+                "cashflow_state": "NEUTRAL",
+                "value_ma20": 10_000_000_000.0,
+                "volume_ma20": 200_000.0,
+            }
+        ]
+    )
+    gated = apply_eligibility_gate(sample_watchlist, fresh_board, None)
+    cts = gated[gated["symbol"] == "CTS"].iloc[0]
+    assert cts["is_client_ready"] == True
+    assert cts["candidate_tier"] == "Client Ready"

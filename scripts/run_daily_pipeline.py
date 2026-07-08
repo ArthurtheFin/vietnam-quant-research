@@ -64,6 +64,14 @@ PIPELINE_STEPS = [
         ],
     },
     {
+        # Symbol-level cashflow board MUST precede meta ranking so the
+        # eligibility gate reads a same-day artifact (audit F1).
+        "name": "build_cashflow_board_symbols",
+        "script": "scripts/build_cashflow_board.py",
+        "args": ["--symbol-only"],
+        "outputs": ["data/output/cashflow_board.parquet"],
+    },
+    {
         "name": "run_meta_ranking",
         "script": "scripts/run_meta_ranking.py",
         "outputs": [
@@ -305,7 +313,7 @@ def _ensure_online_ready() -> None:
 
 def _run_step(step: dict[str, object], args_context: argparse.Namespace = None) -> dict[str, object]:
     script = str(step["script"])
-    cmd = [sys.executable, script]
+    cmd = [sys.executable, script, *[str(arg) for arg in step.get("args", [])]]
     if step["name"] == "update_daily_data" and args_context:
         update_scope = getattr(args_context, "update_scope", None)
         if update_scope:
@@ -730,7 +738,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--strict-freshness", action="store_true", help="Treat stale warning-level artifacts as errors.")
     parser.add_argument("--build-sector", action="store_true", help="Build sector board outputs after watchlists are available.")
     parser.add_argument("--build-portfolio", action="store_true", help="Build portfolio/risk/capital outputs after watchlists.")
-    parser.add_argument("--build-cashflow", action="store_true", help="Build cashflow board outputs after watchlists are available.")
+    parser.add_argument("--build-cashflow", action="store_true", help="Deprecated no-op: cashflow board now builds by default (audit F1).")
+    parser.add_argument("--skip-cashflow", action="store_true", help="Skip the full cashflow board + confirmation build after watchlists.")
     parser.add_argument("--build-research-notes", action="store_true", help="Build research notes after watchlists, cashflow and portfolio.")
     parser.add_argument("--update-index", action="store_true", help="Refresh raw index/VNINDEX data before generating features in online mode.")
     parser.add_argument("--update-scope", default="core", choices=["core", "full", "batch", "custom"], help="Scope for updating daily data.")
@@ -748,6 +757,7 @@ def main(argv: list[str] | None = None) -> int:
         ("--build-sector", args.build_sector),
         ("--build-portfolio", args.build_portfolio),
         ("--build-cashflow", args.build_cashflow),
+        ("--skip-cashflow", args.skip_cashflow),
         ("--build-research-notes", args.build_research_notes),
         ("--update-index", args.update_index),
     ] if enabled]
@@ -863,7 +873,7 @@ def main(argv: list[str] | None = None) -> int:
         sector_board_metadata = sector_result["metadata"]
 
     cashflow_board_metadata = _default_cashflow_board_metadata()
-    if args.build_cashflow:
+    if not args.skip_cashflow:
         cashflow_result = _run_cashflow_board()
         step_reports.append(cashflow_result["step"])
         cashflow_board_metadata = cashflow_result["metadata"]
@@ -913,7 +923,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if args.build_sector and sector_board_metadata.get("status") == "ERROR":
         return 1
-    if args.build_cashflow and cashflow_board_metadata.get("status") == "ERROR":
+    if not args.skip_cashflow and cashflow_board_metadata.get("status") == "ERROR":
         return 1
     if args.build_portfolio and portfolio_stack_metadata.get("status") == "ERROR":
         return 1

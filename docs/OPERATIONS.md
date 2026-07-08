@@ -21,12 +21,21 @@ python scripts/generate_trade_cards.py     # Sinh breakout_20d_trade_cards (edge
 # Buoc 6: Screening
 python scripts/run_stealth_accumulation_screen.py  # Chay stealth screen + sector-aware + backtest
 
-# Buoc 7: Ranking
+# Buoc 7: Cashflow board (symbol-level) — PHAI chay TRUOC ranking (audit F1)
+python scripts/build_cashflow_board.py --symbol-only
+
+# Buoc 8: Ranking (eligibility gate doc cashflow_board cung ngay)
 python scripts/run_meta_ranking.py         # Tong hop ranking tu signals + stealth + trade cards
 
-# Buoc 8: Report
+# Buoc 9: Cashflow confirmation theo tier + overlay
+python scripts/build_cashflow_board.py
+
+# Buoc 10: Report
 python scripts/generate_daily_report.py    # Xuat daily_market_note.md
 ```
+
+Luu y: neu cashflow board thieu hoac cu hon ngay phan tich, gate se tu dong ha cac ma
+Client Ready xuong Trading Watchlist (khong con mac dinh "OK" am tham).
 
 Y nghia tung buoc:
 
