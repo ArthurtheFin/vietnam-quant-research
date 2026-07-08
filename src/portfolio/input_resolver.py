@@ -60,11 +60,12 @@ def load_default_portfolio_candidates(
         sym = row["symbol"]
         
         vol = row.get("volume")
+        volume_column_missing = "volume" not in features.columns and "volume" not in latest.columns
         if pd.isna(vol) or vol is None or (isinstance(vol, float) and np.isnan(vol)):
-            if "volume" not in features.columns and "volume" not in latest.columns:
-                vol = 100000.0
-            else:
-                vol = np.nan
+            # H4: no volume column at all is a data problem, not "assume 100k shares
+            # traded". Fabricating a plausible-looking value let it silently pass
+            # the vol<=0 rejection check below.
+            vol = np.nan
         cf_status = "OK"
         cf_state = "NEUTRAL"
         
@@ -81,7 +82,9 @@ def load_default_portfolio_candidates(
             confirm_status = wcc_row.get("confirmation_status", "WATCH")
             
         reasons = []
-        if pd.isna(vol) or vol <= 0:
+        if volume_column_missing:
+            reasons.append("VOLUME_DATA_MISSING")
+        elif pd.isna(vol) or vol <= 0:
             reasons.append("ZERO_VOLUME_OR_MISSING_DATA")
         if pd.isna(row["close"]) or row["close"] <= 0:
             reasons.append("INVALID_CLOSE")

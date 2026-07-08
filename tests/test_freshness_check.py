@@ -79,8 +79,8 @@ def test_watchlist_source_prefers_client_ready_watchlist(tmp_path) -> None:
     _write_frame(
         tmp_path / "data/processed/stock_features.parquet",
         [
-            {"symbol": "AAA", "date": "2026-06-30", "close": 10.0},
-            {"symbol": "BBB", "date": "2026-06-30", "close": 11.0},
+            {"symbol": "AAA", "date": "2026-06-30", "close": 10.0, "volume": 500_000.0},
+            {"symbol": "BBB", "date": "2026-06-30", "close": 11.0, "volume": 500_000.0},
         ],
     )
 
@@ -97,7 +97,7 @@ def test_portfolio_candidates_fall_back_when_client_ready_missing(tmp_path) -> N
     )
     _write_frame(
         tmp_path / "data/processed/stock_features.parquet",
-        [{"symbol": "BBB", "date": "2026-06-30", "close": 11.0}],
+        [{"symbol": "BBB", "date": "2026-06-30", "close": 11.0, "volume": 500_000.0}],
     )
 
     candidates, metadata = load_default_portfolio_candidates(base_dir=tmp_path)
@@ -475,3 +475,21 @@ def test_expected_latest_trading_date_calendar_rules() -> None:
     # Holiday skipping: Sep 2 2026 (Wednesday) is National Day
     holidays = {pd.Timestamp("2026-09-02").date()}
     assert expected_latest_trading_date(pd.Timestamp("2026-09-02 20:00"), holidays) == pd.Timestamp("2026-09-01")
+
+
+def test_missing_volume_column_rejects_instead_of_fabricating(tmp_path) -> None:
+    """H4: a features frame with no volume column must reject candidates as
+    VOLUME_DATA_MISSING, not fabricate 100,000 shares and let them pass."""
+    _write_frame(
+        tmp_path / "data/output/client_ready_watchlist.parquet",
+        [{"symbol": "AAA", "date": "2026-06-30", "final_score": 80.0}],
+    )
+    _write_frame(
+        tmp_path / "data/processed/stock_features.parquet",
+        [{"symbol": "AAA", "date": "2026-06-30", "close": 10.0}],  # no volume column at all
+    )
+
+    candidates, metadata = load_default_portfolio_candidates(base_dir=tmp_path)
+
+    assert candidates.empty, "candidate must be rejected, not fabricated a fake volume"
+    assert metadata["rejected_symbols_portfolio_gate"]["AAA"] == "VOLUME_DATA_MISSING"

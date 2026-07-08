@@ -34,6 +34,29 @@ from src.utils.pipeline_io import (
 
 OUTPUT_DIR = PROJECT_ROOT / "data/output"
 
+DEFAULT_NAV = 1_000_000_000.0
+
+
+def _resolve_nav(warnings: list[str]) -> float:
+    """NAV for capital plan sizing, from config/strategy_config.yaml:portfolio.nav
+    (audit H6) -- falls back to DEFAULT_NAV with an explicit warning, never silently."""
+    import yaml
+
+    config_path = PROJECT_ROOT / "config/strategy_config.yaml"
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+        nav = cfg.get("portfolio", {}).get("nav")
+        if nav is not None:
+            return float(nav)
+    except Exception as exc:
+        warnings.append(f"Could not read portfolio.nav from strategy_config.yaml ({exc}); using default NAV.")
+        return DEFAULT_NAV
+    warnings.append(
+        f"portfolio.nav not set in strategy_config.yaml; using default NAV {DEFAULT_NAV:,.0f} VND."
+    )
+    return DEFAULT_NAV
+
 
 def _normalize_metadata(metadata: dict[str, object]) -> dict[str, object]:
     out = dict(metadata)
@@ -253,9 +276,10 @@ def main() -> int:
     portfolio_candidates_path = OUTPUT_DIR / "portfolio_candidates.parquet"
     save_parquet(candidates_with_meta, portfolio_candidates_path)
 
+    nav = _resolve_nav(warnings)
     capital_plan = build_capital_plan(
         candidates=candidates,
-        nav=1_000_000_000,
+        nav=nav,
         p_win_col="win_rate" if "win_rate" in candidates.columns else None,
         avg_gain_col="avg_return" if "avg_return" in candidates.columns else None,
         # Kelly requires a true loss statistic; median_return is not one (audit H3).
@@ -266,7 +290,7 @@ def main() -> int:
         aligned_plan = align_capital_plan_to_target_weights(
             plan=capital_plan,
             target_weights=default_weights,
-            nav=1_000_000_000,
+            nav=nav,
             max_gross_exposure=0.95,
         )
     else:

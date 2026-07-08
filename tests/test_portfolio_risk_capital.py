@@ -402,3 +402,30 @@ def test_allocation_fallback_is_reported_loudly(monkeypatch):
     assert "risk_parity" in fallback_used
     assert any("risk_parity allocation failed" in w for w in warnings)
     assert allocations["risk_parity"].round(6).eq(0.5).all(), "fallback should be equal weight"
+
+
+def test_resolve_nav_reads_from_strategy_config(tmp_path, monkeypatch):
+    """H6: NAV must come from config/strategy_config.yaml:portfolio.nav, not a
+    hardcoded literal duplicated at every call site."""
+    mod = _load_stack_module()
+    (tmp_path / "config").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "config/strategy_config.yaml").write_text("portfolio:\n  nav: 2500000000\n")
+    monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
+
+    warnings: list[str] = []
+    nav = mod._resolve_nav(warnings)
+    assert nav == 2_500_000_000.0
+    assert warnings == []
+
+
+def test_resolve_nav_falls_back_with_warning_when_unset(tmp_path, monkeypatch):
+    """H6: missing portfolio.nav must fall back loudly, not silently."""
+    mod = _load_stack_module()
+    (tmp_path / "config").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "config/strategy_config.yaml").write_text("risk:\n  risk_per_trade: 0.01\n")
+    monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
+
+    warnings: list[str] = []
+    nav = mod._resolve_nav(warnings)
+    assert nav == mod.DEFAULT_NAV
+    assert any("portfolio.nav not set" in w for w in warnings)

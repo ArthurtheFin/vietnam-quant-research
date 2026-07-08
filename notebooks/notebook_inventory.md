@@ -28,13 +28,15 @@
 
 ## Delete Candidates
 
-These were not deleted in this phase. They remain for your review only.
+**Update (audit A2, 2026-07-08): verified none of these files exist on disk anymore.**
+`find notebooks -iname "*checkpoint*"` returns nothing. The table below is kept
+as historical record of what was previously flagged; no cleanup action remains.
 
 | Old Notebook | New Folder | Classification | Reason | Notes |
 |---|---|---|---|---|
-| `notebooks/.ipynb_checkpoints/*.ipynb` | `not changed` | `DELETE_CANDIDATE` | Auto-generated checkpoint files duplicate working notebooks and include many obsolete variants. | Not deleted in this phase. |
-| `00_project_overview-checkpoint.ipynb` and other `*-checkpoint.ipynb` files | `not changed` | `DELETE_CANDIDATE` | Redundant autosaves with no production value once the main notebook file exists. | Review later before cleanup. |
-| Legacy checkpoint variants such as `07b_breakout_stoploss_regime-checkpoint.ipynb`, `12b_alpha_research_scoring-checkpoint.ipynb`, `14_stealth_accumulation_lab-checkpoint.ipynb`, `16_meta_ranking_lab-checkpoint.ipynb` | `not changed` | `DELETE_CANDIDATE` | Heavily duplicated notebook drafts that no longer match the current production flow. | Review manually before any deletion. |
+| `notebooks/.ipynb_checkpoints/*.ipynb` | `not changed` | `DELETE_CANDIDATE` (resolved) | Auto-generated checkpoint files duplicate working notebooks and include many obsolete variants. | No longer present on disk. |
+| `00_project_overview-checkpoint.ipynb` and other `*-checkpoint.ipynb` files | `not changed` | `DELETE_CANDIDATE` (resolved) | Redundant autosaves with no production value once the main notebook file exists. | No longer present on disk. |
+| Legacy checkpoint variants such as `07b_breakout_stoploss_regime-checkpoint.ipynb`, `12b_alpha_research_scoring-checkpoint.ipynb`, `14_stealth_accumulation_lab-checkpoint.ipynb`, `16_meta_ranking_lab-checkpoint.ipynb` | `not changed` | `DELETE_CANDIDATE` (resolved) | Heavily duplicated notebook drafts that no longer match the current production flow. | No longer present on disk. |
 
 ## Summary
 

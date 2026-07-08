@@ -685,7 +685,16 @@ def _build_pipeline_metadata(
             pass
 
     sf = freshness.get("symbol_freshness") or {}
-    total_uni = sf.get("total_symbols") or watchlist_counts.get("stock_features", {}).get("symbols", 0) or 501
+    total_uni = sf.get("total_symbols") or watchlist_counts.get("stock_features", {}).get("symbols", 0)
+    if not total_uni:
+        # B4: no more hardcoded "501" guess -- use the real listed-securities count
+        # (audit B1) when available, otherwise report unknown rather than fabricate one.
+        try:
+            from scripts.update_daily_data import get_full_universe_symbols
+
+            total_uni = len(get_full_universe_symbols(PROJECT_ROOT))
+        except SystemExit:
+            total_uni = None
     fresh_cnt = sf.get("symbols_at_baseline_date") or 0
     stale_cnt = sf.get("stale_symbol_count") or 0
     fresh_ratio = 1.0 - (sf.get("stale_symbol_ratio") or 0.0)

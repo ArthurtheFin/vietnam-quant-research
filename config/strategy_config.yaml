@@ -78,6 +78,9 @@ risk:
   risk_per_trade: 0.01
   max_position_pct: 0.25
 
+portfolio:
+  nav: 1000000000  # VND; single source of truth for capital plan sizing (audit H6)
+
 final_watchlist:
   watchlist_size: 10
   benchmark_symbol: VNINDEX

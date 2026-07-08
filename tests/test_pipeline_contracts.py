@@ -45,3 +45,10 @@ def test_notebook_runner_resolves_real_paths() -> None:
     for p in paths:
         assert (PROJECT_ROOT / p).is_file(), f"listed notebook does not exist: {p}"
         assert "00_archive" not in p
+
+
+def test_universe_count_fallback_has_no_hardcoded_guess():
+    """B4: run_daily_pipeline.py must not fall back to a hardcoded "501" guess
+    for total universe size -- source code must not contain that literal."""
+    src = (PROJECT_ROOT / "scripts/run_daily_pipeline.py").read_text()
+    assert "or 501" not in src

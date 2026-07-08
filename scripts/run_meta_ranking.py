@@ -46,7 +46,6 @@ trade_cards = read_parquet("data/signals/breakout_20d_trade_cards.parquet")
 stealth_latest = read_parquet("data/signals/stealth_accumulation_latest.parquet")
 stock_features = read_parquet("data/processed/stock_features.parquet")
 alpha_scores = read_parquet("data/signals/alpha_scores.parquet")
-auto_watchlist_snapshot = read_parquet("data/signals/auto_watchlist_top10.parquet")
 
 if features.empty and trade_cards.empty and stealth_latest.empty:
     raise SystemExit("No ranking inputs found. Generate setup signals or stealth outputs first.")
@@ -106,9 +105,7 @@ with open("config/strategy_config.yaml", "r", encoding="utf-8") as f:
 final_cfg = cfg.get("final_watchlist", {})
 benchmark = read_parquet(final_cfg.get("paths", {}).get("benchmark", "data/processed/benchmark_vnindex.parquet"))
 analysis_as_of = _latest_date(ranked) or _latest_date(features) or _latest_date(stock_features)
-candidate_symbols = None
-candidate_symbols = None
-# Do not restrict candidate_symbols by auto_watchlist_top10 to allow full universe ranking
+candidate_symbols = None  # unrestricted: rank the full universe, not a pre-filtered subset
 
 watchlist_outputs = build_watchlist_tiers(
     features=stock_features,
