@@ -463,9 +463,9 @@ VGR,Transportation & Logistics,Transportation / logistics,UPCOM,HF Vietnam metad
 VGS,Materials,Steel / mining / minerals,HNX,HF Vietnam metadata + rule normalization,2026-07-01
 VGT,Textiles & Apparel,Textiles / apparel,UPCOM,HF Vietnam metadata + rule normalization,2026-07-01
 VHC,Consumer Staples,Consumer non-durables,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
-VHM,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VHM,Real Estate,Residential real estate development,HOSE,manual review (audit I2),2026-07-08
 VIB,Banking,Bank,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
-VIC,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VIC,Real Estate,Diversified conglomerate / real estate,HOSE,manual review (audit I2),2026-07-08
 VID,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
 VIP,Energy,Oil gas / coal / energy,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
 VIT,Industrials,Producer manufacturing,HNX,HF Vietnam metadata + rule normalization,2026-07-01
@@ -489,7 +489,7 @@ VPI,Financial Services,Financials / diversified holdings,HOSE,HF Vietnam metadat
 VPL,Consumer Services,Consumer services,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
 VPS,Materials,Process industries,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
 VRC,Real Estate,Real estate / property,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
-VRE,Retail & Distribution,Retail / trading,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
+VRE,Real Estate,Retail real estate / shopping malls,HOSE,manual review (audit I2),2026-07-08
 VSC,Transportation & Logistics,Transportation / logistics,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
 VSH,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01
 VSI,Utilities,Power / water utility,HOSE,HF Vietnam metadata + rule normalization,2026-07-01

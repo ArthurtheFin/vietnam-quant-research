@@ -162,3 +162,24 @@ def test_audit_sector_mapping_counts_unknown_as_missing() -> None:
     assert summary["missing_symbols"] == 2
     assert round(float(summary["mapping_coverage"]), 4) == round(1 / 3, 4)
     assert set(missing["symbol"]) == {"BBB", "CCC"}
+
+
+def test_sector_map_large_caps_classified_correctly() -> None:
+    """I2: Vingroup family must not be misclassified as Financial Services."""
+    import csv
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "config/sector_map.csv"
+    with open(path, encoding="utf-8") as f:
+        rows = {r["symbol"]: r for r in csv.DictReader(f)}
+
+    for sym in ("VIC", "VHM", "VRE"):
+        assert rows[sym]["sector"] == "Real Estate", f"{sym} sector={rows[sym]['sector']}"
+
+    core_30 = [
+        "ACB", "BID", "CTG", "DGC", "FPT", "GAS", "GVR", "HDB", "HPG", "LPB",
+        "MBB", "MSN", "MWG", "PLX", "SAB", "SHB", "SSB", "SSI", "STB", "TCB",
+        "TPB", "VCB", "VHM", "VIB", "VIC", "VJC", "VNM", "VPB", "VRE", "VPL",
+    ]
+    unknown = [s for s in core_30 if rows.get(s, {}).get("sector") in (None, "", "UNKNOWN")]
+    assert not unknown, f"Core watchlist symbols with UNKNOWN sector: {unknown}"
