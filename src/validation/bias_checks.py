@@ -1,6 +1,35 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
+
+
+def run_bias_checks(base_dir: str | Path = ".") -> dict[str, object]:
+    """Automated, pipeline-wired entry point for the bias checks below (audit D4).
+
+    These functions previously existed only as manual, notebook-only checks
+    (run by hand in 19_validation_and_stress_test.ipynb) with no automated call
+    site anywhere in run_daily_pipeline.py. This wraps check_lookahead_bias over
+    setup_signals.parquet so every pipeline run records the result, instead of
+    the check existing purely as unenforced documentation.
+
+    setup_signals.parquet intentionally carries forward_return_Nd research
+    labels (see AUDIT_REPORT.md D5), so a "failed" lookahead check here is
+    informational, not a pipeline-blocking error -- D5's guards already prevent
+    those columns from reaching live scoring/output artifacts.
+    """
+    base = Path(base_dir)
+    path = base / "data/signals/setup_signals.parquet"
+    if not path.exists():
+        return {"ran": False, "reason": "setup_signals.parquet not found"}
+    try:
+        signals = pd.read_parquet(path)
+    except Exception as exc:
+        return {"ran": False, "reason": f"could not read setup_signals.parquet: {exc}"}
+    result = check_lookahead_bias(signals)
+    return {"ran": True, "target": "data/signals/setup_signals.parquet", **result}
+
 
 def check_lookahead_bias(
     signal_df: pd.DataFrame,

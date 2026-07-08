@@ -29,6 +29,7 @@ from src.utils.pipeline_io import (
     write_run_snapshot,
     write_json,
 )
+from src.validation.bias_checks import run_bias_checks
 from src.validation.freshness_check import evaluate_freshness
 
 LOGGER = get_logger("daily_pipeline")
@@ -913,6 +914,9 @@ def main(argv: list[str] | None = None) -> int:
         online_update=online_update_metadata,
         flags_used=flags_used,
     )
+    # D4: automated (not manual-notebook-only) bias check, informational only --
+    # setup_signals.parquet intentionally carries forward_return_Nd research labels.
+    metadata["bias_checks"] = run_bias_checks(PROJECT_ROOT)
     write_json(metadata, PROJECT_ROOT / "data/output/pipeline_metadata.json")
     snapshot_path = write_run_snapshot(metadata, PROJECT_ROOT)
     metadata["generated_files"] = list(dict.fromkeys(metadata["generated_files"] + [relative_path(snapshot_path, PROJECT_ROOT)]))
