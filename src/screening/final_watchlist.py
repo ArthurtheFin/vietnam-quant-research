@@ -47,6 +47,7 @@ FINAL_WATCHLIST_COLUMNS = [
     "cashflow_data_status",
     "confirmation_status",
     "cashflow_verification",
+    "rank_universe_size",
 ]
 
 
@@ -537,10 +538,20 @@ def _apply_candidate_tiers(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     warning_series = out["warning"].fillna("")
 
+    # G1: how many candidates this score was ranked against — the 0-100 score is a
+    # cross-sectional rank within this pool, not an absolute quality measure.
+    out["rank_universe_size"] = int(len(out))
+
     out["is_stale_data"] = warning_series.str.contains("Stale data", case=False, na=False)
     out["is_missing_backtest_evidence"] = warning_series.str.contains("Missing backtest evidence", case=False, na=False)
     out["is_low_liquidity_warning"] = warning_series.str.contains("Low liquidity", case=False, na=False)
     out["is_weak_market_regime"] = warning_series.str.contains("Weak market regime", case=False, na=False)
+    # G1: a real (non-NaN) negative excess return vs benchmark is a hard floor for
+    # Client Ready, not just an 8-point warning penalty a high score can absorb.
+    if "excess_return_20d" in out.columns:
+        out["is_weak_relative_strength"] = pd.to_numeric(out["excess_return_20d"], errors="coerce").lt(0)
+    else:
+        out["is_weak_relative_strength"] = False
 
     out["is_research_candidate"] = (
         ~out["is_stale_data"]
@@ -556,6 +567,7 @@ def _apply_candidate_tiers(df: pd.DataFrame) -> pd.DataFrame:
         out["is_trading_candidate"]
         & ~out["is_missing_backtest_evidence"]
         & ~out["is_weak_market_regime"]
+        & ~out["is_weak_relative_strength"]
         & out["final_score"].ge(60.0)
     )
 
@@ -584,6 +596,8 @@ def _apply_candidate_tiers(df: pd.DataFrame) -> pd.DataFrame:
             reasons.append("Missing backtest evidence")
         if row["is_weak_market_regime"]:
             reasons.append("Weak market regime")
+        if row["is_weak_relative_strength"] and row["is_trading_candidate"]:
+            reasons.append("Weak relative strength (demoted from Client Ready)")
         if not row["strict_pass"] and row["is_research_candidate"]:
             reasons.append("Below trading threshold")
         exclusion_reasons.append("; ".join(dict.fromkeys(reasons)))
@@ -631,7 +645,13 @@ def _reason_text(row: pd.Series) -> str:
         phrases.append("có bằng chứng tín hiệu lịch sử")
     if not phrases:
         phrases.append("Điểm tổng hợp tốt hơn phần còn lại của vũ trụ")
-    return ", ".join(phrases[:3]).capitalize() + "."
+    text = ", ".join(phrases[:3]).capitalize() + "."
+    # G1: the 0-100 score is a rank within this pool, not an absolute measure —
+    # say so explicitly rather than implying universe-wide quality.
+    universe_size = row.get("rank_universe_size")
+    if pd.notna(universe_size) and int(universe_size) > 0:
+        text += f" (Xếp hạng tương đối trong {int(universe_size)} mã được chấm điểm.)"
+    return text
 
 
 def _ensure_watchlist_output_columns(frame: pd.DataFrame) -> pd.DataFrame:
@@ -644,7 +664,7 @@ def _ensure_watchlist_output_columns(frame: pd.DataFrame) -> pd.DataFrame:
                 "rank", "data_age_days", "base_final_score", "warning_penalty",
                 "trend_score", "momentum_score", "relative_strength_score",
                 "volume_score", "liquidity_score", "risk_score", "signal_score",
-                "latest_volume"
+                "latest_volume", "rank_universe_size",
             ]:
                 out[col] = np.nan
             elif col in ["is_research_candidate", "is_trading_candidate", "is_client_ready"]:

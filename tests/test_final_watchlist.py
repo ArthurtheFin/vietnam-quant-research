@@ -174,3 +174,53 @@ def test_min_price_threshold_is_vnd_not_a_bare_number():
     blue = out.set_index("symbol").loc["BLUE"]
     assert not bool(penny["strict_pass"]), "3,000 VND stock must fail min_price (was passing at threshold=5.0)"
     assert bool(blue["strict_pass"])
+
+
+def test_negative_excess_return_demotes_from_client_ready() -> None:
+    """G1: a real negative excess_return_20d is a hard floor for Client Ready,
+    not an 8-point warning penalty a high score can absorb (matches SAB/BID in
+    the current final_watchlist.csv, which pass with a 'Weak relative strength'
+    warning today)."""
+    from src.screening.final_watchlist import _apply_candidate_tiers
+
+    df = pd.DataFrame(
+        [
+            {
+                "symbol": "WEAK", "final_score": 75.0, "warning": "",
+                "strict_pass": True, "fallback_eligible": True,
+                "excess_return_20d": -0.02,
+            },
+            {
+                "symbol": "STRONG", "final_score": 75.0, "warning": "",
+                "strict_pass": True, "fallback_eligible": True,
+                "excess_return_20d": 0.03,
+            },
+        ]
+    )
+    out = _apply_candidate_tiers(df)
+    weak = out.set_index("symbol").loc["WEAK"]
+    strong = out.set_index("symbol").loc["STRONG"]
+
+    assert not bool(weak["is_client_ready"]), "negative excess return must not be Client Ready"
+    assert weak["candidate_tier"] == "Trading Watchlist", "demoted, not fully excluded"
+    assert "Weak relative strength" in weak["exclusion_reason"]
+
+    assert bool(strong["is_client_ready"])
+    assert strong["candidate_tier"] == "Client Ready"
+
+
+def test_rank_universe_size_exposed_in_reason_and_columns() -> None:
+    """G1: the score is a rank within N candidates, not an absolute measure."""
+    from src.screening.final_watchlist import _apply_candidate_tiers, _reason_text
+
+    df = pd.DataFrame(
+        [{"symbol": f"S{i}", "final_score": 50.0 + i, "warning": "",
+          "strict_pass": True, "fallback_eligible": True,
+          "trend_score": 20.0, "relative_strength_score": 15.0,
+          "momentum_score": 15.0, "liquidity_score": 8.0, "volume_score": 3.0,
+          "risk_score": 7.0, "signal_score": 8.0} for i in range(7)]
+    )
+    out = _apply_candidate_tiers(df)
+    assert (out["rank_universe_size"] == 7).all()
+    text = _reason_text(out.iloc[0])
+    assert "7 mã" in text
