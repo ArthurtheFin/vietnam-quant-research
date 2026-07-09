@@ -2,10 +2,96 @@
 
 Follow-up to `DATA_AUDIT_REPORT.md`. Decision already made: backfill full
 history to 2020 (or earlier if the source allows). Round 1 (below, original
-content): design + pilot on 20 symbols. Round 2 (this update, top section):
-root-caused the HPG/TCB junction anomaly and finalized the full-backfill
-plan. **Still no full backfill run. No existing data overwritten** — all
-pilot output lives entirely under `data/pilot_backfill/raw/`.
+content): design + pilot on 20 symbols. Round 2: root-caused the HPG/TCB
+junction anomaly and finalized the full-backfill plan. Round 3 (this
+update, top section): fixed the root cause in `src/data/fetch_daily.py`,
+added regression tests, and re-piloted to verify the fix. **Still no full
+backfill run. No existing data or original pilot overwritten** — the
+Round-3 pilot writes to a new, separate directory.
+
+---
+
+## ROUND 3 — fix applied, regression-tested, re-piloted
+
+### Task 1 — fix + full column-by-column adjustment review
+
+Fixed `src/data/fetch_daily.py::_normalize_daily_ohlc_response`: when a
+response carries `closepriceadjusted` (uniquely identifies a
+`get_daily_stock_price`-shaped response — `get_daily_ohlc` never has this
+column), derive a consistently-adjusted OHLC instead of letting the old
+`rename_map` silently map raw `closeprice` → `close`.
+
+**Column-by-column conclusion** (live-verified against real HPG data,
+2023-01-03 to 2023-01-10, documented even where no fix was needed, per
+instruction):
+
+| Column | `get_daily_ohlc` (primary) | `get_daily_stock_price` (fallback) | Same convention? | Action taken |
+|---|---|---|---|---|
+| `close` | Adjusted (matches `closepriceadjusted` exactly) | `closeprice` raw; `closepriceadjusted` separately adjusted | **No** — old code used the wrong one | **Fixed**: map `closepriceadjusted` → `close` |
+| `open` | Adjusted (same factor as close) | `openprice` raw only, no adjusted variant | **No** | **Fixed**: derive `open = openprice * (closepriceadjusted / closeprice)` |
+| `high` | Adjusted | `highestprice` raw only, no adjusted variant; **wasn't even mapped before** (`rename_map` had `"highest"`, not `"highestprice"`) | **No**, and previously silently `None` | **Fixed**: same scaling as `open`, and the missing mapping is now handled explicitly |
+| `low` | Adjusted | `lowestprice` raw only, no adjusted variant; **also previously unmapped** (`"lowest"` vs. actual `"lowestprice"`) | **No**, and previously silently `None` | **Fixed**: same as `high` |
+| `volume` | Raw share count (confirmed exactly equal to `totalmatchvol`) | `totalmatchvol`; **previously unmapped** (`rename_map` looked for `"totalvol"`/`"totalvolume"`/`"totalqtty"`, none of which match the real field name) — silently `None` before this fix | **Yes, both raw** — no scaling needed, was purely a missing-mapping bug | **Fixed**: map `totalmatchvol` → `volume` directly, unscaled |
+| `value` | Raw traded VND (confirmed exactly equal to `totalmatchval`) | `totalmatchval`; **previously unmapped**, same issue as volume | **Yes, both raw** | **Fixed**: map `totalmatchval` → `value` directly, unscaled |
+
+**This turned out larger than the originally-reported bug**: it wasn't only
+`close` that was wrong on fallback-sourced chunks — `high`, `low`,
+`volume`, and `value` were **entirely missing** (`None`/NaN) on every
+fallback-sourced chunk, confirmed directly against the existing dataset
+(HPG's Jan 2023 rows have `high=NaN, low=NaN, volume=NaN, value=NaN`,
+matching exactly what the broken normalization would produce). Fixed all
+five columns together in one change to `_normalize_daily_ohlc_response`.
+
+Live-verified after the fix: normalizing the same `get_daily_stock_price`
+response for HPG 2023-01-03..10 now produces `open/high/low/close/volume/value`
+matching `get_daily_ohlc`'s own response for the identical dates to within
+floating-point rounding.
+
+**Chunk-boundary guard added**: `fetch_symbol_history` now tracks each
+chunk's boundary date, and after concatenating, checks the return across
+every boundary against the symbol's exchange price band
+(`src.backtest.simulator.load_price_bands` — HOSE 7% / HNX 10% / UPCOM 15%,
+reused rather than re-implemented) plus the same 2% buffer convention used
+elsewhere in this codebase's corporate-action detection. A violation logs a
+`WARNING` (symbol, both boundary dates, both closes, pct change, band) and
+sets a new `quality_flag` column to `"chunk_boundary_jump"` on the affected
+row — the data is kept, not dropped, just flagged for review instead of
+written silently. `market` is now an optional parameter on
+`fetch_symbol_history`/`update_symbol_history`, threaded through for cases
+where a fallback-sourced row has no `market` field of its own; falls back
+to the narrowest configured band (most sensitive) when unknown.
+
+### Task 2 — regression tests (`tests/test_fetch_daily.py`, 4 new tests)
+
+1. `test_normalize_daily_stock_price_response_uses_adjusted_close` — feeds a
+   synthetic `get_daily_stock_price`-shaped response with `closeprice` at
+   2x `closepriceadjusted`; asserts the normalized output uses the adjusted
+   value and scales `open`/`high`/`low` by the same factor, while
+   `volume`/`value` pass through unscaled.
+2. `test_normalize_daily_ohlc_response_unaffected_by_the_fix` — confirms the
+   primary endpoint's response (no `closepriceadjusted` column) is
+   untouched by the new branch.
+3. `test_fetch_symbol_history_no_step_across_fallback_chunk_boundary` — full
+   `fetch_symbol_history` call against a fake client where chunk 1 is
+   primary-served and chunk 2 is forced into the fallback path with a
+   deliberate 2x raw/adjusted mismatch (mirroring the real HPG/TCB bug
+   exactly); asserts every consecutive-day return in the resulting series
+   stays under 9% — i.e. no artificial step, unlike the pre-fix behavior
+   that would show a ~100% jump at that exact boundary.
+4. `test_chunk_boundary_guard_flags_large_jump` — deliberately injects a
+   real +50% jump at a chunk boundary (both chunks internally consistent,
+   not an adjustment bug) and asserts `quality_flag == "chunk_boundary_jump"`
+   is set and a `WARNING` is logged, using `caplog`.
+
+All 4 new tests pass. Full suite: **197 passed** (193 before + 4 new), same
+1 pre-existing/expected failure
+(`test_full_history_calibration_matches_strategy_research_report`, already
+known to be correctly detecting the earlier-reported calibration drift, not
+a regression from this change).
+
+### Task 3 — pilot re-verification on the fixed code
+
+*(results appended below once the re-pilot completes)*
 
 ---
 

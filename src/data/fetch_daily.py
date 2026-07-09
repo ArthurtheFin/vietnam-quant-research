@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta
 from pathlib import Path
+import logging
 import time
 
 import pandas as pd
 
 from src.data.loaders import save_parquet, read_parquet
+
+logger = logging.getLogger(__name__)
 
 
 def _to_datetime(value):
@@ -117,6 +120,49 @@ def _normalize_daily_ohlc_response(response, symbol: str) -> pd.DataFrame:
     # Chuẩn hóa tên cột
     df.columns = [str(c).strip() for c in df.columns]
     df = df.rename(columns={c: c.lower() for c in df.columns})
+
+    # get_daily_stock_price (the fallback endpoint) is structurally different
+    # from get_daily_ohlc (the primary): it returns RAW open/high/low/close
+    # (openprice/highestprice/lowestprice/closeprice) plus a SEPARATE
+    # closepriceadjusted field -- there is no "openpriceadjusted" etc.
+    # get_daily_ohlc's own open/high/low/close are already back-adjusted.
+    # Mixing the two without reconciling produces a piecewise-adjusted
+    # series (confirmed on HPG/TCB: raw closeprice silently mapped to
+    # "close" via the old rename_map entry, causing a ~29-day-chunk-aligned
+    # step pattern -- see BACKFILL_DESIGN_REPORT.md Round 2). Detect a
+    # daily_stock_price-shaped response (uniquely identified by
+    # closepriceadjusted's presence -- get_daily_ohlc never has this column)
+    # and derive a consistently-adjusted OHLC before the generic rename_map
+    # below can touch it.
+    if "closepriceadjusted" in df.columns and "closeprice" in df.columns:
+        raw_close = pd.to_numeric(df["closeprice"], errors="coerce")
+        adj_close = pd.to_numeric(df["closepriceadjusted"], errors="coerce")
+        adj_factor = adj_close / raw_close.replace(0, pd.NA)
+        df["close"] = adj_close
+        if "openprice" in df.columns:
+            df["open"] = pd.to_numeric(df["openprice"], errors="coerce") * adj_factor
+        if "highestprice" in df.columns:
+            df["high"] = pd.to_numeric(df["highestprice"], errors="coerce") * adj_factor
+        if "lowestprice" in df.columns:
+            df["low"] = pd.to_numeric(df["lowestprice"], errors="coerce") * adj_factor
+        # volume/value are NOT split-adjusted by either endpoint (confirmed
+        # empirically: get_daily_ohlc's volume/value match daily_stock_price's
+        # totalmatchvol/totalmatchval exactly, both on the raw share-count
+        # basis) -- map directly, no scaling. Note the OLD rename_map below
+        # never actually captured these (it looked for "totalvol"/"totalval",
+        # not the real field names "totalmatchvol"/"totalmatchval"), so
+        # volume/value were silently None for every fallback-sourced chunk
+        # even before the close-price bug -- fixed here too.
+        if "totalmatchvol" in df.columns:
+            df["volume"] = df["totalmatchvol"]
+        if "totalmatchval" in df.columns:
+            df["value"] = df["totalmatchval"]
+        # Drop the raw source columns so the generic rename_map can't
+        # re-clobber the adjusted values just computed.
+        df = df.drop(columns=[c for c in (
+            "closeprice", "openprice", "highestprice", "lowestprice",
+            "totalmatchvol", "totalmatchval",
+        ) if c in df.columns])
 
     rename_map = {
         "tradingdate": "date",
@@ -317,6 +363,56 @@ def _fetch_chunk_with_fallback(
     return fallback_df, "empty"
 
 
+def _check_chunk_boundary_jumps(result: pd.DataFrame, boundary_dates: list, market_hint: str | None = None) -> pd.DataFrame:
+    """
+    Guard against exactly the class of bug found in BACKFILL_DESIGN_REPORT.md
+    Round 2: a return across a CHUNK boundary that exceeds the symbol's
+    exchange price band is a strong signal of an adjustment-basis mismatch
+    (or a genuine, very large corporate action) at that seam. Flags into
+    `quality_flag` instead of writing silently; does not drop or alter the
+    data itself.
+    """
+    from src.backtest.simulator import load_price_bands
+
+    result = result.copy()
+    if "quality_flag" not in result.columns:
+        result["quality_flag"] = None
+
+    if result.empty or not boundary_dates:
+        return result
+
+    bands, default_band = load_price_bands()
+    # Narrowest configured band as the fallback when market is unknown for a
+    # row -- erring toward MORE sensitive (catches more, not fewer) borderline
+    # cases, since this is a quality guard, not a trading rule.
+    fallback_band = min(bands.values()) if bands else default_band
+
+    dated = result.sort_values("date").reset_index(drop=True)
+    for boundary in boundary_dates:
+        before = dated[dated["date"] <= boundary]
+        after = dated[dated["date"] > boundary]
+        if before.empty or after.empty:
+            continue
+        row_before = before.iloc[-1]
+        row_after = after.iloc[0]
+        close_before, close_after = row_before["close"], row_after["close"]
+        if pd.isna(close_before) or pd.isna(close_after) or close_before == 0:
+            continue
+        pct_change = close_after / close_before - 1
+        market = row_after.get("market") or row_before.get("market") or market_hint
+        band = bands.get(str(market).upper(), fallback_band) if market else fallback_band
+        if abs(pct_change) > band + 0.02:
+            logger.warning(
+                "[CHUNK_BOUNDARY_JUMP] %s: %s (close=%.2f) -> %s (close=%.2f), pct_change=%+.2f%%, "
+                "exceeds band=%.0f%% + 2%% buffer -- flagging quality_flag, not silently written",
+                row_after.get("symbol", "?"), row_before["date"].date(), close_before,
+                row_after["date"].date(), close_after, pct_change * 100, band * 100,
+            )
+            idx_after = dated[dated["date"] == row_after["date"]].index
+            dated.loc[idx_after, "quality_flag"] = "chunk_boundary_jump"
+    return dated
+
+
 def fetch_symbol_history(
     client,
     symbol: str,
@@ -325,6 +421,7 @@ def fetch_symbol_history(
     output_dir: str = "data/raw/daily_ohlcv",
     chunk_days: int = 29,
     request_sleep: float = 1.2,
+    market: str | None = None,
 ) -> pd.DataFrame:
     """
     Fetch daily OHLCV cho 1 mã theo từng chunk nhỏ.
@@ -333,6 +430,10 @@ def fetch_symbol_history(
     - SSI FCData giới hạn số ngày trong một request.
     - Test thực tế cho thấy 1 request / 1 giây là an toàn hơn.
     - Với chunk 29 ngày, page 1 đã đủ dữ liệu nên max_pages=1.
+
+    market (optional): exchange hint (HOSE/HNX/UPCOM) used only for the
+    chunk-boundary price-band guard when a row's own `market` field is
+    missing (get_daily_stock_price-sourced rows don't carry it).
     """
     symbol = symbol.upper()
     start = _to_datetime(start_date)
@@ -342,10 +443,13 @@ def fetch_symbol_history(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     all_frames = []
+    boundary_dates = []
     current = start
 
     while current <= end:
         chunk_end = min(current + timedelta(days=chunk_days), end)
+        if chunk_end < end:
+            boundary_dates.append(chunk_end)
 
         from_date = _format_fc_date(current)
         to_date = _format_fc_date(chunk_end)
@@ -388,6 +492,7 @@ def fetch_symbol_history(
                 "close",
                 "volume",
                 "value",
+                "quality_flag",
             ]
         )
     else:
@@ -399,6 +504,7 @@ def fetch_symbol_history(
             .sort_values(["symbol", "date"])
             .reset_index(drop=True)
         )
+        result = _check_chunk_boundary_jumps(result, boundary_dates, market_hint=market)
 
     output_path = output_dir / f"{symbol}.parquet"
     save_parquet(result, output_path)
@@ -417,6 +523,7 @@ def update_symbol_history(
     force_refresh: bool = False,
     refresh_recent_days: int = 5,
     market_latest_date=None,
+    market: str | None = None,
 ) -> pd.DataFrame:
     """
     Update dữ liệu daily OHLCV cho 1 mã.
@@ -426,6 +533,9 @@ def update_symbol_history(
 
     Nếu force_refresh=False:
         Chỉ fetch phần dữ liệu mới sau ngày cuối đã lưu.
+
+    market (optional): exchange hint (HOSE/HNX/UPCOM), passed through to
+    fetch_symbol_history's chunk-boundary price-band guard.
     """
     symbol = symbol.upper()
     output_path = Path(output_dir) / f"{symbol}.parquet"
@@ -439,6 +549,7 @@ def update_symbol_history(
             output_dir=output_dir,
             chunk_days=chunk_days,
             request_sleep=request_sleep,
+            market=market,
         )
 
     old = read_parquet(output_path)
@@ -452,6 +563,7 @@ def update_symbol_history(
             output_dir=output_dir,
             chunk_days=chunk_days,
             request_sleep=request_sleep,
+            market=market,
         )
 
     old["date"] = pd.to_datetime(old["date"])
@@ -483,6 +595,7 @@ def update_symbol_history(
         output_dir=output_dir,
         chunk_days=chunk_days,
         request_sleep=request_sleep,
+        market=market,
     )
 
     old_prefix = old[old["date"] < refresh_start_dt].copy()
