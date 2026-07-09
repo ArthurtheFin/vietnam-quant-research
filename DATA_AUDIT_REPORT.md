@@ -140,15 +140,42 @@ on a universe far smaller than believed:**
 **Addenda added to `ROBUST_FACTOR_IC_REPORT.md` and `EVENT_DETECTION_REPORT.md`**
 pointing back to this report, per instruction.
 
+## Correction (statistical error in the original version of this section)
+
+The original text here claimed a smaller sample makes the negative findings
+"MORE likely to hold." **That is wrong and has been corrected**: a smaller
+sample does not strengthen a null result — it just means the test had **no
+statistical power in either direction**. The 2020-2022 portion of every
+prior walk-forward/IC/lift analysis (a 5-6 symbol universe) is not weak
+evidence *for* "no alpha" — it is **not evidence at all**, in either
+direction. It cannot be cited as support for a negative conclusion, and it
+equally could not have been cited as support for a positive one.
+
+**Correct scope of what remains valid**: the negative findings in
+`META_RANKING_VALIDATION_REPORT.md`, `ROBUST_FACTOR_IC_REPORT.md`, and
+`EVENT_DETECTION_REPORT.md` retain whatever validity they had **only for
+the sub-period where the universe was actually thick enough to test
+anything** — in practice, ~2025-Q2 onward with something close to the full
+universe, and 2023-2024 only weakly (~90-93 symbols, thin but non-trivial).
+The 2020-2022 portion of those analyses should be read as **uninformative,
+not confirmatory** — neither for nor against the factors tested.
+
+**This means the "validated" status of the 3 factors already deployed to
+production (`src/analytics/reversal_quality_score.py`, replacing both the
+backtest fallback and `score_meta_ranking()`) rests on a much thinner
+evidence base than recorded at deploy time.** The original walk-forward
+validation (`STRATEGY_RESEARCH_REPORT.md`) presented 2022 as a real,
+informative crash-year test fold; it was not — it was a 5-6 symbol result
+with no cross-sectional power. Whatever confidence that fold contributed to
+the original "validated" decision should be discounted entirely, and the
+deploy decision (already made and reported as based on a full 2020-2026
+walk-forward) should be treated as an open item pending re-assessment
+against only the periods that actually carried statistical weight. This is
+not something resolved in this report — flagging it for an explicit
+decision, since it affects code already sitting in an unmerged PR.
+
 ## What this does NOT mean
 
-- It does not mean the corporate-action NaN finding (`PIPELINE_AUDIT_REPORT.md`)
-  or the "3-factor formula shows no alpha" finding
-  (`META_RANKING_VALIDATION_REPORT.md`, `ROBUST_FACTOR_IC_REPORT.md`) are
-  wrong — if anything, this makes them MORE likely to hold, since the
-  already-weak signal was measured on an even smaller, noisier sample than
-  believed. It does mean the CONFIDENCE in "we tested across a real 6-year,
-  501-symbol history" was misplaced throughout.
 - It does not mean 2025-Q2-onward results are unreliable — that's the one
   window where the data appears to genuinely match the claimed universe
   size (406 of 501 symbols have data from exactly there).
