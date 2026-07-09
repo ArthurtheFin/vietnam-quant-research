@@ -25,6 +25,14 @@ from src.analytics.entropy import (
     detect_entropy_regime_shift,
     rolling_shannon_entropy,
 )
+from src.analytics.reversal_quality_score import (
+    DEFAULT_SIGNS,
+    DEFAULT_WEIGHTS,
+    FACTORS,
+    compute_factor_ic,
+    derive_factor_weights,
+    score_reversal_quality,
+)
 from src.analytics.meta_ranking import (
     build_meta_ranking,
     describe_meta_signal,
