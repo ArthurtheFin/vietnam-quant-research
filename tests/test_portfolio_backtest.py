@@ -269,3 +269,83 @@ def test_take_profit_disabled_by_default() -> None:
     )
     assert result["take_profit_exits"].empty
     assert result["metrics"]["take_profit_exit_count"] == 0
+
+
+def test_giveback_stop_liquidates_after_round_trip_to_breakeven() -> None:
+    """New: portfolio up big then giving it all back to breakeven must
+    trigger full liquidation, protecting whatever gain still remains.
+
+    rebalance_period=16 with 30 total days fires exactly ONE rebalance (day
+    16); the next would-be rebalance (day 32) falls outside the test window,
+    so the post-trigger cash lock-in isn't muddied by a later re-entry --
+    isolates the give-back mechanism cleanly.
+    """
+    dates = pd.bdate_range("2025-01-01", periods=30)
+    rows, ranking_rows = [], []
+    for d_idx, d in enumerate(dates):
+        if d_idx < 16:
+            r1 = 0.0  # flat before the single rebalance buys in
+        elif d_idx < 24:
+            r1 = 0.03  # ramp up (7 compounding days -> ~+23%, arms at 15%)
+        else:
+            r1 = -0.05  # give it back toward/through breakeven
+        rows.append({"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0, "return_1d": r1})
+        ranking_rows.append({"symbol": "AAA", "date": d, "final_score": 90.0})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=16,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+        giveback_arm_gain=0.15,
+        giveback_trigger_gain=0.0,
+    )
+    exits = result["giveback_stop_exits"]
+    assert not exits.empty, "must trigger once the peak gain gives back to breakeven"
+    assert exits.iloc[0]["peak_gain"] >= 0.15
+    assert exits.iloc[0]["trigger_gain"] <= 0.0
+
+    trigger_date = exits.iloc[0]["date"]
+    trades = result["trades_log"]
+    later_buys = trades[(trades["date"] > trigger_date) & (trades["type"] == "BUY")]
+    assert later_buys.empty, "no rebalance date falls after the trigger in this window -- must not re-enter"
+
+    # Equity must be flat (parked in cash) from the trigger onward, not
+    # continuing to erode through the -5%/day decline that follows.
+    equity = result["equity_curve"]
+    post_trigger = equity[equity.index > pd.Timestamp(trigger_date)]
+    assert not post_trigger.empty
+    assert post_trigger.max() - post_trigger.min() < 1.0, "NAV must be flat (cash) after the trigger"
+
+
+def test_giveback_stop_does_not_arm_without_reaching_threshold() -> None:
+    """New: a modest gain that never reaches giveback_arm_gain must not trigger."""
+    dates = pd.bdate_range("2025-01-01", periods=20)
+    rows = [{"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0, "return_1d": 0.002} for d in dates]
+    ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
+        min_value_ma20=0.0, require_above_ma200=False,
+        giveback_arm_gain=0.15, giveback_trigger_gain=0.0,
+    )
+    assert result["giveback_stop_exits"].empty
+    assert result["metrics"]["giveback_stop_exit_count"] == 0
+
+
+def test_giveback_stop_disabled_by_default() -> None:
+    """New: giveback_arm_gain=None (default) must not change any existing behavior."""
+    dates = pd.bdate_range("2025-01-01", periods=20)
+    rows = [{"symbol": "AAA", "market": "HOSE", "date": d, "close": 100.0, "return_1d": 0.03} for d in dates]
+    ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
+        min_value_ma20=0.0, require_above_ma200=False,
+    )
+    assert result["giveback_stop_exits"].empty
+    assert result["metrics"]["giveback_stop_exit_count"] == 0

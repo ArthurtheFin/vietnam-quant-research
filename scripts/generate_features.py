@@ -70,18 +70,10 @@ features = add_liquidity_features(features)
 save_parquet(features, 'data/processed/stock_features.parquet')
 print("stock_features", features.shape)
 
-# Step 4: Generate market features and regime
-print("Generating market features and regime...")
-features["date"] = pd.to_datetime(features["date"])
-breadth = calculate_market_breadth(features)
-market = add_market_regime(breadth)
-market_entropy = build_market_entropy_profile(features, windows=[21, 63, 126], n_bins=24)
-market = market.merge(market_entropy, on="date", how="left")
-save_parquet(market, 'data/processed/market_features.parquet')
-print("market_features", market.shape)
-
-# Step 5: Generate index features and benchmark
+# Step 4: Generate index features and benchmark (moved ahead of market regime
+# so VNINDEX's own price series is available for crash/breakout detection)
 index_raw = load_index_files('data/raw/index_ohlcv')
+benchmark = pd.DataFrame()
 if not index_raw.empty:
     index_features = prepare_index_features(index_raw, horizons=horizons)
     save_parquet(index_features, 'data/processed/index_features.parquet')
@@ -95,5 +87,16 @@ if not index_raw.empty:
     print('benchmark_vnindex', benchmark.shape)
 else:
     print('No raw index data found in data/raw/index_ohlcv')
+
+# Step 5: Generate market features and regime (crash_severity/breakout_signal
+# need the real VNINDEX price series from Step 4 -- see src/models/regime.py)
+print("Generating market features and regime...")
+features["date"] = pd.to_datetime(features["date"])
+breadth = calculate_market_breadth(features)
+market = add_market_regime(breadth, benchmark=benchmark)
+market_entropy = build_market_entropy_profile(features, windows=[21, 63, 126], n_bins=24)
+market = market.merge(market_entropy, on="date", how="left")
+save_parquet(market, 'data/processed/market_features.parquet')
+print("market_features", market.shape)
 
 print("\n=== Feature generation complete ===")

@@ -35,6 +35,8 @@ def run_portfolio_backtest(
     stop_loss_pct: float | None = None,
     take_profit_pct: float | None = None,
     trend_break_col: str = "above_ma20",
+    giveback_arm_gain: float | None = None,
+    giveback_trigger_gain: float = 0.0,
 ) -> dict[str, Any]:
     """
     Simulates a historical rebalancing portfolio backtest.
@@ -58,6 +60,21 @@ def run_portfolio_backtest(
     structure breaks (features[trend_break_col] turns False that day), i.e.
     winners run inside an intact uptrend and are taken off only on a
     confirmed structural break. Same min_holding_sessions gate as stop-loss.
+
+    giveback_arm_gain (optional, e.g. 0.15): PORTFOLIO-level give-back stop,
+    independent of and complementary to the per-position stop-loss/regime
+    filters -- protects the whole account against a "was up big, gave it all
+    back" round trip regardless of what any market-level indicator says.
+    Tracks the portfolio's own peak NAV since inception (or since the last
+    trigger): once that peak has gained >= giveback_arm_gain over the
+    baseline NAV, the breaker "arms". While armed, if NAV falls back to
+    <= giveback_trigger_gain over the baseline (0.0 = breakeven, the
+    baseline capital -- can be negative to allow giving back into a small
+    loss before triggering), everything is liquidated to cash immediately to
+    lock in whatever remains. Baseline resets to the post-trigger NAV so the
+    breaker can re-arm for a fresh cycle; normal rebalancing resumes at the
+    next scheduled rebalance date. None disables the feature entirely
+    (default; matches prior behavior exactly).
     """
     # 1. Prepare data
     df = features.sort_values(["symbol", "date"]).copy()
@@ -101,6 +118,10 @@ def run_portfolio_backtest(
     regime_adjustments: list[dict] = []
     stop_loss_exits: list[dict] = []
     take_profit_exits: list[dict] = []
+    giveback_stop_exits: list[dict] = []
+    giveback_baseline_nav = initial_nav
+    giveback_peak_nav = initial_nav
+    giveback_armed = False
     price_bands, default_band = load_price_bands()
 
     # We loop day-by-day
@@ -150,6 +171,43 @@ def run_portfolio_backtest(
             cash = nav - sum(pos["value"] for pos in current_holdings.values())
             nav = cash + total_holdings_val
             current_holdings = updated_holdings
+
+            # A1b. Portfolio-level give-back stop: protect a big unrealized
+            # gain from round-tripping all the way back to breakeven,
+            # independent of any market/regime indicator.
+            if giveback_arm_gain is not None:
+                if nav > giveback_peak_nav:
+                    giveback_peak_nav = nav
+                peak_gain = giveback_peak_nav / giveback_baseline_nav - 1.0 if giveback_baseline_nav > 0 else 0.0
+                if not giveback_armed and peak_gain >= giveback_arm_gain:
+                    giveback_armed = True
+                if giveback_armed:
+                    current_gain = nav / giveback_baseline_nav - 1.0 if giveback_baseline_nav > 0 else 0.0
+                    if current_gain <= giveback_trigger_gain:
+                        liquidation_value = sum(pos["value"] for pos in current_holdings.values())
+                        if liquidation_value > 0:
+                            nav -= liquidation_value * transaction_cost_pct
+                            for sym in list(current_holdings.keys()):
+                                trades_log.append({
+                                    "date": current_date.strftime("%Y-%m-%d"),
+                                    "symbol": sym,
+                                    "type": "SELL",
+                                    "size_amount": current_holdings[sym]["value"],
+                                    "old_value": current_holdings[sym]["value"],
+                                    "new_value": 0.0,
+                                    "reason": "giveback_stop",
+                                })
+                            current_holdings = {}
+                        giveback_stop_exits.append({
+                            "date": current_date.strftime("%Y-%m-%d"),
+                            "peak_gain": peak_gain,
+                            "trigger_gain": current_gain,
+                            "nav": nav,
+                        })
+                        # Reset baseline/peak so the breaker can re-arm for a fresh cycle.
+                        giveback_baseline_nav = nav
+                        giveback_peak_nav = nav
+                        giveback_armed = False
 
             # A2. Stop-loss / structural take-profit: per-position, measured
             # from last entry/rebalance value; cannot trigger before T+2.5
@@ -405,6 +463,7 @@ def run_portfolio_backtest(
         "regime_adjustments": pd.DataFrame(regime_adjustments),
         "stop_loss_exits": pd.DataFrame(stop_loss_exits),
         "take_profit_exits": pd.DataFrame(take_profit_exits),
+        "giveback_stop_exits": pd.DataFrame(giveback_stop_exits),
         "metrics": {
             "initial_nav": initial_nav,
             "final_nav": nav,
@@ -414,6 +473,7 @@ def run_portfolio_backtest(
             "total_trades": len(trades_log),
             "stop_loss_exit_count": len(stop_loss_exits),
             "take_profit_exit_count": len(take_profit_exits),
+            "giveback_stop_exit_count": len(giveback_stop_exits),
             "regime_adjustment_count": len(regime_adjustments),
         }
     }
