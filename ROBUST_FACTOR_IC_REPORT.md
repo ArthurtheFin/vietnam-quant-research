@@ -1,5 +1,17 @@
 # ROBUST_FACTOR_IC_REPORT — Newey-West + residualized target + liquidity subset
 
+> **Addendum (see `DATA_AUDIT_REPORT.md`)**: the "2020-2026" sample this
+> report describes is, in reality, a 5-6 symbol dataset in 2020-2022 and a
+> ~90-symbol dataset in 2023-2024 — 495 of 501 symbols have no data before
+> 2023, and 406 of 501 have none before 2025-Q2. This report's eligibility
+> filters could only be meaningfully satisfied from 2023 onward in
+> practice, so the daily-IC series here draws almost all of its usable days
+> from a 14-24 month window, not a 6-year one. The conclusion (no factor
+> clears the bar) is not reversed by this — if anything a smaller, noisier
+> sample makes weak results even less likely to be a false negative — but
+> "walk-forward across 2020-2026" should be read as "walk-forward across
+> whatever of 2020-2026 the data actually covers, which is mostly 2025+."
+
 Follow-up to the comprehensive-negative finding in the prior chat turn (44
 factors, naive t-stats, none cleared |t|>2). Before accepting that
 conclusion, fixed two methodology issues and re-ran everything on a

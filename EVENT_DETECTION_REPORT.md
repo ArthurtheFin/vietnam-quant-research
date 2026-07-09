@@ -1,5 +1,19 @@
 # EVENT_DETECTION_REPORT — reframed from IC to tail-event lift
 
+> **Addendum (see `DATA_AUDIT_REPORT.md`, written as a direct follow-up to
+> this report's Period-1 finding)**: the root cause of Period 1's
+> structural NaN is now confirmed as a universe/coverage problem, not the
+> 10B VND liquidity threshold. Only 5-6 symbols (of 501) have sustained
+> data in 2020-2022 at all — 495 of 501 symbols have no data before 2023,
+> 406 of 501 have none before 2025-Q2. HPG/SSI/STB/TCB (definitely liquid,
+> actively-traded 2021 blue chips) are entirely absent from the dataset in
+> 2021, while VPB (the one 2021-covered name checked) shows correctly-scaled
+> traded value — ruling out a units bug. This is a much larger issue than
+> "the threshold happened to be too strict for 2020-2022" as this report
+> originally framed it: there was barely a universe to apply any threshold
+> to in that period. Not fixed or re-run this round; see `DATA_AUDIT_REPORT.md`
+> for remediation options.
+
 Reframes the question from "average monotonic relationship" (IC) to "can a
 factor flag names ahead of an explosive move" (event detection + lift).
 Event definition and evaluation protocol were pre-registered in chat before
