@@ -11,6 +11,54 @@ Round-3 pilot writes to a new, separate directory.
 
 ---
 
+## >>> HANDOFF — start here in a new session <<<
+
+**Where things stand** (all committed on `claude/charming-bartik-d21dc1`,
+nothing uncommitted except the script below):
+- `d12a6ac` — Task 1 fix (`src/data/fetch_daily.py`) + Task 2 regression
+  tests (`tests/test_fetch_daily.py`, 4/4 passing). Full suite: 197 passed,
+  1 pre-existing/expected failure (calibration-drift test, unrelated).
+- `685f269`, `936e513` — Round 2 diagnosis + design (read these two + Round
+  3's Task 1/2 sections above for full context before doing anything else).
+
+**Immediate next action (Task 3, not yet run)**: run
+`scratch/pilot_backfill_v2.py` (already written, untracked, not yet
+executed). It re-fetches the same 20 pilot symbols (seed=42 unchanged)
+through the REAL production path (`fetch_symbol_history`, chunked,
+`chunk_days=29`, now-fixed fallback) into `data/pilot_backfill_v2/raw/` —
+**not** the original `data/pilot_backfill/raw/` (keep both, before/after
+evidence). Expect **~60 minutes** (82 chunks/symbol × 20 symbols, throttled
+~2.2s/chunk) — run in background and monitor, don't block on it
+synchronously.
+
+**After it completes, run the same 4 checks from Round 1's pilot** (session
+coverage, junction continuity, magnitude sanity, outlier scan) comparing
+`data/pilot_backfill_v2/raw/` against `data/processed/stock_features.parquet`.
+**Acceptance gate for Task 3** (must ALL hold to proceed to Task 4):
+- HPG and TCB: **exactly 1 distinct ratio value** (rounded 4dp) across the
+  full pilot/existing overlap — this is the specific thing that was broken
+  and is being re-verified.
+- The other 18 symbols: still clean, matching Round 1's pilot results (no
+  new anomalies introduced by the fix).
+- No new outlier days caused by the fix itself (some outliers from real
+  halts/corp actions are expected and fine, per Round 1 — just none that
+  are new artifacts of this change).
+
+**If Task 3 fails any part of the gate**: STOP, report exactly what failed,
+do not proceed to Task 4 (full backfill). This is a hard sequential gate,
+not a soft target.
+
+**If Task 3 passes**: proceed to Task 4 (full 501-symbol backfill to
+`data/full_history_v2/`, exact design already finalized in Round 2's Task 3
+section below — checkpointed, resumable, automated quality suite,
+>=95%-pass acceptance bar), then Task 5 (`DATA_BASELINE.md` — coverage
+table, dataset version, fetch date, code commit hash, open caveats,
+required citation going forward for any factor-test report). Full task
+list and constraints are in the chat history this report doesn't duplicate —
+ask the user if anything below is ambiguous rather than guessing.
+
+---
+
 ## ROUND 3 — fix applied, regression-tested, re-piloted
 
 ### Task 1 — fix + full column-by-column adjustment review
