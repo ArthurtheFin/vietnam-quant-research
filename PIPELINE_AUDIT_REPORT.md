@@ -150,22 +150,66 @@ Regenerating outputs modified several git-tracked report files
 `data/`, which is gitignored). **Left uncommitted**, since regenerating
 sample report snapshots wasn't something you asked me to commit.
 
-## Recommended next steps (your call, not mine to decide unilaterally)
+## Follow-up test: is the weak signal an artifact of G4 being too aggressive?
 
-1. **Do not treat the currently-deployed 3-factor formula's "validated"
-   status as reliable** until it's re-validated on properly regenerated
-   feature data across the board (all of `STRATEGY_RESEARCH_REPORT.md`'s
-   research would need to be re-run from scratch on fresh data — this is a
-   substantial redo, not a small patch).
-2. Decide whether the G4 NaN-propagation behavior itself is too aggressive
-   (20-day window poisoned by 1 flagged day) — a shorter-window or
-   interpolation-based handling might preserve more usable signal without
-   reintroducing the fake-shock problem G4 was fixing. That's a genuine
-   design question, not an obvious bug either way.
-3. Given production already runs the (now-uncertain) 3-factor formula for
-   both the backtest fallback and `score_meta_ranking()`, decide whether to
-   pause/flag that in the live pipeline pending re-validation, or leave it
-   running while research catches up.
+Tested directly (`scratch/test_corp_action_zerofill_alternative.py`): instead
+of NaN-ing the entire 20-day rolling window around a flagged day, treat just
+that one day's contribution to the rolling product as a neutral 0% return
+(same principle as G4 — refuse to treat the corporate-action jump as a real
+return — but without discarding the other 19 days in the window). This is
+strictly less destructive than the current behavior (10,002 NaN return_20d
+rows vs the current approach's 38,645).
+
+**Result: the signal did not recover — it got worse, not better.**
+
+| | Old (stale data) | Fresh, NaN-window (current G4) | Fresh, zero-fill (less destructive) |
+|---|---|---|---|
+| IC distance_ma20 | -0.339 | -0.052 | **+0.005** (sign flipped, ~0) |
+| IC return_20d | -0.282 | -0.037 | **-0.003** (~0) |
+| IC realized_vol_20d | -0.253 | -0.039 | **+0.013** (sign flipped, ~0) |
+| Rolling 5-fold avg CAGR | +0.9% | -6.8% | **-6.4%**, with a **-62.7%** single fold (2026) |
+| Real vs. shuffled (full history) | real wins | (not re-tested this way) | **real beats only 1 of 10 shuffle seeds** |
+
+All three IC values are now indistinguishable from zero and two of the three
+flipped sign again versus the already-weakened NaN-window numbers. The
+per-fold TRAIN-derived weights swing wildly between folds (e.g. 2022's TRAIN
+window derives all-zero weights; 2025's TRAIN window derives 74% weight on
+`realized_vol_20d` with a flipped, momentum-chasing sign) — the hallmark of
+a system chasing noise, not a stable factor.
+
+**This rules out "G4 is just too aggressive" as the explanation.** A more
+careful, less destructive handling of the exact same underlying data problem
+makes the picture *worse*, not better. The most likely remaining
+explanation: the original strong-looking IC on the stale, pre-fix data was
+substantially an artifact of unadjusted corporate-action price jumps
+mechanically correlating trailing and forward return windows — not a real,
+exploitable relationship between these three technical factors and forward
+returns.
+
+## Conclusion and recommendation
+
+**The 3-factor formula deployed to production this session
+(`src/analytics/reversal_quality_score.py`, replacing both the backtest
+fallback and `score_meta_ranking()`) does not have demonstrated alpha on
+correctly-computed, current data.** This is no longer a "pending
+re-validation" caveat — it's a falsified premise, confirmed two independent
+ways (NaN-window and zero-fill handling of the same underlying data issue
+both show a near-zero, sign-unstable relationship).
+
+1. **Do not merge PR #1** in its current form. The formula it deploys was
+   validated against stale data and does not hold up.
+2. **Do not revert to the old momentum-chasing fallback either** — that one
+   remains definitively worse (IC -0.20, t=-5.16, proven by an earlier,
+   still-valid shuffle test on data unaffected by this issue). Neither
+   formula found so far has real alpha; this isn't a two-horse race where
+   picking the less-bad option is a fix.
+3. **This reopens factor research from scratch**, not a re-calibration.
+   Redoing `STRATEGY_RESEARCH_REPORT.md`'s existing scripts on fresh data
+   won't help — the same three factors were just tested rigorously on
+   correctly-computed data and don't hold up under either reasonable
+   corporate-action handling. New factors, different data (possibly
+   fundamentals, not just price/volume technicals), or a fundamentally
+   different research angle would be needed.
 4. Not touched: the `test_full_history_calibration_matches_strategy_research_report`
-   test failure should stay failing (or be updated to the new real
-   calibration) — it is correctly detecting this drift, not being flaky.
+   test failure should stay failing — it's correctly detecting that the
+   deployed calibration no longer matches reality, not being flaky.
