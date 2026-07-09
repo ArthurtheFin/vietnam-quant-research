@@ -7,10 +7,48 @@ was never validated good or bad — the original backtest never reached it
 `meta_ranking.parquet` only had 16 days of coverage). This applies the same
 IC + shuffle-test + rolling-fold rigor used to validate the 3-factor score.
 
-Script: `scratch/validate_score_meta_ranking.py` (diagnostic only, not
-production code — consistent with how the earlier factor research was done).
+Scripts: `scratch/validate_score_meta_ranking.py` (partial-formula pass, run
+first) and `scratch/validate_score_meta_ranking_full.py` (closes the gap the
+first pass left open — see "Update" section below). Diagnostic only, not
+production code — consistent with how the earlier factor research was done.
 
-## Structural caveat — read before the verdict
+## Update: the 30% gap has now been closed
+
+The section below ("Structural caveat") originally argued `trade_cards`
+couldn't be reconstructed historically without look-ahead, because its
+`edge_tier`/`profit_factor` come from a full-sample backtested-edge lookup.
+That's true of the *production* lookup (`breakout_20d_setup_eligibility.parquet`,
+computed once from the entire history) — but the underlying computation
+(`src/backtest/breakout_research.py` + `src/reporting/trade_card_pipeline.py`
+::`build_trade_cards`) can be re-run on data **truncated to each historical
+decision date**, since `build_non_overlap_entries` already drops any breakout
+entry whose `forward_return_20d` isn't fully realized yet — no manual
+look-ahead guarding needed, it falls out of the existing code.
+`scratch/validate_score_meta_ranking_full.py` does this (fixed -10% stop loss
+instead of the production pipeline's train/validation stop-sweep, a
+deliberate simplification — see that script's docstring) and successfully
+reconstructed a genuine walk-forward `trade_cards` snapshot at 78 of 81
+historical decision dates, in ~2.5 minutes.
+
+**Result: running the complete formula (real `breakout_component_score`, not
+a constant) changes essentially nothing.** IC: -0.0787, t=-2.57, N=40, 35%
+of dates positive (vs the partial formula's -0.0754, t=-2.36, 45% positive —
+statistically indistinguishable, if anything marginally more negative).
+Rolling 5-fold: 2022 -27.6%, 2023 +38.1%, 2024 -24.3%, 2025 +12.8%, 2026
+-10.2%, avg -2.25%, median -10.23%, win rate 40% — within noise of the
+partial-formula numbers below. The 6-year aggregate backtest is even more
+flattering in isolation (+7.48%, beating 100% of 20 shuffle seeds) than the
+partial version's +2.99%, which only reinforces the point made below about
+why that single-window number shouldn't be trusted on its own.
+
+**This means the caveat below ("30% remains genuinely untested") no longer
+applies — the verdict is now based on the complete formula, and it's
+unchanged: no evidence of alpha, weak evidence of the opposite.** The
+"secondary check" paragraph (waiting for the sparse 16 live dates to get a
+completed forward-return window) is superseded by this — it's no longer the
+only way to get full-formula evidence.
+
+## Structural caveat — read before the verdict (original partial-formula pass)
 
 `score_meta_ranking()` blends 4 components from 3 input sources. Only 2 of
 those 3 have genuine multi-date history without look-ahead:
@@ -85,18 +123,18 @@ here is too close to "today" for a full 20-session-forward return to exist
 yet). This check would need to be re-run once ~20 more trading sessions have
 passed after this production data was captured.
 
-## Verdict
+## Verdict (updated, full formula)
 
-**No evidence of positive alpha in the historically-testable 70% of
-`score_meta_ranking()`; weak but statistically significant evidence of the
-opposite (negative IC), and a rolling walk-forward-style backtest that loses
-money in 3 of 5 independent years.** This does not prove the complete formula
-(with real trade_cards) is bad — that 30% slice remains genuinely untested —
-but there is now a real, if partial, reason to distrust it, not just an
-absence of testing. Recommend re-running the secondary real-formula check
-once enough forward-return history accumulates past the current 16 live
-production dates, and treating any future decision to blend or replace this
-formula (report §7.2's item 2/3 options) with that in mind.
+**No evidence of positive alpha in `score_meta_ranking()` — tested now as the
+COMPLETE formula (real walk-forward `trade_cards` included, not a constant
+placeholder), not just the 70% partial reconstruction.** Weak but
+statistically significant negative IC (-0.079, t=-2.57, N=40), and a rolling
+walk-forward backtest that loses money in 3 of 5 independent years (avg
+-2.25%, median -10.23%, win rate 40%). Adding the real breakout/trade_cards
+component changed nothing material versus the partial-formula pass — this
+is no longer a partial finding with an open 30% gap; it's now a complete
+one. Recommend treating any future decision to blend or replace this formula
+(report §7.2's item 2/3 options) as resting on solid, not partial, evidence.
 
 ## What was NOT done (by design, matching the earlier deploy decision)
 
