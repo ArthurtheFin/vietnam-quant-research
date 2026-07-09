@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from src.analytics.reversal_quality_score import score_reversal_quality
 from src.portfolio.construction import (
     equal_weight_allocation,
     hierarchical_risk_parity_allocation,
@@ -42,6 +43,12 @@ def run_portfolio_backtest(
     Simulates a historical rebalancing portfolio backtest.
     Selects the top N stocks based on historical meta ranking score,
     applies liquidity and trend filters, rebalances weights, and tracks NAV.
+
+    On any decision date not covered by `meta_ranking`, falls back to
+    src.analytics.reversal_quality_score.score_reversal_quality (validated
+    mean-reversion 3-factor score -- see STRATEGY_RESEARCH_REPORT.md sections
+    3-6). This replaces a prior momentum/trend/liquidity fallback that a
+    shuffle test proved had no alpha.
 
     market_regime (optional): DataFrame with ["date", regime_col]. When
     provided, exposure is scaled down by regime_cash_fraction on days where
@@ -283,44 +290,13 @@ def run_portfolio_backtest(
                 features_today = pd.DataFrame()
                 
             if scores_today.empty and not features_today.empty:
-                # Dynamic scoring fallback: Momentum + Trend + Liquidity
-                f_today = features_today.copy()
-                
-                ret20_col = f_today["return_20d"] if "return_20d" in f_today.columns else pd.Series(0.0, index=f_today.index)
-                ret20 = pd.to_numeric(ret20_col, errors="coerce").fillna(0.0)
-                
-                ret60_col = f_today["return_60d"] if "return_60d" in f_today.columns else pd.Series(0.0, index=f_today.index)
-                ret60 = pd.to_numeric(ret60_col, errors="coerce").fillna(0.0)
-                
-                mom_rank = (ret20.rank(pct=True) + ret60.rank(pct=True)) / 2.0
-                
-                val_col = "value_ma20" if "value_ma20" in f_today.columns else ("avg_value_20d" if "avg_value_20d" in f_today.columns else None)
-                if val_col is not None:
-                    val20 = f_today[val_col]
-                else:
-                    val20 = pd.Series(0.0, index=f_today.index)
-                val20 = pd.to_numeric(val20, errors="coerce").fillna(0.0)
-                liq_rank = val20.rank(pct=True)
-                
-                # Check trend
-                if "above_ma50" in f_today.columns:
-                    above50 = f_today["above_ma50"].astype(float)
-                elif "ma50" in f_today.columns:
-                    above50 = (f_today["close"] > f_today["ma50"]).astype(float)
-                else:
-                    above50 = pd.Series(1.0, index=f_today.index)
-                    
-                if "above_ma200" in f_today.columns:
-                    above200 = f_today["above_ma200"].astype(float)
-                elif "ma200" in f_today.columns:
-                    above200 = (f_today["close"] > f_today["ma200"]).astype(float)
-                else:
-                    above200 = pd.Series(1.0, index=f_today.index)
-                    
-                trend_score = (above50 + above200) / 2.0
-                
-                f_today["meta_score"] = (mom_rank * 0.4 + trend_score * 0.4 + liq_rank * 0.2) * 100.0
-                scores_today = f_today[["meta_score"]]
+                # Validated mean-reversion score (STRATEGY_RESEARCH_REPORT.md
+                # section 6) replaces the old momentum/trend/liquidity blend,
+                # which a shuffle test proved had no alpha.
+                scored = score_reversal_quality(features_today.reset_index())
+                scores_today = scored.set_index("symbol")[["reversal_quality_score"]].rename(
+                    columns={"reversal_quality_score": "meta_score"}
+                )
                 
             if not scores_today.empty and not features_today.empty:
                 merged = scores_today.merge(features_today, left_index=True, right_index=True, how="inner")

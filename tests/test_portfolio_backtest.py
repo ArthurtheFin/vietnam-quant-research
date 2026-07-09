@@ -72,6 +72,50 @@ def test_no_rebalance_on_first_day_without_prior_information() -> None:
     assert trades[trades["date"] == first_date].empty, "day 0 has no prior information to trade on"
 
 
+def test_fallback_score_uses_reversal_quality_when_ranking_missing() -> None:
+    """When meta_ranking has no coverage, the backtest must fall back to the
+    validated mean-reversion score (STRATEGY_RESEARCH_REPORT.md section 6),
+    not the old momentum-chasing blend it replaced. AAA has the LOWEST
+    distance_ma20/return_20d/realized_vol_20d (best reversal candidate);
+    CCC has the HIGHEST (best momentum candidate, worst reversal candidate).
+    The old formula would have picked CCC; the new one must pick AAA.
+    """
+    dates = pd.bdate_range("2025-01-01", periods=10)
+    rebalance_period = 5
+    t_index = 5
+    t_date = dates[t_index]
+
+    factor_values = {
+        "AAA": {"distance_ma20": -0.05, "return_20d": -0.02, "realized_vol_20d": 0.10},
+        "BBB": {"distance_ma20": 0.0, "return_20d": 0.01, "realized_vol_20d": 0.20},
+        "CCC": {"distance_ma20": 0.08, "return_20d": 0.10, "realized_vol_20d": 0.30},
+    }
+    rows = []
+    for d in dates:
+        for sym, factors in factor_values.items():
+            rows.append({"symbol": sym, "date": d, "close": 100.0, "return_1d": 0.001, **factors})
+
+    features = pd.DataFrame(rows)
+    empty_ranking = pd.DataFrame(columns=["symbol", "date", "meta_score"])
+
+    result = run_portfolio_backtest(
+        features=features,
+        meta_ranking=empty_ranking,
+        rebalance_period=rebalance_period,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+    )
+    trades = result["trades_log"]
+    buys_at_t = trades[(trades["date"] == t_date.strftime("%Y-%m-%d")) & (trades["type"] == "BUY")]
+    assert not buys_at_t.empty
+    assert set(buys_at_t["symbol"]) == {"AAA"}, (
+        "fallback must pick the best mean-reversion candidate (AAA), not the "
+        f"momentum leader; got {sorted(set(buys_at_t['symbol']))}"
+    )
+
+
 def test_limit_up_symbol_is_not_bought_on_execution_day() -> None:
     """D2: a +7% (HOSE ceiling) execution-day move means the buy cannot fill."""
     dates = pd.bdate_range("2025-01-01", periods=15)
