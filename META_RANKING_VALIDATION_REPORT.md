@@ -136,7 +136,43 @@ is no longer a partial finding with an open 30% gap; it's now a complete
 one. Recommend treating any future decision to blend or replace this formula
 (report §7.2's item 2/3 options) as resting on solid, not partial, evidence.
 
-## What was NOT done (by design, matching the earlier deploy decision)
+## Action taken (later in this session, once the full-formula evidence was in hand)
 
-`score_meta_ranking()` itself is **unchanged** — this is a validation-only
-finding, not a fix. No production code was touched.
+Given the complete-formula verdict above, `score_meta_ranking()` in
+`src/analytics/meta_ranking.py` has been **replaced outright**: `meta_score`
+is now `score_reversal_quality()` (the same validated 3-factor mean-reversion
+score used in the backtest fallback), not the old breakout/stealth/momentum/
+execution blend.
+
+What changed and what didn't:
+- `meta_score` computation: fully replaced. No blending with the old
+  formula, no synergy bonus (removed — it added points for
+  breakout/watchlist/eligible flags on top of a blend that no longer exists;
+  keeping it would have meant adding bonus points to an otherwise-independent
+  technical score for reasons that no longer apply).
+- `breakout_component_score`, `stealth_component_score`,
+  `momentum_component_score`, `execution_component_score`, `risk_penalty_score`
+  are **still computed** — they're informational inputs to `meta_summary`/
+  `setup_style`, and `final_watchlist.py` independently consumes
+  `risk_penalty_score`/`trade_edge_score`/`setup_quality_score`. None of that
+  downstream logic needed to change.
+- `priority_bucket` thresholds (75/60/45) and the G5 thin-evidence cap were
+  **kept as-is** — sanity-checked against real production data
+  (`data/signals/setup_signals.parquet` + the live `trade_cards`/`stealth`
+  snapshots): 501 symbols, score range 2.4-100, mean 51.5, buckets split
+  66/136/117/182 (Prime/High Conviction/Secondary/Low Priority) — a healthy,
+  non-degenerate distribution, no recalibration needed.
+- Known side effect, not fixed (out of scope of this change): `setup_style`
+  can now label a top-`meta_score` (mean-reversion) pick as "Momentum-led",
+  since that label still comes from the old, independent
+  `momentum_component_score`. Cosmetic/labeling inconsistency, not a
+  correctness issue — flagged for a future pass, not fixed here.
+- Tests: `tests/test_meta_ranking.py` — 2 tests rewritten
+  (`test_build_meta_ranking_prefers_mean_reversion_setups`, formerly
+  "...prefers_hybrid_high_quality_setups"; `test_thin_evidence_caps_priority_bucket`
+  redesigned so both symbols independently clear the Prime threshold),
+  1 test removed (`test_synergy_bonus_does_not_double_count_action_label` —
+  tested that synergy bonus didn't double-count `action_score`; both the
+  synergy bonus and action_score's role in `meta_score` are gone, so the
+  thing it verified no longer exists to double-count). 194 passed after the
+  change (195 before, minus the one removed test).

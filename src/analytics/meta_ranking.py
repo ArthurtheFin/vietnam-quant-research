@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.analytics.reversal_quality_score import score_reversal_quality
 from src.data.validators import filter_primary_equity_symbols
 from src.data.loaders import save_parquet
 from src.utils.scoring import to_bool as _to_bool
@@ -366,23 +367,21 @@ def score_meta_ranking(
         + 0.10 * ranked["tail_risk_score"]
     ).clip(0.0, 100.0)
 
-    # G6: action label is already priced into breakout_component_score via
-    # action_score (10% weight) — bonusing the same label again here double-counts it.
-    synergy_bonus = (
-        ranked[signal_col].map(_to_bool).astype(float) * 4.0
-        + ranked["watchlist_flag"].map(_to_bool).astype(float) * 3.0
-        + ranked["eligible"].map(_to_bool).astype(float) * 2.0
-        + ranked["watchlist_eligible"].map(_to_bool).astype(float) * 1.0
-    )
-
-    ranked["meta_score"] = (
-        0.30 * ranked["breakout_component_score"]
-        + 0.30 * ranked["stealth_component_score"]
-        + 0.25 * ranked["momentum_component_score"]
-        + 0.15 * ranked["execution_component_score"]
-        - 0.20 * ranked["risk_penalty_score"]
-        + synergy_bonus
-    ).clip(0.0, 100.0)
+    # meta_score: walk-forward-validated mean-reversion 3-factor score (see
+    # STRATEGY_RESEARCH_REPORT.md sections 3-6 and META_RANKING_VALIDATION_REPORT.md),
+    # replacing the previous breakout/stealth/momentum/execution blend below --
+    # that blend was validated (full formula, real trade_cards, walk-forward
+    # reconstructed) to show NO alpha and a weak but significant NEGATIVE IC
+    # (-0.079, t=-2.57), losing money in 3 of 5 independent rolling-fold years.
+    # breakout_component_score/stealth_component_score/momentum_component_score/
+    # execution_component_score/risk_penalty_score are kept below (unused for
+    # meta_score itself now) purely as informational diagnostics for
+    # meta_summary/setup_style and because final_watchlist.py still consumes
+    # risk_penalty_score/trade_edge_score/setup_quality_score independently.
+    factor_cols = [c for c in ("distance_ma20", "return_20d", "realized_vol_20d") if c in ranked.columns]
+    reversal_input = ranked[["symbol", "date"] + factor_cols]
+    reversal_scores = score_reversal_quality(reversal_input).set_index("symbol")["reversal_quality_score"]
+    ranked["meta_score"] = ranked["symbol"].map(reversal_scores).fillna(50.0).clip(0.0, 100.0)
 
     ranked["meta_rank"] = ranked["meta_score"].rank(method="first", ascending=False).astype(int)
     ranked["setup_style"] = np.select(

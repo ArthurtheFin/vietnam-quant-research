@@ -73,12 +73,14 @@ Re-ran the exact research scripts against current code + data, unchanged:
 
 ## What remains open (not touched by this deploy, by design)
 
-1. **`score_meta_ranking()` in `src/analytics/meta_ranking.py` is untouched.**
-   Per your decision, the live client-watchlist formula (breakout/stealth/
-   momentum/execution blend) keeps running exactly as before. It has still
-   never been validated good or bad by this research — report §7.2's gap is
-   unchanged. `scripts/run_meta_ranking.py` → the client-ready watchlist path
-   is unaffected by anything in this deploy.
+1. ~~`score_meta_ranking()` in `src/analytics/meta_ranking.py` is untouched.~~
+   **Superseded in a later session**: the formula was subsequently validated
+   (`META_RANKING_VALIDATION_REPORT.md` — negative IC, loses in 3 of 5
+   rolling-fold years, confirmed on the complete formula including real
+   walk-forward `trade_cards`) and then replaced outright with the same
+   validated 3-factor score used elsewhere, once that evidence was in hand.
+   `scripts/run_meta_ranking.py` → the client-ready watchlist path now uses
+   the validated formula.
 2. **2022-style crash risk (report §7.1) is unresolved** — no new stop-loss/
    regime/give-back logic was added; out of scope per your instructions.
 3. **D3 survivorship bias** — still open, untouched.
