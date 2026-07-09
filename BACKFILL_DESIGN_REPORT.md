@@ -1,10 +1,170 @@
 # BACKFILL_DESIGN_REPORT — design + 20-symbol pilot for full 2020 backfill
 
 Follow-up to `DATA_AUDIT_REPORT.md`. Decision already made: backfill full
-history to 2020 (or earlier if the source allows). This round: design +
-pilot only, verifying quality on 20 symbols. **No full backfill run. No
-existing data overwritten** — pilot output lives entirely under
-`data/pilot_backfill/raw/`, untouched by anything else in the pipeline.
+history to 2020 (or earlier if the source allows). Round 1 (below, original
+content): design + pilot on 20 symbols. Round 2 (this update, top section):
+root-caused the HPG/TCB junction anomaly and finalized the full-backfill
+plan. **Still no full backfill run. No existing data overwritten** — all
+pilot output lives entirely under `data/pilot_backfill/raw/`.
+
+---
+
+## ROUND 2 — junction anomaly diagnosis (confirmed) + finalized full-backfill design
+
+### Task 1 — "constant ratio" signature test: CONFIRMED scenario (b)
+
+Computed `ratio = close_pilot / close_existing` per day over the pilot/
+existing overlap.
+
+**Control symbols** (VPB, SSI, STB — no known adjustment issue): ratio
+**= 1.0000 exactly, every single day**, 328-1,622 overlapping rows each. No
+noise, no drift. This is the clean baseline — confirms the pilot fetch
+methodology itself introduces zero error where the existing data is already
+correct.
+
+**HPG and TCB: ratio is piecewise-constant, not noisy and not a single
+one-time shift** — this is squarely scenario (b), not (c):
+- HPG: only **5 distinct ratio values** across 871 overlapping days
+  (0.6763, 1.0, 0.7439, 0.8927, 0.8928), stepping between them roughly
+  every ~29 calendar days.
+- TCB: only **4 distinct ratio values** (0.4724, 1.0, 0.4871, 0.9742), same
+  ~29-day stepping cadence.
+
+This node ruled out scenario (c) (pure noise) immediately — a genuinely
+noisy/wrong series would not collapse to 4-5 exact repeating constants. But
+it also **doesn't match a single real corporate-action date** as originally
+guessed — the step dates alternate roughly monthly for **three years
+straight** (2023-01-31, 03-02, 04-03, 05-04, 05-31, 06-30, ... every ~29
+days through mid-2026), which no real dividend/split calendar does. That
+ruled out "one specific event" and pointed at something systematic in how
+the data was ingested, not a market event — investigated directly below.
+
+### Task 2 — SSI FCData adjustment behavior: root cause found precisely
+
+Read `src/data/ssi_client.py` and live-compared two endpoints for the same
+HPG dates (2023-01-03 to 2023-01-10):
+
+- **`get_daily_ohlc`**: its `close` field **is already back-adjusted** for
+  all corporate actions (13,019 / 13,120 / 13,391 / ... for those dates) —
+  this is what the pilot backfill uses exclusively, and it's why the pilot
+  and control symbols agree perfectly with existing data wherever the
+  existing data is correct.
+- **`get_daily_stock_price`**: returns **both** `closeprice` (raw,
+  unadjusted — 19,250 / 19,400 / 19,800 / ...) **and** `closepriceadjusted`
+  (13,018.68 / 13,120.12 / 13,390.64 / ... — matches `get_daily_ohlc`
+  almost exactly).
+
+**The bug**: `src/data/fetch_daily.py::_fetch_chunk_with_fallback` (lines
+256-317) tries `get_daily_ohlc` first, but falls back to
+`get_daily_stock_price` whenever that chunk's `volume`/`value`/`high`/`low`
+coverage is below 80% (`needs_fallback`, lines 287-291) — a reasonable
+data-completeness safeguard on its own. The bug is in
+`_normalize_daily_ohlc_response`'s shared `rename_map` (line 138):
+`"closeprice": "close"` maps the **raw** field to `close` — `closepriceadjusted`
+isn't in the rename map at all and is silently dropped. So any chunk where
+the fallback triggers gets an **unadjusted** close silently substituted in
+place of the adjusted one everywhere else, and `fetch_symbol_history`'s
+default `chunk_days=29` lines up exactly with the ~29-day stepping cadence
+observed in Task 1.
+
+I could not re-trigger the fallback live for the exact historical chunks
+today (`get_daily_ohlc` currently returns 100% volume/high/low coverage for
+Jan 2023 HPG, so the bug doesn't reproduce on a fresh call for that window)
+— SSI's backend completeness for a given historical window may have
+improved since the original ingestion ran, or an older code path/threshold
+was in effect at the time. **The mechanism is proven by the two-field
+match** (raw vs. adjusted values line up exactly with the two observed
+ratio levels); the exact historical trigger moment can't be replayed, but
+doesn't need to be to fix this going forward.
+
+This also reconciles with your original hypothesis, not against it: HPG's
+and TCB's real adjustment factors (0.68-0.89 for HPG, 0.47-0.97 for TCB,
+consistent with TCB's known 1:1 bonus issue) **are genuine**, reflecting
+real historical corporate actions — that part of your hypothesis was right.
+What's *inconsistent* is that the existing data applies that real
+adjustment on some ~29-day chunks and not others, because of which endpoint
+happened to answer for each chunk.
+
+**Consequence beyond this pilot**: `update_symbol_history` (the function
+used for ongoing daily updates, not just this backfill) calls the same
+`_fetch_chunk_with_fallback`. **This bug will keep corrupting future
+incremental updates**, for HPG/TCB and potentially any other symbol whose
+historical `get_daily_ohlc` coverage dips below 80% for some chunk — a
+backfill alone does not prevent recurrence.
+
+### Task 3 — finalized full-backfill design
+
+**Principle confirmed: no splicing.** Refetch the entire 2020 → present
+history for all 501 symbols in one pass, `get_daily_ohlc` only (adjusted,
+consistent basis — exactly what the pilot already used and what the clean
+control symbols validated), written to a **new** dataset
+(`data/full_history_v2/raw/`), old data left untouched for side-by-side
+comparison.
+
+**Recommended companion fix (not applied this round, flagging for a
+decision)**: before or alongside the backfill, `_fetch_chunk_with_fallback`'s
+fallback path should map `closepriceadjusted` → `close` (not `closeprice`),
+or the fallback should be disabled for the `close` field specifically (still
+allowed to fill in `volume`/`value`/`high`/`low` gaps from the raw endpoint,
+just not `close`). Without this, a freshly-backfilled `data/full_history_v2/`
+would start drifting the same way the first time a normal incremental
+update hits a low-coverage chunk.
+
+**Plan**:
+
+1. **Fetch order**: process symbols by descending current liquidity tier
+   (mirrors the pilot's tiering) so the most-used names for any current
+   research land first and partial-progress runs are maximally useful even
+   if interrupted early. Within a symbol, single `get_daily_ohlc` call for
+   the full 2020-01-01 → today range (page_size=1000; the pilot showed this
+   auto-paginates to 2 pages per symbol without issue for 6.5 years).
+2. **Rate limit / retry**: reuse `SSIDataClient`'s existing throttle
+   (>=1.0s/call) and retry-with-backoff (3 attempts) unchanged — both
+   already proven in the pilot (zero errors across 20 symbols, 207s).
+3. **Checkpointing / resume**: write one parquet file per symbol to
+   `data/full_history_v2/raw/{symbol}.parquet` as each completes (matching
+   the pilot's approach) and maintain a `data/full_history_v2/manifest.json`
+   recording `{symbol: status, row_count, fetched_at}` after each write. A
+   restarted run skips any symbol already `status: ok` in the manifest —
+   safe to interrupt and resume at any point, no partial-symbol corruption
+   risk since each symbol's file is only written after its fetch completes.
+4. **Automated post-fetch quality suite** (extends the pilot's 4 checks to
+   all 501 symbols automatically, no manual review needed to start):
+   - (a) % sessions vs. the VNINDEX trading calendar, per symbol per year.
+   - (b) **junction check generalized**: for every symbol, compare
+     `data/full_history_v2` against the existing `data/processed/stock_features.parquet`
+     over their full overlap (not just a single junction date) — compute
+     `ratio = close_v2 / close_existing` for every overlapping day and count
+     **distinct rounded ratio values**. `1` distinct value at `1.0` = clean;
+     `>1` distinct value = flag for manual review (this is precisely the
+     test that caught HPG/TCB in the pilot, now automated and run
+     unconditionally over all 501 symbols instead of by hand).
+   - (c) magnitude sanity: flag any symbol whose average traded value in
+     any full year is <10x or >1000x its own all-time median (catches
+     gross unit/scale errors without needing a hand-picked reference list).
+   - (d) outlier scan: count `|return_1d| > 20%` days with `close > 0` on
+     both sides (excluding the halt/`close=0` artifact identified in the
+     pilot) per symbol; no hard fail threshold, just surfaced in the output
+     table for review (large real corporate actions are expected and will
+     be caught downstream by the existing G4 mechanism).
+5. **Output**: a single table, one row per symbol, columns
+   `[symbol, rows, date_range, check_a_pass, check_b_distinct_ratios, check_c_pass, check_d_outlier_count]`,
+   sorted to put failures first.
+
+**Acceptance criterion for `data/full_history_v2` to replace the current
+dataset**: **>=95% of symbols pass checks (a) and (b) cleanly** (single
+ratio value at (b), >=95% session coverage for years the symbol was
+actually listed at (a)); symbols failing either are listed individually
+with the specific reason, not silently included or silently dropped. (c)
+and (d) are informational/review-only, not hard gates, since large real
+corporate actions and genuine outliers are expected and already handled
+downstream. **This criterion, the companion code fix, and the actual
+full-backfill run are all still pending your decision — nothing beyond
+this design has been executed.**
+
+---
+
+## ROUND 1 (original) — data source inventory, pilot backfill, initial findings
 
 ## Task 1 — data source inventory
 
@@ -215,8 +375,10 @@ affect many more names at scale.
    completed with zero errors, which is reassuring but not conclusive for
    a run 25x longer.
 
-## Next round (deferred, per instruction)
+## Next round (deferred, per instruction) — superseded by Round 2 above
 
-Decide: (a) resolve the HPG/TCB junction question first, (b) proceed to
-full backfill and check for the same anomaly at scale, or (c) some
-combination. Not decided or executed here.
+Round 2 (top of this document) resolved the HPG/TCB junction question: root
+cause identified precisely (raw-vs-adjusted field mixing in
+`src/data/fetch_daily.py`'s fallback path), and the full-backfill design is
+finalized there. **Still not decided or executed**: whether to apply the
+companion code fix, and whether/when to run the actual full backfill.
