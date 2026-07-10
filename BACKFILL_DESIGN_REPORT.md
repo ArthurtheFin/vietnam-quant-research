@@ -336,6 +336,43 @@ result and root cause, recommending Task 5 proceed on this basis.
 
 ---
 
+## ROUND 5 — merge v2 as the official source, rebuild, sanity check
+
+`data/full_history_v2/raw/` is now what `scripts/generate_features.py`
+reads (path changed at the single call site, `read_symbol_files(...)`);
+the pre-fix data (`data/raw/daily_ohlcv/`, `data/processed/stock_features.parquet`,
+`clean_daily_ohlcv.parquet`, `market_features.parquet`) was moved,
+not deleted, to `data/quarantine_existing_v1/` (see its `README.md`).
+`GEE` (unexplained 9-day 2023 gap, never root-caused) is excluded from
+the eligible universe via `config/excluded_symbols.csv`, filtered in the
+same script. Full rebuild ran clean: `stock_features.parquet` regenerated
+(713,578 rows × 49 cols, same schema as before), `market_features.parquet`
+and `stealth_accumulation_history.parquet` regenerated on top of it.
+
+**Sanity check — quantifying the distortion this replaces** (old
+`data/quarantine_existing_v1/stock_features.parquet` vs. new
+`data/processed/stock_features.parquet`, `distance_ma20`/`return_20d`,
+full history, HPG/TCB/VCB — 3 of the 75 symbols with the broad
+29-day-piecewise corruption pattern):
+
+| Symbol | Max \|distance_ma20 diff\| | Worst date | Old (wrong) | New (fixed) |
+|---|---|---|---|---|
+| TCB | **1.015** (101.5 pts) | 2023-12-27 | 1.026 (looked +102.6% above its own 20d MA) | 0.011 |
+| VCB | **0.726** (72.6 pts) | 2023-04-03 | 0.749 | 0.022 |
+| HPG | **0.481** (48.1 pts) | 2023-06-30 | 0.573 | 0.092 |
+
+VCB's 2023-01-31 junction is the clearest single illustration: old `close`
+jumps 50,549 → 91,900 (+81.8%) in one session (a large, liquid bank stock —
+not a plausible single-day move under any real corporate action), while
+new `close` moves 50,549 → 51,674 (+2.2%), a normal session. `distance_ma20`
+on that date reads 0.78 (78% above its own MA20 — a number that should have
+been an obvious red flag on inspection) in the old data vs. 0.07 in the new.
+These are not edge cases — they are the concrete, quantified size of the
+error that any factor computed on `distance_ma20` or `return_20d` for these
+symbols during their corrupted windows was actually seeing.
+
+---
+
 ## ROUND 2 — junction anomaly diagnosis (confirmed) + finalized full-backfill design
 
 ### Task 1 — "constant ratio" signature test: CONFIRMED scenario (b)
