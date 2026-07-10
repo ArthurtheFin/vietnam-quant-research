@@ -37,6 +37,8 @@ def run_portfolio_backtest(
     take_profit_pct: float | None = None,
     trend_break_col: str = "above_ma20",
     benchmark_features: pd.DataFrame | None = None,
+    max_per_sector: int | None = None,
+    sector_map: dict[str, str] | None = None,
     giveback_arm_gain: float | None = None,
     giveback_trigger_gain: float = 0.0,
 ) -> dict[str, Any]:
@@ -93,6 +95,14 @@ def run_portfolio_backtest(
     `benchmark_features` is available, this raises rather than silently
     substituting some other stock's data and labeling it as the benchmark
     (that used to happen here -- see FOLD_AUTOPSY_REPORT.md).
+
+    max_per_sector / sector_map (both optional, both required together):
+    caps how many of the `portfolio_size` selections can share a sector.
+    Selection still walks the score-sorted candidate list top-down, just
+    skipping any symbol whose sector has already hit the cap, until
+    portfolio_size names are filled (or candidates run out). `sector_map`
+    is a plain {symbol: sector} dict; unmapped symbols count as "UNKNOWN".
+    None (default) preserves prior behavior exactly (plain top-N by score).
     """
     # 1. Prepare data
     df = features.sort_values(["symbol", "date"]).copy()
@@ -330,7 +340,19 @@ def run_portfolio_backtest(
                 if score_col in merged.columns:
                     merged = merged.sort_values(score_col, ascending=False)
 
-                selected_symbols = merged.head(portfolio_size).index.tolist()
+                if max_per_sector is not None and sector_map is not None:
+                    selected_symbols = []
+                    sector_counts: dict[str, int] = {}
+                    for sym in merged.index:
+                        sec = sector_map.get(sym, "UNKNOWN")
+                        if sector_counts.get(sec, 0) >= max_per_sector:
+                            continue
+                        selected_symbols.append(sym)
+                        sector_counts[sec] = sector_counts.get(sec, 0) + 1
+                        if len(selected_symbols) >= portfolio_size:
+                            break
+                else:
+                    selected_symbols = merged.head(portfolio_size).index.tolist()
             else:
                 selected_symbols = []
 

@@ -487,3 +487,39 @@ def test_vnindex_row_in_features_used_over_benchmark_features() -> None:
         benchmark_features=unused_bench,
     )
     assert result["benchmark_symbol"] == "VNINDEX"
+
+
+def test_max_per_sector_caps_sector_concentration() -> None:
+    """CONCENTRATION_ANALYSIS_REPORT.md NV2: 2 sectors x 3 symbols each, all
+    6 rank above a sector-blind top-3 cut, but with max_per_sector=1 each
+    sector can only contribute 1 name to a 2-name portfolio."""
+    dates = pd.bdate_range("2025-01-01", periods=10)
+    symbols = ["A1", "A2", "A3", "B1", "B2", "B3"]
+    scores = {"A1": 95, "A2": 90, "A3": 85, "B1": 80, "B2": 75, "B3": 70}
+    sector_map = {"A1": "SecA", "A2": "SecA", "A3": "SecA", "B1": "SecB", "B2": "SecB", "B3": "SecB"}
+    rows, ranking_rows = [], []
+    for d in dates:
+        for sym in symbols:
+            rows.append({"symbol": sym, "date": d, "close": 100.0, "return_1d": 0.001})
+            ranking_rows.append({"symbol": sym, "date": d, "final_score": scores[sym]})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5,
+        portfolio_size=2,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+        benchmark_features=_BENCH,
+        max_per_sector=1,
+        sector_map=sector_map,
+    )
+    buys = result["trades_log"]
+    buys = buys[buys["type"] == "BUY"]
+    first_rebalance_date = buys["date"].min()
+    selected = set(buys[buys["date"] == first_rebalance_date]["symbol"])
+    assert selected == {"A1", "B1"}, (
+        "sector cap must take the top name from each sector (A1, B1), not the "
+        f"sector-blind top-2 (A1, A2); got {selected}"
+    )
