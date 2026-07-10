@@ -127,7 +127,10 @@ CANDIDATES = [
     "market_support_score", "volatility_support_score", "net_accumulation_score",
 ]
 
-MIN_VALUE_MA20 = 10_000_000_000.0
+MIN_VALUE_MA20 = 3_000_000_000.0  # lowered from 10B, same rationale as
+# diagnose_factor_ic_robust.py -- full_history_v2 now covers 2020-2022
+# cleanly, so the eligibility gate (separate from the event's own 1B
+# LIQUIDITY_THRESHOLD above, which is unchanged) is revisited to include it.
 MIN_ELIGIBLE = 15
 REBALANCE_STEP = 1  # decision made every trading day (as in the robust IC re-test)
 

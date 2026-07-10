@@ -151,7 +151,10 @@ def sector_demean(frame: pd.DataFrame, value_col: str, eligible_mask: pd.Series)
 REBALANCE_PERIOD = 21  # ~1 month
 LIQUIDITY_LOOKBACK = 60
 TOP_N = 150
-MIN_VALUE_MA20 = 10_000_000_000.0
+MIN_VALUE_MA20 = 3_000_000_000.0  # lowered from 10B (see BACKFILL_DESIGN_REPORT.md
+# Round 5 / EVENT_DETECTION_REPORT.md open question #1): 10B was too strict for
+# 2020-2022 under the pre-backfill dataset; full_history_v2 now has clean
+# 2020+ coverage, so the threshold is revisited to let that period contribute.
 
 df["median_value_60d"] = df.groupby("symbol")["value"].transform(
     lambda s: s.rolling(LIQUIDITY_LOOKBACK, min_periods=30).median()
