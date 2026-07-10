@@ -1,0 +1,2 @@
+symbol,reason,source,updated_at
+GEE,Unexplained 9-day gap in full_history_v2 (2023-01-16 to 2024-07-23) not resolved by root-cause investigation; excluded from eligible universe pending review,BACKFILL_DESIGN_REPORT.md Round 4 / DATA_BASELINE.md,2026-07-10

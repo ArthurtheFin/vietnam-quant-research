@@ -34,15 +34,23 @@ percentile_window = cfg.get('volatility', {}).get('percentile_window', 252)
 distribution_window = cfg.get('distribution', {}).get('window', 60)
 
 # Step 1: Load and standardize raw data
-raw = read_symbol_files('data/raw/daily_ohlcv')
+raw = read_symbol_files('data/full_history_v2/raw')
+# full_history_v2 files already carry a parsed `date` column alongside the
+# original `tradingdate` string -- drop the latter so standardize_ohlcv's
+# tradingdate->date alias doesn't collide with the column that already exists.
+raw = raw.drop(columns=["tradingdate"], errors="ignore")
 raw = standardize_ohlcv(raw)
 raw_checks = validate_ohlcv(raw)
 
 if raw.empty:
-    raise SystemExit("No raw data found in data/raw/daily_ohlcv. Run update_daily_data.py first.")
+    raise SystemExit("No raw data found in data/full_history_v2/raw. Run scratch/full_backfill_v2.py first.")
 
 raw = raw.dropna(subset=["symbol", "date", "close"]).copy()
 raw = filter_primary_equity_symbols(raw)
+
+excluded = pd.read_csv('config/excluded_symbols.csv')
+raw = raw[~raw["symbol"].isin(excluded["symbol"])].copy()
+
 raw = raw.sort_values(["symbol", "date"]).drop_duplicates(["symbol", "date"], keep="last").reset_index(drop=True)
 
 # Step 2: Save clean OHLCV (needed by stealth screener and other downstream)

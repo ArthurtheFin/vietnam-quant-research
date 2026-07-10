@@ -28,5 +28,8 @@ data/reports/**/*.html
 data/reports/**/*.png
 data/reports/**/*.md
 
+# quarantined pre-backfill data (forensic only, see data/quarantine_existing_v1/README.md)
+data/quarantine_existing_v1/**/*.parquet
+
 # notebooks outputs if needed
 *.log
