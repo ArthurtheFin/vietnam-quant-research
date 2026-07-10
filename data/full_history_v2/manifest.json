@@ -1,0 +1,4106 @@
+{
+  "A32": {
+    "date_max": "2026-06-26",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:28:33.228118+00:00",
+    "market": "UPCOM",
+    "row_count": 644,
+    "status": "ok"
+  },
+  "AAA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:56:14.141170+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "AAH": {
+    "date_max": "2026-07-06",
+    "date_min": "2024-01-11",
+    "fetched_at": "2026-07-09T16:17:50.084244+00:00",
+    "market": "UPCOM",
+    "row_count": 615,
+    "status": "ok"
+  },
+  "AAM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:44:51.258951+00:00",
+    "market": "HOSE",
+    "row_count": 1546,
+    "status": "ok"
+  },
+  "AAS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-07-23",
+    "fetched_at": "2026-07-09T15:58:47.891404+00:00",
+    "market": "UPCOM",
+    "row_count": 1485,
+    "status": "ok"
+  },
+  "AAT": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-03-24",
+    "fetched_at": "2026-07-09T16:38:44.215394+00:00",
+    "market": "HOSE",
+    "row_count": 1318,
+    "status": "ok"
+  },
+  "AAV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:01:28.412914+00:00",
+    "market": "UPCOM",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "ABB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-12-28",
+    "fetched_at": "2026-07-09T15:46:17.665846+00:00",
+    "market": "UPCOM",
+    "row_count": 1374,
+    "status": "ok"
+  },
+  "ABC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:37:38.970247+00:00",
+    "market": "UPCOM",
+    "row_count": 1408,
+    "status": "ok"
+  },
+  "ABI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:27:20.641288+00:00",
+    "market": "UPCOM",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "ABR": {
+    "date_max": "2026-07-02",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:45:36.140755+00:00",
+    "market": "HOSE",
+    "row_count": 1159,
+    "status": "ok"
+  },
+  "ABS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-03-18",
+    "fetched_at": "2026-07-09T16:22:08.767276+00:00",
+    "market": "HOSE",
+    "row_count": 1573,
+    "status": "ok"
+  },
+  "ABT": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:23:30.243158+00:00",
+    "market": "HOSE",
+    "row_count": 1295,
+    "status": "ok",
+    "supplement_window": "2026-06-09..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:05.790109+00:00"
+  },
+  "ABW": {
+    "date_max": "2026-07-06",
+    "date_min": "2023-05-30",
+    "fetched_at": "2026-07-09T16:07:24.384254+00:00",
+    "market": "UPCOM",
+    "row_count": 774,
+    "status": "ok"
+  },
+  "ACB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:32:40.917855+00:00",
+    "market": "HOSE",
+    "row_count": 1617,
+    "status": "ok"
+  },
+  "ACC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-07",
+    "fetched_at": "2026-07-09T16:29:23.836175+00:00",
+    "market": "HOSE",
+    "row_count": 1577,
+    "status": "ok"
+  },
+  "ACE": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:38:33.583345+00:00",
+    "market": "UPCOM",
+    "row_count": 1211,
+    "status": "ok"
+  },
+  "ACG": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-08-04",
+    "fetched_at": "2026-07-09T16:30:03.693967+00:00",
+    "market": "HOSE",
+    "row_count": 1214,
+    "status": "ok"
+  },
+  "ACL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:41:50.935774+00:00",
+    "market": "HOSE",
+    "row_count": 1606,
+    "status": "ok"
+  },
+  "ACM": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:20:25.970338+00:00",
+    "market": "UPCOM",
+    "row_count": 687,
+    "status": "ok"
+  },
+  "ACS": {
+    "date_max": "2026-06-29",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:49:04.514077+00:00",
+    "market": "UPCOM",
+    "row_count": 468,
+    "status": "ok"
+  },
+  "ACV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:47:07.306734+00:00",
+    "market": "UPCOM",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "ADC": {
+    "date_max": "2026-07-01",
+    "date_min": "2020-01-08",
+    "fetched_at": "2026-07-09T16:45:41.229657+00:00",
+    "market": "HNX",
+    "row_count": 832,
+    "status": "ok"
+  },
+  "ADG": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:48:50.071273+00:00",
+    "market": "HOSE",
+    "row_count": 1568,
+    "status": "ok",
+    "supplement_window": "2026-05-29..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:07.201662+00:00"
+  },
+  "ADP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:34:32.391047+00:00",
+    "market": "HOSE",
+    "row_count": 1223,
+    "status": "ok"
+  },
+  "ADS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:22:59.099401+00:00",
+    "market": "HOSE",
+    "row_count": 1608,
+    "status": "ok"
+  },
+  "AFX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:17:22.710889+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "AG1": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-04-10",
+    "fetched_at": "2026-07-09T16:32:17.900793+00:00",
+    "market": "UPCOM",
+    "row_count": 1179,
+    "status": "ok"
+  },
+  "AGF": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:49:09.898588+00:00",
+    "market": "UPCOM",
+    "row_count": 317,
+    "status": "ok"
+  },
+  "AGG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:01:56.885073+00:00",
+    "market": "HOSE",
+    "row_count": 1617,
+    "status": "ok"
+  },
+  "AGM": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:19:19.910077+00:00",
+    "market": "UPCOM",
+    "row_count": 1255,
+    "status": "ok",
+    "supplement_window": "2026-05-22..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:08.768668+00:00"
+  },
+  "AGP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-08",
+    "fetched_at": "2026-07-09T16:32:37.281730+00:00",
+    "market": "UPCOM",
+    "row_count": 1485,
+    "status": "ok"
+  },
+  "AGR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:53:40.669668+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "AGX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-03-05",
+    "fetched_at": "2026-07-09T16:14:00.427559+00:00",
+    "market": "UPCOM",
+    "row_count": 711,
+    "status": "ok"
+  },
+  "AIC": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-01-08",
+    "fetched_at": "2026-07-09T16:47:39.837211+00:00",
+    "market": "UPCOM",
+    "row_count": 1117,
+    "status": "ok"
+  },
+  "AIG": {
+    "date_max": "2026-07-06",
+    "date_min": "2024-11-11",
+    "fetched_at": "2026-07-09T16:04:05.101140+00:00",
+    "market": "UPCOM",
+    "row_count": 405,
+    "status": "ok"
+  },
+  "ALT": {
+    "date_max": "2026-06-22",
+    "date_min": "2020-02-26",
+    "fetched_at": "2026-07-09T16:39:35.455265+00:00",
+    "market": "HNX",
+    "row_count": 887,
+    "status": "ok"
+  },
+  "ALV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:39:15.049078+00:00",
+    "market": "UPCOM",
+    "row_count": 1156,
+    "status": "ok"
+  },
+  "AMC": {
+    "date_max": "2026-07-02",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:48:25.658123+00:00",
+    "market": "HNX",
+    "row_count": 733,
+    "status": "ok"
+  },
+  "AMD": {
+    "date_max": "2023-03-08",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:51:28.158940+00:00",
+    "market": "UPCOM",
+    "row_count": 793,
+    "status": "ok"
+  },
+  "AME": {
+    "date_max": "2026-06-26",
+    "date_min": "2020-01-07",
+    "fetched_at": "2026-07-09T16:48:35.459875+00:00",
+    "market": "HNX",
+    "row_count": 1122,
+    "status": "ok"
+  },
+  "AMP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:38:08.669615+00:00",
+    "market": "UPCOM",
+    "row_count": 438,
+    "status": "ok"
+  },
+  "AMS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:09:58.618966+00:00",
+    "market": "UPCOM",
+    "row_count": 1618,
+    "status": "ok"
+  },
+  "AMV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:22:39.365292+00:00",
+    "market": "HNX",
+    "row_count": 1320,
+    "status": "ok"
+  },
+  "ANT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-07",
+    "fetched_at": "2026-07-09T16:29:33.352068+00:00",
+    "market": "HOSE",
+    "row_count": 1345,
+    "status": "ok"
+  },
+  "ANV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:51:25.474039+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "APC": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:49:49.199173+00:00",
+    "market": "UPCOM",
+    "row_count": 1502,
+    "status": "ok"
+  },
+  "APF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:07:19.273399+00:00",
+    "market": "UPCOM",
+    "row_count": 1551,
+    "status": "ok"
+  },
+  "APG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:02:28.092146+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "APH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-07-28",
+    "fetched_at": "2026-07-09T16:15:24.163002+00:00",
+    "market": "HOSE",
+    "row_count": 1482,
+    "status": "ok"
+  },
+  "API": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:08:23.974867+00:00",
+    "market": "HNX",
+    "row_count": 1574,
+    "status": "ok"
+  },
+  "APL": {
+    "date_max": "2026-06-24",
+    "date_min": "2020-07-16",
+    "fetched_at": "2026-07-09T16:50:20.826854+00:00",
+    "market": "UPCOM",
+    "row_count": 160,
+    "status": "ok"
+  },
+  "APP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-10",
+    "fetched_at": "2026-07-09T16:33:55.184015+00:00",
+    "market": "UPCOM",
+    "row_count": 1383,
+    "status": "ok"
+  },
+  "APS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:05:49.563802+00:00",
+    "market": "HNX",
+    "row_count": 1603,
+    "status": "ok"
+  },
+  "APT": {
+    "date_max": "2026-06-19",
+    "date_min": "2020-03-06",
+    "fetched_at": "2026-07-09T16:50:49.385805+00:00",
+    "market": "UPCOM",
+    "row_count": 110,
+    "status": "ok"
+  },
+  "ARM": {
+    "date_max": "2026-03-16",
+    "date_min": "2020-02-06",
+    "fetched_at": "2026-07-09T16:41:15.976460+00:00",
+    "market": "HNX",
+    "row_count": 256,
+    "status": "ok"
+  },
+  "ART": {
+    "date_max": "2022-11-18",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:51:07.974371+00:00",
+    "market": "UPCOM",
+    "row_count": 699,
+    "status": "ok"
+  },
+  "ASA": {
+    "date_max": "2022-01-21",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:51:23.414674+00:00",
+    "market": "UPCOM",
+    "row_count": 100,
+    "status": "ok"
+  },
+  "ASG": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-09-24",
+    "fetched_at": "2026-07-09T16:41:41.537944+00:00",
+    "market": "HOSE",
+    "row_count": 1250,
+    "status": "ok"
+  },
+  "ASM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:10:37.978383+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "ASP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:08:54.257584+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "AST": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:32:27.615828+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "ATA": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-10",
+    "fetched_at": "2026-07-09T16:45:46.286730+00:00",
+    "market": "UPCOM",
+    "row_count": 322,
+    "status": "ok"
+  },
+  "ATB": {
+    "date_max": "2025-05-30",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:50:54.025696+00:00",
+    "market": "UPCOM",
+    "row_count": 508,
+    "status": "ok"
+  },
+  "ATG": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:17:12.749916+00:00",
+    "market": "UPCOM",
+    "row_count": 451,
+    "status": "ok"
+  },
+  "ATS": {
+    "date_max": "2026-06-30",
+    "date_min": "2020-04-06",
+    "fetched_at": "2026-07-09T16:50:35.064369+00:00",
+    "market": "HNX",
+    "row_count": 381,
+    "status": "ok",
+    "supplement_window": "2026-03-20..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:10.289176+00:00"
+  },
+  "AVC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:35:01.362937+00:00",
+    "market": "UPCOM",
+    "row_count": 1064,
+    "status": "ok"
+  },
+  "BAF": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-12-03",
+    "fetched_at": "2026-07-09T15:41:58.760923+00:00",
+    "market": "HOSE",
+    "row_count": 1141,
+    "status": "ok"
+  },
+  "BBC": {
+    "date_max": "2026-01-15",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:36:06.818382+00:00",
+    "market": "HOSE",
+    "row_count": 1193,
+    "status": "ok"
+  },
+  "BCE": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:35:45.813699+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "BCG": {
+    "date_max": "2025-10-08",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:50:24.410752+00:00",
+    "market": "HOSE",
+    "row_count": 1439,
+    "status": "ok"
+  },
+  "BCM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:50:14.093787+00:00",
+    "market": "HOSE",
+    "row_count": 1613,
+    "status": "ok"
+  },
+  "BDT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:12:54.636352+00:00",
+    "market": "UPCOM",
+    "row_count": 1472,
+    "status": "ok"
+  },
+  "BFC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:56:43.638752+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "BHN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:39:25.566627+00:00",
+    "market": "HOSE",
+    "row_count": 1533,
+    "status": "ok"
+  },
+  "BIC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:07:09.262214+00:00",
+    "market": "HOSE",
+    "row_count": 1620,
+    "status": "ok"
+  },
+  "BID": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:35:50.778151+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "BIG": {
+    "date_max": "2026-07-06",
+    "date_min": "2022-01-10",
+    "fetched_at": "2026-07-09T16:10:57.353874+00:00",
+    "market": "UPCOM",
+    "row_count": 1116,
+    "status": "ok"
+  },
+  "BKG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-12-31",
+    "fetched_at": "2026-07-09T16:20:11.929624+00:00",
+    "market": "HOSE",
+    "row_count": 1371,
+    "status": "ok"
+  },
+  "BMC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:33:15.929800+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "BMI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:12:44.683495+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "BMP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:47:17.939418+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "BRC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-14",
+    "fetched_at": "2026-07-09T16:43:11.564521+00:00",
+    "market": "HOSE",
+    "row_count": 1369,
+    "status": "ok"
+  },
+  "BSI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:46:38.126545+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "BSR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:35:19.947179+00:00",
+    "market": "HOSE",
+    "row_count": 1614,
+    "status": "ok"
+  },
+  "BTP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:28:02.503811+00:00",
+    "market": "HOSE",
+    "row_count": 1603,
+    "status": "ok"
+  },
+  "BTT": {
+    "date_max": "2026-07-08",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:41:31.526913+00:00",
+    "market": "HOSE",
+    "row_count": 714,
+    "status": "ok",
+    "supplement_window": "2026-06-12..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:11.524650+00:00"
+  },
+  "BVB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-07-09",
+    "fetched_at": "2026-07-09T15:45:16.114796+00:00",
+    "market": "UPCOM",
+    "row_count": 1495,
+    "status": "ok"
+  },
+  "BVH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:46:57.504748+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "BVS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:59:16.583853+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "BWE": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:05:09.633817+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "C32": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:09:09.320432+00:00",
+    "market": "HOSE",
+    "row_count": 1602,
+    "status": "ok"
+  },
+  "C47": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:33:45.442908+00:00",
+    "market": "HOSE",
+    "row_count": 1620,
+    "status": "ok"
+  },
+  "CAP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:04:24.286526+00:00",
+    "market": "HNX",
+    "row_count": 1613,
+    "status": "ok"
+  },
+  "CCC": {
+    "date_max": "2026-07-09",
+    "date_min": "2024-07-30",
+    "fetched_at": "2026-07-09T16:35:16.157244+00:00",
+    "market": "HOSE",
+    "row_count": 299,
+    "status": "ok",
+    "supplement_window": "2026-06-09..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:12.947002+00:00"
+  },
+  "CCI": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-07",
+    "fetched_at": "2026-07-09T16:46:49.197665+00:00",
+    "market": "HOSE",
+    "row_count": 1241,
+    "status": "ok"
+  },
+  "CCL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:20:46.299200+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "CDC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:07:54.204832+00:00",
+    "market": "HOSE",
+    "row_count": 1562,
+    "status": "ok"
+  },
+  "CEO": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:39:58.709726+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CHP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:27:52.226350+00:00",
+    "market": "HOSE",
+    "row_count": 1610,
+    "status": "ok"
+  },
+  "CIG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:15:55.021974+00:00",
+    "market": "HOSE",
+    "row_count": 1581,
+    "status": "ok"
+  },
+  "CII": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:35:30.197849+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CKG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-03-25",
+    "fetched_at": "2026-07-09T16:24:41.457002+00:00",
+    "market": "HOSE",
+    "row_count": 1568,
+    "status": "ok"
+  },
+  "CLC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:28:44.213435+00:00",
+    "market": "HOSE",
+    "row_count": 1529,
+    "status": "ok"
+  },
+  "CLL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-06",
+    "fetched_at": "2026-07-09T16:29:13.438453+00:00",
+    "market": "HOSE",
+    "row_count": 1556,
+    "status": "ok"
+  },
+  "CLW": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:14:44.839926+00:00",
+    "market": "HOSE",
+    "row_count": 535,
+    "status": "ok"
+  },
+  "CMG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:00:28.303065+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CMV": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-02-13",
+    "fetched_at": "2026-07-09T16:49:59.338856+00:00",
+    "market": "HOSE",
+    "row_count": 1123,
+    "status": "ok",
+    "supplement_window": "2026-06-05..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:14.424581+00:00"
+  },
+  "CMX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:26:51.005290+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CNG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:36:46.855423+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "COM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:39:40.923024+00:00",
+    "market": "HOSE",
+    "row_count": 992,
+    "status": "ok"
+  },
+  "CRC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:06:48.163222+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CRE": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:12:03.756350+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CSM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:02:58.060425+00:00",
+    "market": "HOSE",
+    "row_count": 1613,
+    "status": "ok"
+  },
+  "CSV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:01:08.625055+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CTD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:44:25.854476+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CTF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:00:07.793428+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CTG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:35:09.447844+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CTI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:01:18.599494+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CTR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:46:47.605413+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "CTS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:41:28.237003+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "CVT": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:37:07.805042+00:00",
+    "market": "HOSE",
+    "row_count": 1171,
+    "status": "ok"
+  },
+  "D2D": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:14:20.432421+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DAH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:19:31.137555+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DAT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-22",
+    "fetched_at": "2026-07-09T16:47:29.474579+00:00",
+    "market": "HOSE",
+    "row_count": 1314,
+    "status": "ok"
+  },
+  "DBC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:47:58.997362+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DBD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:10:18.056821+00:00",
+    "market": "HOSE",
+    "row_count": 1620,
+    "status": "ok"
+  },
+  "DBT": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:32:46.618583+00:00",
+    "market": "HOSE",
+    "row_count": 1536,
+    "status": "ok",
+    "supplement_window": "2026-06-01..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:15.701523+00:00"
+  },
+  "DC4": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:16:16.052004+00:00",
+    "market": "HOSE",
+    "row_count": 1493,
+    "status": "ok"
+  },
+  "DCF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:42:41.408606+00:00",
+    "market": "UPCOM",
+    "row_count": 512,
+    "status": "ok"
+  },
+  "DCL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:49:53.538989+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DCM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:39:14.049821+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DDV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T15:54:51.836011+00:00",
+    "market": "UPCOM",
+    "row_count": 1513,
+    "status": "ok"
+  },
+  "DGC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:43:54.726382+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "DGW": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:46:07.400437+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DHA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:14:10.207701+00:00",
+    "market": "HOSE",
+    "row_count": 1613,
+    "status": "ok"
+  },
+  "DHC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:54:11.928626+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DHG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:16:37.298359+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DHM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:42:21.184628+00:00",
+    "market": "HOSE",
+    "row_count": 1565,
+    "status": "ok"
+  },
+  "DIG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:43:03.687344+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DLG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:03:46.505484+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DMC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:43:01.560842+00:00",
+    "market": "HOSE",
+    "row_count": 1531,
+    "status": "ok"
+  },
+  "DPG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:50:03.486021+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DPM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:41:08.947147+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DPR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:53:00.823000+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "DQC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:27:30.872649+00:00",
+    "market": "HOSE",
+    "row_count": 1618,
+    "status": "ok"
+  },
+  "DRC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:07:34.272126+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DRH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:21:17.888936+00:00",
+    "market": "HOSE",
+    "row_count": 1481,
+    "status": "ok"
+  },
+  "DRI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:56:23.593788+00:00",
+    "market": "UPCOM",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DRL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:31:47.660054+00:00",
+    "market": "HOSE",
+    "row_count": 1483,
+    "status": "ok"
+  },
+  "DSC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:26:30.359439+00:00",
+    "market": "HOSE",
+    "row_count": 1475,
+    "status": "ok"
+  },
+  "DSE": {
+    "date_max": "2026-07-06",
+    "date_min": "2024-07-01",
+    "fetched_at": "2026-07-09T15:52:41.409444+00:00",
+    "market": "HOSE",
+    "row_count": 502,
+    "status": "ok"
+  },
+  "DSN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:31:08.580015+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "DTA": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:44:21.241824+00:00",
+    "market": "HOSE",
+    "row_count": 1596,
+    "status": "ok"
+  },
+  "DTL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-06",
+    "fetched_at": "2026-07-09T16:33:06.269405+00:00",
+    "market": "HOSE",
+    "row_count": 1330,
+    "status": "ok"
+  },
+  "DTT": {
+    "date_max": "2026-07-08",
+    "date_min": "2020-02-04",
+    "fetched_at": "2026-07-09T16:40:28.236080+00:00",
+    "market": "HOSE",
+    "row_count": 496,
+    "status": "ok",
+    "supplement_window": "2026-04-25..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:17.080794+00:00"
+  },
+  "DVP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:11:40.687823+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DXG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:38:01.977825+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "DXS": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-07-15",
+    "fetched_at": "2026-07-09T15:54:32.286280+00:00",
+    "market": "HOSE",
+    "row_count": 1237,
+    "status": "ok"
+  },
+  "DXV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:46:59.160774+00:00",
+    "market": "HOSE",
+    "row_count": 1515,
+    "status": "ok"
+  },
+  "EIB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:38:43.082171+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "ELC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:58:35.312682+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "EVE": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:22:19.378965+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "EVF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:43:43.740305+00:00",
+    "market": "HOSE",
+    "row_count": 1614,
+    "status": "ok"
+  },
+  "EVG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:09:24.731513+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "EVS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:14:29.803247+00:00",
+    "market": "HNX",
+    "row_count": 1577,
+    "status": "ok"
+  },
+  "FCM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:35:25.985248+00:00",
+    "market": "HOSE",
+    "row_count": 1603,
+    "status": "ok"
+  },
+  "FCN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:00:38.406956+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "FDC": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:30:47.372124+00:00",
+    "market": "HOSE",
+    "row_count": 1042,
+    "status": "ok",
+    "supplement_window": "2026-05-23..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:18.415643+00:00"
+  },
+  "FIR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:15:43.730400+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "FIT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:10:27.278250+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "FMC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:18:48.997386+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "FOC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:10:08.669772+00:00",
+    "market": "UPCOM",
+    "row_count": 1561,
+    "status": "ok"
+  },
+  "FOX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T15:56:33.680667+00:00",
+    "market": "UPCOM",
+    "row_count": 1604,
+    "status": "ok"
+  },
+  "FPT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:32:18.917053+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "FRT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:42:34.305640+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "FTS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:42:43.793694+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "GAS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:38:32.646374+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "GDT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:25:50.311782+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "GEE": {
+    "date_max": "2026-07-09",
+    "date_min": "2022-03-08",
+    "fetched_at": "2026-07-09T15:37:30.212138+00:00",
+    "market": "HOSE",
+    "row_count": 1049,
+    "status": "ok",
+    "supplement_window": "2023-01-06..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:21.728312+00:00"
+  },
+  "GEG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:59:27.031153+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "GEX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:33:22.052921+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "GIL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:13:55.294058+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "GMD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:39:04.193828+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "GMH": {
+    "date_max": "2026-07-06",
+    "date_min": "2022-01-12",
+    "fetched_at": "2026-07-09T16:44:55.961463+00:00",
+    "market": "HOSE",
+    "row_count": 996,
+    "status": "ok"
+  },
+  "GSP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:17:07.489785+00:00",
+    "market": "HOSE",
+    "row_count": 1581,
+    "status": "ok"
+  },
+  "GTA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:50:30.465910+00:00",
+    "market": "HOSE",
+    "row_count": 1253,
+    "status": "ok",
+    "supplement_window": "2026-05-31..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:23.007050+00:00"
+  },
+  "GVR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:40:20.099757+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "HAG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:43:33.953345+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HAH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:44:15.564196+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HAP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:32:07.841671+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "HAR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:31:28.383208+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HAS": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-10",
+    "fetched_at": "2026-07-09T16:42:36.740727+00:00",
+    "market": "HOSE",
+    "row_count": 1101,
+    "status": "ok"
+  },
+  "HAX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:16:26.622137+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HBC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:04:35.260283+00:00",
+    "market": "UPCOM",
+    "row_count": 1614,
+    "status": "ok"
+  },
+  "HCD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:23:19.747840+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HCM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:37:51.705408+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HDB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:34:29.001015+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HDC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:47:38.393882+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HDG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:44:35.962793+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HHP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:51:45.363230+00:00",
+    "market": "HOSE",
+    "row_count": 1614,
+    "status": "ok"
+  },
+  "HHS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:52:26.231901+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HHV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-06",
+    "fetched_at": "2026-07-09T15:44:45.366108+00:00",
+    "market": "HOSE",
+    "row_count": 1401,
+    "status": "ok"
+  },
+  "HID": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:13:05.288847+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HII": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:15:03.898177+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "HMC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:41:26.327436+00:00",
+    "market": "HOSE",
+    "row_count": 1594,
+    "status": "ok"
+  },
+  "HMH": {
+    "date_max": "2026-06-19",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:45:05.974019+00:00",
+    "market": "HNX",
+    "row_count": 1198,
+    "status": "ok"
+  },
+  "HNA": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:37:18.300173+00:00",
+    "market": "HOSE",
+    "row_count": 1263,
+    "status": "ok",
+    "supplement_window": "2026-05-25..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:24.485583+00:00"
+  },
+  "HNG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:50:53.960511+00:00",
+    "market": "UPCOM",
+    "row_count": 1614,
+    "status": "ok"
+  },
+  "HNM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-06-19",
+    "fetched_at": "2026-07-09T16:04:40.078008+00:00",
+    "market": "UPCOM",
+    "row_count": 974,
+    "status": "ok"
+  },
+  "HPG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:33:01.788660+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HPX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:13:45.019836+00:00",
+    "market": "HOSE",
+    "row_count": 1496,
+    "status": "ok"
+  },
+  "HQC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:55:12.925090+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HRC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:28:28.421935+00:00",
+    "market": "HOSE",
+    "row_count": 973,
+    "status": "ok"
+  },
+  "HSG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:45:57.530354+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HSL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:57:13.516703+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HT1": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:09:34.866338+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HTG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:24:32.339086+00:00",
+    "market": "HOSE",
+    "row_count": 1540,
+    "status": "ok"
+  },
+  "HTI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:19:52.262465+00:00",
+    "market": "HOSE",
+    "row_count": 1551,
+    "status": "ok"
+  },
+  "HTL": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:43:57.601109+00:00",
+    "market": "HOSE",
+    "row_count": 1344,
+    "status": "ok",
+    "supplement_window": "2026-06-12..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:26.295811+00:00"
+  },
+  "HTN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:16:57.842213+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HTV": {
+    "date_max": "2026-07-02",
+    "date_min": "2020-01-06",
+    "fetched_at": "2026-07-09T16:46:14.738137+00:00",
+    "market": "HOSE",
+    "row_count": 1328,
+    "status": "ok",
+    "supplement_window": "2026-05-25..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:27.630767+00:00"
+  },
+  "HU1": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:50:16.007216+00:00",
+    "market": "HOSE",
+    "row_count": 1114,
+    "status": "ok"
+  },
+  "HUB": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:28:53.954554+00:00",
+    "market": "HOSE",
+    "row_count": 1601,
+    "status": "ok",
+    "supplement_window": "2026-05-30..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:29.167645+00:00"
+  },
+  "HUT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:49:02.590666+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HVH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:13:35.838379+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HVN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:45:26.529130+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "HVX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:42:01.100756+00:00",
+    "market": "UPCOM",
+    "row_count": 1475,
+    "status": "ok"
+  },
+  "ICT": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-15",
+    "fetched_at": "2026-07-09T16:34:51.794588+00:00",
+    "market": "HOSE",
+    "row_count": 1606,
+    "status": "ok",
+    "supplement_window": "2026-06-09..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:30.397167+00:00"
+  },
+  "IDC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:43:23.593965+00:00",
+    "market": "HNX",
+    "row_count": 1618,
+    "status": "ok"
+  },
+  "IDI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:11:08.299415+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "IDJ": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:57:54.552949+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "IJC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:56:53.158769+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "ILB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:25:10.362033+00:00",
+    "market": "HOSE",
+    "row_count": 1540,
+    "status": "ok"
+  },
+  "IMP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:26:09.768727+00:00",
+    "market": "HOSE",
+    "row_count": 1609,
+    "status": "ok"
+  },
+  "ITC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:08:34.333215+00:00",
+    "market": "HOSE",
+    "row_count": 1572,
+    "status": "ok"
+  },
+  "ITD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:58:05.321343+00:00",
+    "market": "HOSE",
+    "row_count": 1613,
+    "status": "ok"
+  },
+  "JVC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:21:06.761682+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "KBC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:42:08.887420+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "KDC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:44:55.724938+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "KDH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:38:22.430155+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "KHG": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-07-19",
+    "fetched_at": "2026-07-09T15:49:33.086219+00:00",
+    "market": "HOSE",
+    "row_count": 1235,
+    "status": "ok"
+  },
+  "KHP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-06",
+    "fetched_at": "2026-07-09T16:36:17.168181+00:00",
+    "market": "HOSE",
+    "row_count": 1603,
+    "status": "ok"
+  },
+  "KLB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T15:51:15.093429+00:00",
+    "market": "HOSE",
+    "row_count": 1560,
+    "status": "ok"
+  },
+  "KMR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:41:10.406153+00:00",
+    "market": "HOSE",
+    "row_count": 1620,
+    "status": "ok"
+  },
+  "KOS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:51:55.420105+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "KPF": {
+    "date_max": "2025-02-25",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:51:03.367188+00:00",
+    "market": "HOSE",
+    "row_count": 1160,
+    "status": "ok"
+  },
+  "KSB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:55:42.700326+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "KSF": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-10-06",
+    "fetched_at": "2026-07-09T15:49:13.553162+00:00",
+    "market": "HNX",
+    "row_count": 1183,
+    "status": "ok"
+  },
+  "KSV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-08-07",
+    "fetched_at": "2026-07-09T16:06:08.313975+00:00",
+    "market": "HNX",
+    "row_count": 1264,
+    "status": "ok"
+  },
+  "L10": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:42:26.374711+00:00",
+    "market": "HOSE",
+    "row_count": 639,
+    "status": "ok",
+    "supplement_window": "2026-04-06..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:32.049844+00:00"
+  },
+  "LAF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:22:49.688189+00:00",
+    "market": "HOSE",
+    "row_count": 1263,
+    "status": "ok"
+  },
+  "LBM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:25:00.743944+00:00",
+    "market": "HOSE",
+    "row_count": 1582,
+    "status": "ok"
+  },
+  "LCG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:55:53.895738+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "LDG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:58:15.541216+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "LGC": {
+    "date_max": "2026-04-29",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:38:14.043920+00:00",
+    "market": "HOSE",
+    "row_count": 702,
+    "status": "ok",
+    "supplement_window": "2026-04-10..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:33.578212+00:00"
+  },
+  "LGL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:21:28.360207+00:00",
+    "market": "HOSE",
+    "row_count": 1618,
+    "status": "ok"
+  },
+  "LHC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:05:58.695544+00:00",
+    "market": "HNX",
+    "row_count": 1540,
+    "status": "ok"
+  },
+  "LHG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:08:14.224440+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "LIX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:25:40.273851+00:00",
+    "market": "HOSE",
+    "row_count": 1604,
+    "status": "ok"
+  },
+  "LM8": {
+    "date_max": "2026-07-02",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:50:44.869860+00:00",
+    "market": "HOSE",
+    "row_count": 1072,
+    "status": "ok",
+    "supplement_window": "2026-05-08..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:34.962064+00:00"
+  },
+  "LPB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:37:20.358842+00:00",
+    "market": "HOSE",
+    "row_count": 1612,
+    "status": "ok"
+  },
+  "LSG": {
+    "date_max": "2026-07-06",
+    "date_min": "2022-05-12",
+    "fetched_at": "2026-07-09T16:16:06.254016+00:00",
+    "market": "UPCOM",
+    "row_count": 1016,
+    "status": "ok"
+  },
+  "LSS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:18:29.769465+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "MBB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:34:05.075627+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "MBS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:40:09.873473+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "MCH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:42:53.796464+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "MCM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-12-18",
+    "fetched_at": "2026-07-09T16:15:14.654207+00:00",
+    "market": "HOSE",
+    "row_count": 1373,
+    "status": "ok"
+  },
+  "MCP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:20:36.459413+00:00",
+    "market": "HOSE",
+    "row_count": 1154,
+    "status": "ok"
+  },
+  "MDG": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-31",
+    "fetched_at": "2026-07-09T16:39:30.117377+00:00",
+    "market": "HOSE",
+    "row_count": 910,
+    "status": "ok",
+    "supplement_window": "2026-06-05..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:36.382450+00:00"
+  },
+  "MHC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:37:28.828102+00:00",
+    "market": "HOSE",
+    "row_count": 1608,
+    "status": "ok"
+  },
+  "MIG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:02:48.424342+00:00",
+    "market": "HOSE",
+    "row_count": 1604,
+    "status": "ok"
+  },
+  "MSB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-12-23",
+    "fetched_at": "2026-07-09T15:36:49.947025+00:00",
+    "market": "HOSE",
+    "row_count": 1377,
+    "status": "ok"
+  },
+  "MSH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:04:59.090464+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "MSN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:35:40.484668+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "MSR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:46:27.836190+00:00",
+    "market": "UPCOM",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "MST": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:52:51.528464+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "MWG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:33:53.685334+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "MZG": {
+    "date_max": "2026-07-06",
+    "date_min": "2024-11-12",
+    "fetched_at": "2026-07-09T16:03:51.085854+00:00",
+    "market": "UPCOM",
+    "row_count": 400,
+    "status": "ok"
+  },
+  "NAB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-10-09",
+    "fetched_at": "2026-07-09T15:45:36.801775+00:00",
+    "market": "HOSE",
+    "row_count": 1424,
+    "status": "ok"
+  },
+  "NAF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:47:48.915379+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NAV": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:46:24.693455+00:00",
+    "market": "HOSE",
+    "row_count": 1273,
+    "status": "ok"
+  },
+  "NBB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:17:33.722985+00:00",
+    "market": "HOSE",
+    "row_count": 1599,
+    "status": "ok"
+  },
+  "NCT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:13:15.691223+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "NDN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:11:19.650575+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NHA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:18:59.613651+00:00",
+    "market": "HOSE",
+    "row_count": 1613,
+    "status": "ok"
+  },
+  "NHH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:20:21.503661+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NHT": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:32:56.438943+00:00",
+    "market": "HOSE",
+    "row_count": 1418,
+    "status": "ok"
+  },
+  "NKG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:49:23.377207+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NLG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:41:49.263772+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NNC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:11:52.092788+00:00",
+    "market": "HOSE",
+    "row_count": 1614,
+    "status": "ok"
+  },
+  "NO1": {
+    "date_max": "2026-07-06",
+    "date_min": "2022-11-28",
+    "fetched_at": "2026-07-09T16:37:44.069251+00:00",
+    "market": "HOSE",
+    "row_count": 879,
+    "status": "ok"
+  },
+  "NRC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:57:03.349941+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NSC": {
+    "date_max": "2026-07-08",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:38:04.049898+00:00",
+    "market": "HOSE",
+    "row_count": 1535,
+    "status": "ok",
+    "supplement_window": "2026-06-07..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:37.930858+00:00"
+  },
+  "NT2": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:53:10.373803+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NTL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:06:38.905993+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NTP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:04:00.501477+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NVB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:55:02.581256+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NVL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:36:00.826890+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "NVT": {
+    "date_max": "2026-07-08",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:47:18.646809+00:00",
+    "market": "HOSE",
+    "row_count": 1468,
+    "status": "ok",
+    "supplement_window": "2026-06-05..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:39.259310+00:00"
+  },
+  "OCB": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-01-28",
+    "fetched_at": "2026-07-09T15:40:48.956220+00:00",
+    "market": "HOSE",
+    "row_count": 1352,
+    "status": "ok"
+  },
+  "OGC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:02:17.224436+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "OIL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:48:09.189722+00:00",
+    "market": "UPCOM",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "OPC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:27:10.504016+00:00",
+    "market": "HOSE",
+    "row_count": 1520,
+    "status": "ok"
+  },
+  "ORS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:40:39.487638+00:00",
+    "market": "HOSE",
+    "row_count": 1605,
+    "status": "ok"
+  },
+  "PAC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:03:27.059721+00:00",
+    "market": "HOSE",
+    "row_count": 1559,
+    "status": "ok"
+  },
+  "PAN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:55:23.184988+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "PC1": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:37:40.949084+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PCH": {
+    "date_max": "2026-07-06",
+    "date_min": "2022-07-28",
+    "fetched_at": "2026-07-09T16:09:39.555140+00:00",
+    "market": "HNX",
+    "row_count": 979,
+    "status": "ok"
+  },
+  "PDN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:23:08.909898+00:00",
+    "market": "HOSE",
+    "row_count": 1234,
+    "status": "ok"
+  },
+  "PDR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:38:12.158761+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PET": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:43:13.089253+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PGC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:20:56.059603+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "PGD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:40:59.800000+00:00",
+    "market": "HOSE",
+    "row_count": 1551,
+    "status": "ok"
+  },
+  "PGI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:39:57.037358+00:00",
+    "market": "HOSE",
+    "row_count": 1310,
+    "status": "ok"
+  },
+  "PGV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:26:20.138584+00:00",
+    "market": "HOSE",
+    "row_count": 1556,
+    "status": "ok"
+  },
+  "PHC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:35:11.256424+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PHP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:01:47.477595+00:00",
+    "market": "UPCOM",
+    "row_count": 1603,
+    "status": "ok"
+  },
+  "PHR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:48:19.959615+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PIT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:43:21.625808+00:00",
+    "market": "HOSE",
+    "row_count": 1518,
+    "status": "ok"
+  },
+  "PJT": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:46:04.940349+00:00",
+    "market": "HOSE",
+    "row_count": 1338,
+    "status": "ok",
+    "supplement_window": "2026-06-09..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:40.592469+00:00"
+  },
+  "PLP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:30:26.865354+00:00",
+    "market": "HOSE",
+    "row_count": 1613,
+    "status": "ok"
+  },
+  "PLX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:39:24.030716+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PMG": {
+    "date_max": "2026-07-02",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:48:59.309540+00:00",
+    "market": "HOSE",
+    "row_count": 1237,
+    "status": "ok"
+  },
+  "PNC": {
+    "date_max": "2026-07-08",
+    "date_min": "2020-01-14",
+    "fetched_at": "2026-07-09T16:50:05.276519+00:00",
+    "market": "HOSE",
+    "row_count": 909,
+    "status": "ok",
+    "supplement_window": "2026-05-22..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:41.955705+00:00"
+  },
+  "PNJ": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:41:18.513076+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "POM": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:47:28.456885+00:00",
+    "market": "UPCOM",
+    "row_count": 1184,
+    "status": "ok"
+  },
+  "POW": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:36:20.556414+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PPC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:14:39.732790+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PPT": {
+    "date_max": "2026-07-06",
+    "date_min": "2022-06-17",
+    "fetched_at": "2026-07-09T16:03:17.567183+00:00",
+    "market": "HNX",
+    "row_count": 1001,
+    "status": "ok"
+  },
+  "PSH": {
+    "date_max": "2025-03-11",
+    "date_min": "2020-06-24",
+    "fetched_at": "2026-07-09T16:51:18.673740+00:00",
+    "market": "HOSE",
+    "row_count": 1178,
+    "status": "ok"
+  },
+  "PTB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:05:39.540144+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PTC": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-02-05",
+    "fetched_at": "2026-07-09T16:44:11.811544+00:00",
+    "market": "HOSE",
+    "row_count": 1440,
+    "status": "ok",
+    "supplement_window": "2026-06-05..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:43.322760+00:00"
+  },
+  "PTL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:38:55.291324+00:00",
+    "market": "HOSE",
+    "row_count": 1581,
+    "status": "ok"
+  },
+  "PVC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:56:04.882035+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PVD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:38:54.174164+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PVI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:07:43.449395+00:00",
+    "market": "HNX",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "PVP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:53:20.299817+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "PVS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:39:33.525084+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "PVT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:42:19.339266+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "QCG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:06:27.060863+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "QNP": {
+    "date_max": "2026-07-08",
+    "date_min": "2024-01-18",
+    "fetched_at": "2026-07-09T16:43:47.148465+00:00",
+    "market": "HOSE",
+    "row_count": 538,
+    "status": "ok",
+    "supplement_window": "2026-05-30..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:44.595885+00:00"
+  },
+  "QNS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:00:58.045991+00:00",
+    "market": "UPCOM",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "QTP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:06:59.158724+00:00",
+    "market": "UPCOM",
+    "row_count": 1620,
+    "status": "ok"
+  },
+  "RAL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:05:18.862505+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "REE": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:48:40.543844+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "RYG": {
+    "date_max": "2026-07-06",
+    "date_min": "2024-12-12",
+    "fetched_at": "2026-07-09T16:08:58.740509+00:00",
+    "market": "HOSE",
+    "row_count": 376,
+    "status": "ok"
+  },
+  "S4A": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:37:53.734807+00:00",
+    "market": "HOSE",
+    "row_count": 1045,
+    "status": "ok",
+    "supplement_window": "2026-05-29..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:45.911092+00:00"
+  },
+  "SAB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:45:05.676700+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SAM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:21:47.955397+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SAV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:35:35.619759+00:00",
+    "market": "HOSE",
+    "row_count": 1573,
+    "status": "ok"
+  },
+  "SBA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:30:15.029950+00:00",
+    "market": "HOSE",
+    "row_count": 1595,
+    "status": "ok"
+  },
+  "SBG": {
+    "date_max": "2026-07-06",
+    "date_min": "2023-12-01",
+    "fetched_at": "2026-07-09T16:03:02.870092+00:00",
+    "market": "HOSE",
+    "row_count": 643,
+    "status": "ok"
+  },
+  "SBT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:52:11.525689+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SBV": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:45:16.459394+00:00",
+    "market": "HOSE",
+    "row_count": 1550,
+    "status": "ok"
+  },
+  "SC5": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-20",
+    "fetched_at": "2026-07-09T16:40:38.384918+00:00",
+    "market": "HOSE",
+    "row_count": 1109,
+    "status": "ok",
+    "supplement_window": "2026-05-29..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:47.400091+00:00"
+  },
+  "SCR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:59:06.765633+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SCS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:57:34.560792+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SFC": {
+    "date_max": "2026-07-08",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:46:39.268537+00:00",
+    "market": "HOSE",
+    "row_count": 911,
+    "status": "ok",
+    "supplement_window": "2026-06-06..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:48.745143+00:00"
+  },
+  "SFG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:43:32.105569+00:00",
+    "market": "HOSE",
+    "row_count": 1564,
+    "status": "ok"
+  },
+  "SFI": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:40:17.356122+00:00",
+    "market": "HOSE",
+    "row_count": 1528,
+    "status": "ok",
+    "supplement_window": "2026-06-02..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:50.062148+00:00"
+  },
+  "SGN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:26:40.900263+00:00",
+    "market": "HOSE",
+    "row_count": 1603,
+    "status": "ok"
+  },
+  "SGR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:10:47.508835+00:00",
+    "market": "HOSE",
+    "row_count": 1543,
+    "status": "ok"
+  },
+  "SGT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:36:57.419685+00:00",
+    "market": "HOSE",
+    "row_count": 1572,
+    "status": "ok"
+  },
+  "SHA": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:42:11.368868+00:00",
+    "market": "HOSE",
+    "row_count": 1576,
+    "status": "ok",
+    "supplement_window": "2026-06-06..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:51.510851+00:00"
+  },
+  "SHB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:32:07.685219+00:00",
+    "market": "HOSE",
+    "row_count": 1619,
+    "status": "ok"
+  },
+  "SHI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:08:04.224858+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SHP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:30:36.848454+00:00",
+    "market": "HOSE",
+    "row_count": 1552,
+    "status": "ok"
+  },
+  "SHS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:34:48.525886+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SIP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:54:41.813362+00:00",
+    "market": "HOSE",
+    "row_count": 1617,
+    "status": "ok"
+  },
+  "SJD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:19:10.107573+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "SJS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:14:53.953382+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SKG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:20:02.019382+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SMA": {
+    "date_max": "2026-07-07",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:49:39.165158+00:00",
+    "market": "HOSE",
+    "row_count": 1098,
+    "status": "ok",
+    "supplement_window": "2026-05-25..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:52.897852+00:00"
+  },
+  "SMB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:24:51.637940+00:00",
+    "market": "HOSE",
+    "row_count": 1612,
+    "status": "ok"
+  },
+  "SMC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:04:49.642971+00:00",
+    "market": "HOSE",
+    "row_count": 1610,
+    "status": "ok"
+  },
+  "SPM": {
+    "date_max": "2026-06-29",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:48:20.478598+00:00",
+    "market": "HOSE",
+    "row_count": 1166,
+    "status": "ok"
+  },
+  "SRC": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:23:50.007095+00:00",
+    "market": "HOSE",
+    "row_count": 1390,
+    "status": "ok",
+    "supplement_window": "2026-05-23..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:54.216078+00:00"
+  },
+  "SRF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:21:58.393069+00:00",
+    "market": "HOSE",
+    "row_count": 1503,
+    "status": "ok"
+  },
+  "SSB": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-03-24",
+    "fetched_at": "2026-07-09T15:44:05.233860+00:00",
+    "market": "HOSE",
+    "row_count": 1318,
+    "status": "ok"
+  },
+  "SSC": {
+    "date_max": "2026-06-29",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:46:29.609950+00:00",
+    "market": "HOSE",
+    "row_count": 960,
+    "status": "ok"
+  },
+  "SSI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:33:11.517911+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "ST8": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-09",
+    "fetched_at": "2026-07-09T16:21:38.466295+00:00",
+    "market": "HOSE",
+    "row_count": 1477,
+    "status": "ok"
+  },
+  "STB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:33:33.637865+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "STG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:47:50.300913+00:00",
+    "market": "HOSE",
+    "row_count": 1186,
+    "status": "ok"
+  },
+  "STH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-03-17",
+    "fetched_at": "2026-07-09T16:05:29.052491+00:00",
+    "market": "UPCOM",
+    "row_count": 1570,
+    "status": "ok"
+  },
+  "STK": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:25:30.678903+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "SVC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:43:42.471438+00:00",
+    "market": "HOSE",
+    "row_count": 1171,
+    "status": "ok"
+  },
+  "SVD": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-02-02",
+    "fetched_at": "2026-07-09T16:29:03.232084+00:00",
+    "market": "HOSE",
+    "row_count": 1343,
+    "status": "ok"
+  },
+  "SVI": {
+    "date_max": "2026-02-13",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:34:22.976984+00:00",
+    "market": "HOSE",
+    "row_count": 762,
+    "status": "ok"
+  },
+  "SVT": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:38:23.404114+00:00",
+    "market": "HOSE",
+    "row_count": 1436,
+    "status": "ok",
+    "supplement_window": "2026-06-08..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:55.557509+00:00"
+  },
+  "SZC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:53:51.809431+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "SZL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:18:00.260534+00:00",
+    "market": "HOSE",
+    "row_count": 1569,
+    "status": "ok"
+  },
+  "TAL": {
+    "date_max": "2026-07-06",
+    "date_min": "2024-01-09",
+    "fetched_at": "2026-07-09T16:03:07.730948+00:00",
+    "market": "HOSE",
+    "row_count": 606,
+    "status": "ok"
+  },
+  "TBC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:36:26.791299+00:00",
+    "market": "HOSE",
+    "row_count": 1437,
+    "status": "ok"
+  },
+  "TCB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:32:51.296680+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TCD": {
+    "date_max": "2025-10-08",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:11:30.245225+00:00",
+    "market": "HOSE",
+    "row_count": 1400,
+    "status": "ok"
+  },
+  "TCH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:41:39.250617+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TCI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-03-20",
+    "fetched_at": "2026-07-09T15:59:47.327813+00:00",
+    "market": "HOSE",
+    "row_count": 1404,
+    "status": "ok"
+  },
+  "TCL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:24:00.333965+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TCM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:49:43.062591+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TCO": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-07",
+    "fetched_at": "2026-07-09T16:13:25.524482+00:00",
+    "market": "HOSE",
+    "row_count": 1445,
+    "status": "ok"
+  },
+  "TCR": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-07",
+    "fetched_at": "2026-07-09T16:48:01.047206+00:00",
+    "market": "HOSE",
+    "row_count": 1412,
+    "status": "ok",
+    "supplement_window": "2026-06-08..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:56.872443+00:00"
+  },
+  "TCT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:34:41.681133+00:00",
+    "market": "HOSE",
+    "row_count": 1600,
+    "status": "ok"
+  },
+  "TDC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:18:20.673019+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TDG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:31:58.017008+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TDH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:22:29.522511+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TDM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:33:25.525258+00:00",
+    "market": "HOSE",
+    "row_count": 1592,
+    "status": "ok"
+  },
+  "TDP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:02:06.477433+00:00",
+    "market": "HOSE",
+    "row_count": 1455,
+    "status": "ok"
+  },
+  "TDW": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:40:22.856970+00:00",
+    "market": "HOSE",
+    "row_count": 707,
+    "status": "ok"
+  },
+  "TEG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:34:18.355853+00:00",
+    "market": "HOSE",
+    "row_count": 1572,
+    "status": "ok"
+  },
+  "THD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-06-19",
+    "fetched_at": "2026-07-09T15:55:32.709362+00:00",
+    "market": "HNX",
+    "row_count": 1509,
+    "status": "ok"
+  },
+  "THG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:18:39.355085+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TIG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:02:38.045366+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TIP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:26:00.433792+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TIX": {
+    "date_max": "2026-07-03",
+    "date_min": "2020-01-07",
+    "fetched_at": "2026-07-09T16:34:09.112248+00:00",
+    "market": "HOSE",
+    "row_count": 826,
+    "status": "ok"
+  },
+  "TLD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:09:48.793303+00:00",
+    "market": "HOSE",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "TLG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:00:48.540591+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TLH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:17:44.692975+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TMP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:30:57.699980+00:00",
+    "market": "HOSE",
+    "row_count": 1486,
+    "status": "ok"
+  },
+  "TMS": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:29:43.361952+00:00",
+    "market": "HOSE",
+    "row_count": 1492,
+    "status": "ok",
+    "supplement_window": "2026-06-09..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:58.134755+00:00"
+  },
+  "TMT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:33:34.959274+00:00",
+    "market": "HOSE",
+    "row_count": 1563,
+    "status": "ok"
+  },
+  "TN1": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:47:08.742653+00:00",
+    "market": "HOSE",
+    "row_count": 1577,
+    "status": "ok",
+    "supplement_window": "2026-05-31..2026-07-10",
+    "supplemented_at": "2026-07-09T17:04:59.427942+00:00"
+  },
+  "TNC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:46:34.522869+00:00",
+    "market": "HOSE",
+    "row_count": 998,
+    "status": "ok"
+  },
+  "TNG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:53:30.709379+00:00",
+    "market": "HNX",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TNH": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-01-06",
+    "fetched_at": "2026-07-09T16:12:24.791005+00:00",
+    "market": "HOSE",
+    "row_count": 1368,
+    "status": "ok"
+  },
+  "TNI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:36:36.926664+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TNT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:23:40.665723+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TPB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:34:58.587075+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TPC": {
+    "date_max": "2026-07-07",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:49:28.632314+00:00",
+    "market": "HOSE",
+    "row_count": 1158,
+    "status": "ok",
+    "supplement_window": "2026-05-29..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:00.755948+00:00"
+  },
+  "TPP": {
+    "date_max": "2026-06-26",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:44:02.506181+00:00",
+    "market": "HNX",
+    "row_count": 644,
+    "status": "ok"
+  },
+  "TRA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:24:11.077514+00:00",
+    "market": "HOSE",
+    "row_count": 1541,
+    "status": "ok"
+  },
+  "TRC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:08:44.526901+00:00",
+    "market": "HOSE",
+    "row_count": 1503,
+    "status": "ok"
+  },
+  "TSC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:15:34.530567+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TSJ": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-03-25",
+    "fetched_at": "2026-07-09T16:39:45.931213+00:00",
+    "market": "UPCOM",
+    "row_count": 402,
+    "status": "ok",
+    "supplement_window": "2025-09-23..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:02.703574+00:00"
+  },
+  "TTA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-09-18",
+    "fetched_at": "2026-07-09T15:57:44.796647+00:00",
+    "market": "HOSE",
+    "row_count": 1445,
+    "status": "ok"
+  },
+  "TTE": {
+    "date_max": "2026-07-01",
+    "date_min": "2020-01-14",
+    "fetched_at": "2026-07-09T16:48:39.925499+00:00",
+    "market": "HOSE",
+    "row_count": 480,
+    "status": "ok",
+    "supplement_window": "2026-03-13..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:04.132810+00:00"
+  },
+  "TTF": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:12:34.887091+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TV2": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:59:57.612384+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "TVB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:29:53.721461+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "TVC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:58:25.248800+00:00",
+    "market": "HNX",
+    "row_count": 1476,
+    "status": "ok"
+  },
+  "TVN": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:54:22.194544+00:00",
+    "market": "UPCOM",
+    "row_count": 1606,
+    "status": "ok"
+  },
+  "TVS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:00:17.282443+00:00",
+    "market": "HOSE",
+    "row_count": 1609,
+    "status": "ok"
+  },
+  "TVT": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-06",
+    "fetched_at": "2026-07-09T16:42:51.589460+00:00",
+    "market": "HOSE",
+    "row_count": 1469,
+    "status": "ok",
+    "supplement_window": "2026-06-06..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:05.488959+00:00"
+  },
+  "TYA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:25:20.498949+00:00",
+    "market": "HOSE",
+    "row_count": 1576,
+    "status": "ok"
+  },
+  "UIC": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-06",
+    "fetched_at": "2026-07-09T16:27:00.665609+00:00",
+    "market": "HOSE",
+    "row_count": 1453,
+    "status": "ok",
+    "supplement_window": "2026-06-05..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:06.747907+00:00"
+  },
+  "VAB": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-07-20",
+    "fetched_at": "2026-07-09T15:51:35.660181+00:00",
+    "market": "HOSE",
+    "row_count": 1229,
+    "status": "ok"
+  },
+  "VAF": {
+    "date_max": "2026-07-02",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:35:56.686983+00:00",
+    "market": "UPCOM",
+    "row_count": 1118,
+    "status": "ok"
+  },
+  "VCA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:48:11.315525+00:00",
+    "market": "HOSE",
+    "row_count": 1484,
+    "status": "ok"
+  },
+  "VCB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:34:38.811198+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VCF": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:31:38.049695+00:00",
+    "market": "HOSE",
+    "row_count": 1233,
+    "status": "ok",
+    "supplement_window": "2026-06-13..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:08.177264+00:00"
+  },
+  "VCG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:40:58.910487+00:00",
+    "market": "HOSE",
+    "row_count": 1617,
+    "status": "ok"
+  },
+  "VCI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:36:30.550516+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VDP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:28:23.039285+00:00",
+    "market": "HOSE",
+    "row_count": 1244,
+    "status": "ok"
+  },
+  "VDS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-22",
+    "fetched_at": "2026-07-09T15:48:30.286276+00:00",
+    "market": "HOSE",
+    "row_count": 1549,
+    "status": "ok"
+  },
+  "VEA": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:57:23.736835+00:00",
+    "market": "UPCOM",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VFG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:19:41.614273+00:00",
+    "market": "HOSE",
+    "row_count": 1379,
+    "status": "ok"
+  },
+  "VFS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-07-01",
+    "fetched_at": "2026-07-09T15:52:36.327410+00:00",
+    "market": "HNX",
+    "row_count": 1490,
+    "status": "ok"
+  },
+  "VGC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:50:43.657041+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VGI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:45:46.360505+00:00",
+    "market": "UPCOM",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VGR": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:58:57.081240+00:00",
+    "market": "UPCOM",
+    "row_count": 1021,
+    "status": "ok"
+  },
+  "VGS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:04:14.800293+00:00",
+    "market": "HNX",
+    "row_count": 1621,
+    "status": "ok"
+  },
+  "VGT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:01:38.278675+00:00",
+    "market": "UPCOM",
+    "row_count": 1612,
+    "status": "ok"
+  },
+  "VHC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:51:04.546103+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VHM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:31:48.103444+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VIB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:36:40.620413+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "VIC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:31:57.830778+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VID": {
+    "date_max": "2026-07-08",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:49:19.195495+00:00",
+    "market": "HOSE",
+    "row_count": 1544,
+    "status": "ok",
+    "supplement_window": "2026-05-31..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:09.572205+00:00"
+  },
+  "VIP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:12:14.466876+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VIT": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:18:10.257574+00:00",
+    "market": "HNX",
+    "row_count": 1147,
+    "status": "ok"
+  },
+  "VIW": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-06-26",
+    "fetched_at": "2026-07-09T15:52:00.243469+00:00",
+    "market": "UPCOM",
+    "row_count": 581,
+    "status": "ok"
+  },
+  "VIX": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:32:29.151178+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "VJC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:37:10.437528+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VMD": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-03",
+    "fetched_at": "2026-07-09T16:40:48.881457+00:00",
+    "market": "HOSE",
+    "row_count": 1443,
+    "status": "ok",
+    "supplement_window": "2026-06-13..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:10.956643+00:00"
+  },
+  "VND": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:34:15.583841+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "VNE": {
+    "date_max": "2026-06-26",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:03:36.363214+00:00",
+    "market": "HOSE",
+    "row_count": 1616,
+    "status": "ok"
+  },
+  "VNG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:45:55.485598+00:00",
+    "market": "HOSE",
+    "row_count": 1591,
+    "status": "ok"
+  },
+  "VNL": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:31:18.153725+00:00",
+    "market": "HOSE",
+    "row_count": 1468,
+    "status": "ok"
+  },
+  "VNM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:36:11.037941+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VNS": {
+    "date_max": "2026-07-09",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:39:05.559165+00:00",
+    "market": "HOSE",
+    "row_count": 1564,
+    "status": "ok",
+    "supplement_window": "2026-06-09..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:12.290683+00:00"
+  },
+  "VNZ": {
+    "date_max": "2026-07-06",
+    "date_min": "2023-02-01",
+    "fetched_at": "2026-07-09T16:09:14.470143+00:00",
+    "market": "UPCOM",
+    "row_count": 809,
+    "status": "ok"
+  },
+  "VOS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:59:36.405975+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VPB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:33:43.909891+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VPD": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:24:21.125671+00:00",
+    "market": "HOSE",
+    "row_count": 1583,
+    "status": "ok"
+  },
+  "VPG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:16:47.777906+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VPH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:34:04.231078+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VPI": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:39:43.393226+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VPL": {
+    "date_max": "2026-07-06",
+    "date_min": "2025-05-13",
+    "fetched_at": "2026-07-09T15:39:48.870226+00:00",
+    "market": "HOSE",
+    "row_count": 288,
+    "status": "ok"
+  },
+  "VPS": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-08",
+    "fetched_at": "2026-07-09T16:44:41.439599+00:00",
+    "market": "HOSE",
+    "row_count": 1454,
+    "status": "ok"
+  },
+  "VRC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:28:13.101203+00:00",
+    "market": "HOSE",
+    "row_count": 1610,
+    "status": "ok"
+  },
+  "VRE": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:37:00.848818+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VSC": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:40:30.230301+00:00",
+    "market": "HOSE",
+    "row_count": 1622,
+    "status": "ok"
+  },
+  "VSH": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:27:41.396003+00:00",
+    "market": "HOSE",
+    "row_count": 1610,
+    "status": "ok"
+  },
+  "VSI": {
+    "date_max": "2026-07-07",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:40:06.779997+00:00",
+    "market": "HOSE",
+    "row_count": 1200,
+    "status": "ok",
+    "supplement_window": "2026-05-29..2026-07-10",
+    "supplemented_at": "2026-07-09T17:05:13.746154+00:00"
+  },
+  "VTB": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:44:31.998179+00:00",
+    "market": "HOSE",
+    "row_count": 1484,
+    "status": "ok"
+  },
+  "VTO": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:06:17.347549+00:00",
+    "market": "HOSE",
+    "row_count": 1618,
+    "status": "ok"
+  },
+  "VTP": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:50:33.898338+00:00",
+    "market": "HOSE",
+    "row_count": 1615,
+    "status": "ok"
+  },
+  "VTZ": {
+    "date_max": "2026-07-06",
+    "date_min": "2021-11-25",
+    "fetched_at": "2026-07-09T15:48:51.474771+00:00",
+    "market": "HNX",
+    "row_count": 1120,
+    "status": "ok"
+  },
+  "VVS": {
+    "date_max": "2026-07-06",
+    "date_min": "2022-10-07",
+    "fetched_at": "2026-07-09T15:52:16.804929+00:00",
+    "market": "HOSE",
+    "row_count": 560,
+    "status": "ok"
+  },
+  "YBM": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T16:45:26.372896+00:00",
+    "market": "HOSE",
+    "row_count": 1497,
+    "status": "ok"
+  },
+  "YEG": {
+    "date_max": "2026-07-06",
+    "date_min": "2020-01-02",
+    "fetched_at": "2026-07-09T15:54:01.639552+00:00",
+    "market": "HOSE",
+    "row_count": 1620,
+    "status": "ok"
+  }
+}
