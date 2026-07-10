@@ -36,6 +36,7 @@ def run_portfolio_backtest(
     stop_loss_pct: float | None = None,
     take_profit_pct: float | None = None,
     trend_break_col: str = "above_ma20",
+    benchmark_features: pd.DataFrame | None = None,
     giveback_arm_gain: float | None = None,
     giveback_trigger_gain: float = 0.0,
 ) -> dict[str, Any]:
@@ -82,6 +83,16 @@ def run_portfolio_backtest(
     breaker can re-arm for a fresh cycle; normal rebalancing resumes at the
     next scheduled rebalance date. None disables the feature entirely
     (default; matches prior behavior exactly).
+
+    benchmark_features (optional): DataFrame with `date` and `return_1d`
+    columns (e.g. data/processed/benchmark_vnindex.parquet) used to build
+    the returned `benchmark_curve`/`benchmark_symbol`. Only needed if
+    `features` doesn't already contain a "VNINDEX" symbol row (it usually
+    doesn't -- VNINDEX lives in a separate file, not
+    data/processed/stock_features.parquet). If neither a VNINDEX row nor
+    `benchmark_features` is available, this raises rather than silently
+    substituting some other stock's data and labeling it as the benchmark
+    (that used to happen here -- see FOLD_AUTOPSY_REPORT.md).
     """
     # 1. Prepare data
     df = features.sort_values(["symbol", "date"]).copy()
@@ -413,22 +424,40 @@ def run_portfolio_backtest(
     max_dd = calculate_max_drawdown(equity_series)
     sharpe = calculate_sharpe(pct_returns, risk_free_rate=0.03)
     
-    # Benchmark comparison
-    benchmark_source = "VNINDEX"
-    try:
-        # Try to calculate benchmark returns
-        bench_df = df[df["symbol"] == "VNINDEX"].sort_values("date")
-        if bench_df.empty:
-            # Fallback to first stock in features
-            bench_df = df[df["symbol"] == df["symbol"].iloc[0]].sort_values("date")
-            benchmark_source = bench_df["symbol"].iloc[0]
-            
-        bench_df = bench_df[bench_df["date"].isin(dates_list)].set_index("date")
-        bench_nav = (1.0 + bench_df["return_1d"].fillna(0.0)).cumprod() * initial_nav
-        bench_nav = bench_nav.reindex(dates_list).ffill().fillna(initial_nav)
-    except Exception:
-        bench_nav = pd.Series(initial_nav, index=dates_list)
-        
+    # Benchmark comparison. Requires either a real "VNINDEX" row in
+    # `features` or an explicit `benchmark_features` frame -- no silent
+    # substitution of an arbitrary other stock's data (that used to happen
+    # here; see FOLD_AUTOPSY_REPORT.md).
+    vnindex_rows = df[df["symbol"].astype(str).str.upper() == "VNINDEX"].sort_values("date")
+    if not vnindex_rows.empty:
+        bench_df = vnindex_rows
+        benchmark_source = "VNINDEX"
+    elif benchmark_features is not None and not benchmark_features.empty:
+        if "date" not in benchmark_features.columns or "return_1d" not in benchmark_features.columns:
+            raise ValueError(
+                "run_portfolio_backtest: benchmark_features must have 'date' and "
+                "'return_1d' columns."
+            )
+        bench_df = benchmark_features.copy()
+        bench_df["date"] = pd.to_datetime(bench_df["date"])
+        bench_df = bench_df.sort_values("date")
+        benchmark_source = str(bench_df["symbol"].iloc[0]) if "symbol" in bench_df.columns else "external_benchmark"
+    else:
+        raise ValueError(
+            "run_portfolio_backtest: no benchmark available -- 'VNINDEX' is not a "
+            "symbol in `features` (it usually isn't; VNINDEX lives in "
+            "data/processed/benchmark_vnindex.parquet, a separate file) and no "
+            "`benchmark_features` was supplied. A prior version of this function "
+            "silently substituted an arbitrary other stock's data here and "
+            "labeled it as the benchmark -- that has been removed. Pass "
+            "benchmark_features=<DataFrame with 'date'/'return_1d' columns> "
+            "explicitly."
+        )
+
+    bench_df = bench_df[bench_df["date"].isin(dates_list)].set_index("date")
+    bench_nav = (1.0 + bench_df["return_1d"].fillna(0.0)).cumprod() * initial_nav
+    bench_nav = bench_nav.reindex(dates_list).ffill().fillna(initial_nav)
+
     return {
         "equity_curve": equity_series,
         "portfolio_returns": pct_returns,

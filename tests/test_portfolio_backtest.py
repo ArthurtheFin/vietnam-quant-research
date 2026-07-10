@@ -3,8 +3,18 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from src.backtest.portfolio_backtest import run_portfolio_backtest
+
+# Shared flat synthetic benchmark covering every fixture's date range in this
+# file (longest fixture is 30 business days from 2025-01-01) -- none of these
+# tests exercise benchmark behavior itself, they just need to supply
+# something now that run_portfolio_backtest requires either a VNINDEX row in
+# `features` or an explicit benchmark_features frame (see
+# test_missing_benchmark_raises_clear_error / test_benchmark_features_used_when_provided
+# below for the tests that actually cover that behavior).
+_BENCH = pd.DataFrame({"date": pd.bdate_range("2025-01-01", periods=60), "return_1d": 0.0})
 
 
 def _fixture_frames() -> tuple[pd.DataFrame, pd.DataFrame, pd.Timestamp]:
@@ -45,6 +55,7 @@ def test_rebalance_decision_uses_prior_day_information() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     trades = result["trades_log"]
     assert not trades.empty
@@ -66,6 +77,7 @@ def test_no_rebalance_on_first_day_without_prior_information() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     trades = result["trades_log"]
     first_date = pd.bdate_range("2025-01-01", periods=1)[0].strftime("%Y-%m-%d")
@@ -106,6 +118,7 @@ def test_fallback_score_uses_reversal_quality_when_ranking_missing() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     trades = result["trades_log"]
     buys_at_t = trades[(trades["date"] == t_date.strftime("%Y-%m-%d")) & (trades["type"] == "BUY")]
@@ -136,6 +149,7 @@ def test_limit_up_symbol_is_not_bought_on_execution_day() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     t_date = dates[t_index].strftime("%Y-%m-%d")
     buys_at_t = result["trades_log"]
@@ -165,6 +179,7 @@ def test_stop_loss_exits_position_after_min_holding_sessions() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
         stop_loss_pct=-0.15,
     )
     exits = result["stop_loss_exits"]
@@ -190,6 +205,7 @@ def test_stop_loss_disabled_by_default_matches_prior_behavior() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     assert result["stop_loss_exits"].empty
     assert result["metrics"]["stop_loss_exit_count"] == 0
@@ -212,12 +228,14 @@ def test_regime_filter_deleverages_on_lagged_risk_off() -> None:
         features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
         rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
         min_value_ma20=0.0, require_above_ma200=False,
+        benchmark_features=_BENCH,
         market_regime=market_regime, regime_cash_fraction=1.0,
     )
     without_filter = run_portfolio_backtest(
         features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
         rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
         min_value_ma20=0.0, require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     assert not with_filter["regime_adjustments"].empty
     assert with_filter["metrics"]["final_nav"] > without_filter["metrics"]["final_nav"], (
@@ -238,6 +256,7 @@ def test_regime_filter_absent_by_default_matches_prior_behavior() -> None:
         features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
         rebalance_period=20, portfolio_size=1, allocation_method="equal_weight",
         min_value_ma20=0.0, require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     assert result["regime_adjustments"].empty
     assert result["metrics"]["regime_adjustment_count"] == 0
@@ -264,6 +283,7 @@ def test_take_profit_holds_winner_while_uptrend_intact() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
         take_profit_pct=0.10,
     )
     assert result["take_profit_exits"].empty, "must not take profit while the uptrend structure is intact"
@@ -292,6 +312,7 @@ def test_take_profit_exits_only_on_trend_break_after_gain_threshold() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
         take_profit_pct=0.10,
     )
     exits = result["take_profit_exits"]
@@ -310,6 +331,7 @@ def test_take_profit_disabled_by_default() -> None:
         features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
         rebalance_period=5, portfolio_size=1, allocation_method="equal_weight",
         min_value_ma20=0.0, require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     assert result["take_profit_exits"].empty
     assert result["metrics"]["take_profit_exit_count"] == 0
@@ -344,6 +366,7 @@ def test_giveback_stop_liquidates_after_round_trip_to_breakeven() -> None:
         allocation_method="equal_weight",
         min_value_ma20=0.0,
         require_above_ma200=False,
+        benchmark_features=_BENCH,
         giveback_arm_gain=0.15,
         giveback_trigger_gain=0.0,
     )
@@ -375,6 +398,7 @@ def test_giveback_stop_does_not_arm_without_reaching_threshold() -> None:
         features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
         rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
         min_value_ma20=0.0, require_above_ma200=False,
+        benchmark_features=_BENCH,
         giveback_arm_gain=0.15, giveback_trigger_gain=0.0,
     )
     assert result["giveback_stop_exits"].empty
@@ -390,6 +414,76 @@ def test_giveback_stop_disabled_by_default() -> None:
         features=pd.DataFrame(rows), meta_ranking=pd.DataFrame(ranking_rows),
         rebalance_period=3, portfolio_size=1, allocation_method="equal_weight",
         min_value_ma20=0.0, require_above_ma200=False,
+        benchmark_features=_BENCH,
     )
     assert result["giveback_stop_exits"].empty
     assert result["metrics"]["giveback_stop_exit_count"] == 0
+
+
+def test_missing_benchmark_raises_clear_error() -> None:
+    """No 'VNINDEX' row in features and no benchmark_features supplied must
+    raise, not silently substitute some other stock's data and label it as
+    the benchmark (the bug this replaces -- see FOLD_AUTOPSY_REPORT.md)."""
+    dates = pd.bdate_range("2025-01-01", periods=10)
+    rows = [{"symbol": "AAA", "date": d, "close": 100.0, "return_1d": 0.001} for d in dates]
+    ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
+    with pytest.raises(ValueError, match="no benchmark available"):
+        run_portfolio_backtest(
+            features=pd.DataFrame(rows),
+            meta_ranking=pd.DataFrame(ranking_rows),
+            rebalance_period=5,
+            portfolio_size=1,
+            allocation_method="equal_weight",
+            min_value_ma20=0.0,
+            require_above_ma200=False,
+        )
+
+
+def test_benchmark_features_used_when_provided() -> None:
+    """benchmark_features must be used verbatim -- not the arbitrary-other-
+    stock substitution this replaces."""
+    dates = pd.bdate_range("2025-01-01", periods=10)
+    rows = [{"symbol": "AAA", "date": d, "close": 100.0, "return_1d": 0.001} for d in dates]
+    ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
+    bench = pd.DataFrame({"symbol": "VNINDEX_TEST", "date": dates, "return_1d": 0.01})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+        benchmark_features=bench,
+    )
+    assert result["benchmark_symbol"] == "VNINDEX_TEST"
+    bench_curve = result["benchmark_curve"]
+    expected_final = 1_000_000_000.0 * (1.01 ** len(dates))
+    assert bench_curve.iloc[-1] == pytest.approx(expected_final, rel=1e-6), (
+        "benchmark_curve must compound the supplied benchmark_features return_1d series, "
+        "not some other stock's returns"
+    )
+
+
+def test_vnindex_row_in_features_used_over_benchmark_features() -> None:
+    """A real VNINDEX row in `features` takes precedence -- benchmark_features
+    is the fallback for when features doesn't carry one (the common case,
+    since VNINDEX normally lives in a separate file)."""
+    dates = pd.bdate_range("2025-01-01", periods=10)
+    rows = [{"symbol": "AAA", "date": d, "close": 100.0, "return_1d": 0.001} for d in dates]
+    rows += [{"symbol": "VNINDEX", "date": d, "close": 1000.0, "return_1d": 0.02} for d in dates]
+    ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
+    unused_bench = pd.DataFrame({"symbol": "SHOULD_NOT_BE_USED", "date": dates, "return_1d": 0.01})
+
+    result = run_portfolio_backtest(
+        features=pd.DataFrame(rows),
+        meta_ranking=pd.DataFrame(ranking_rows),
+        rebalance_period=5,
+        portfolio_size=1,
+        allocation_method="equal_weight",
+        min_value_ma20=0.0,
+        require_above_ma200=False,
+        benchmark_features=unused_bench,
+    )
+    assert result["benchmark_symbol"] == "VNINDEX"
