@@ -10,7 +10,7 @@ import pandas as pd
 def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate a 0-100 alpha score cross-sectionally by date using:
-    - momentum score: 25% (20d & 60d average return rank)
+    - momentum score: 25% (60d return rank; 20d return removed, see FACTOR_RETEST_V2_REPORT.md NV4)
     - relative strength score: 25% (20d & 60d alpha relative to benchmark rank)
     - trend score: 20% (close > MA20, MA50, MA200 criteria)
     - volume confirmation score: 15% (volume_ratio_20d rank)
@@ -107,10 +107,12 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
         
     # Group by date and calculate rankings cross-sectionally
     def compute_ranks(group):
-        # 1. Momentum score: rank average of return_20d and return_60d
-        r20 = group["return_20d"].rank(pct=True, na_option="keep") * 100.0
+        # 1. Momentum score: return_60d rank. return_20d removed per
+        # FACTOR_RETEST_V2_REPORT.md NV4: no significant IC in any of the 4 tested
+        # combinations (full/top150 x raw/residualized, max |t_NW|=1.24, raw sign
+        # even flips between universes) on clean full-2020+ data.
         r60 = group["return_60d"].rank(pct=True, na_option="keep") * 100.0
-        group["momentum_score"] = ((r20.fillna(50.0) + r60.fillna(50.0)) / 2.0).clip(0.0, 100.0)
+        group["momentum_score"] = r60.fillna(50.0).clip(0.0, 100.0)
         
         # 2. RS score: rank average of rs_20d and rs_60d
         rs20 = group["rs_20d"].rank(pct=True, na_option="keep") * 100.0

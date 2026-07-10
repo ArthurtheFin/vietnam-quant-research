@@ -61,8 +61,12 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     "min_volume_ma20": 50_000.0,
     "max_atr_pct": 0.08,
     "max_relaxed_atr_pct": 0.12,
-    "max_distance_ma20": 0.18,
-    "max_relaxed_distance_ma20": 0.28,
+    "max_distance_ma20": 0.23,  # loosened from 0.18 per FACTOR_RETEST_V2_REPORT.md NV4:
+    # distance_ma20 shows no significant IC on clean full-2020+ data (max |t_NW|=1.61);
+    # reducing this gate's weight rather than removing it outright, since it separately
+    # posts the 2nd-highest raw event-detection lift of 47 candidates tested (not yet
+    # statistically confirmed -- flagged for a dedicated follow-up, not acted on here)
+    "max_relaxed_distance_ma20": 0.33,  # loosened from 0.28, same proportional widening
     "max_drawdown_60d": -0.30,
     "client_ready_threshold": 60.0,
     "trading_threshold": 55.0,
