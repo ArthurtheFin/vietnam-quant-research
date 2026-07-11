@@ -1,0 +1,121 @@
+# PUSH_REVIEW — 30 local commits ahead of origin, for your review before pushing
+
+Branch `claude/charming-bartik-d21dc1` is **30 commits ahead** of
+`origin/claude/charming-bartik-d21dc1` (tip `e7e6728`), 0 behind — a
+clean fast-forward push, nothing to reconcile. **Not pushed.** Grouped
+oldest → newest below; each group's one-line summary states the overall
+outcome, not just what was attempted.
+
+---
+
+## Phase 0 — pre-session audit & factor search (10 commits)
+
+Work already on this branch before this session began.
+
+| Hash | Message |
+|---|---|
+| `e5d2ee5` | docs: audit full pipeline re-run, surface critical data-staleness finding |
+| `0611b80` | docs: confirm the weak-signal finding is not a G4-aggressiveness artifact |
+| `3a2ee08` | docs: re-test 44 technical factors with Newey-West HAC, residualized target, liquidity subset |
+| `0ca1384` | docs: reframe factor search from IC to tail-event detection (event/lift) |
+| `cc697f2` | docs: data audit -- universe/coverage problem, not liquidity or units |
+| `c01f473` | docs: add earlier quantile-spread and broad factor-IC scratch scripts |
+| `936e513` | docs: design + pilot 20-symbol backfill; fix flawed statistical claim in audit |
+| `685f269` | docs: root-cause HPG/TCB junction anomaly, finalize full-backfill design |
+| `d12a6ac` | fix(data): use adjusted close in fetch_daily.py fallback, not raw closeprice |
+| `2ebd2b0` | docs: add session handoff note to BACKFILL_DESIGN_REPORT.md |
+
+**Summary**: found the data pipeline was stale/undersized (only ~6
+symbols with full history) and 44 candidate technical factors showed no
+reliable edge on that data; traced HPG/TCB's specific anomaly to a
+raw-vs-adjusted-close bug in the fetch fallback path and fixed it,
+setting up the full backfill this session executed.
+
+## Phase 1 — backfill (this session, 5 commits)
+
+| Hash | Message |
+|---|---|
+| `7f35c57` | test(data): verify Task-3 re-pilot against a bug-immune oracle |
+| `ee248f2` | feat(data): full 501-symbol backfill to data/full_history_v2 |
+| `d8ee06b` | test(data): quality suite for the full 501-symbol backfill |
+| `1566f29` | docs: Round 3/4 write-up + DATA_BASELINE.md baseline documentation |
+| `e9a815f` | feat(data): make full_history_v2 the official pipeline source |
+
+**Summary**: re-fetched full 2020–2026 history for all 501 current
+symbols via a fetch method proven immune to the raw/adjusted-close bug,
+verified clean (0 unexplained coverage defects after investigation),
+and made it the pipeline's official data source, quarantining the old
+(partially corrupted) dataset rather than deleting it.
+
+## Phase 2 — retest (this session, 5 commits)
+
+| Hash | Message |
+|---|---|
+| `b182091` | test(alpha): lower eligibility threshold 10B->3B VND for factor re-tests |
+| `4762d81` | docs: Round 5 write-up + first clean-data factor re-test report |
+| `4aaf36e` | test(alpha): examine the volatility cluster before touching deployed scoring |
+| `cff5f33` | fix(alpha): apply NV4 factor recommendations to deployed scoring |
+| `6f452b2` | docs: before/after comparison for the scoring change + SCORING_UPDATE_REPORT.md |
+
+**Summary**: re-ran the full 44-factor test on clean data for the first
+time (21/192 combinations now significant, concentrated in a volatility
+cluster); removed `return_20d` from deployed scoring for near-zero IC
+and loosened the `distance_ma20` gate, confirmed via before/after
+backtest that nothing broke.
+
+## Phase 3 — forensic (this session, 6 commits)
+
+| Hash | Message |
+|---|---|
+| `a67c792` | docs: fold autopsy for the walk-forward backtest's left tail |
+| `bef0de6` | fix(backtest): remove silent benchmark fallback, raise a clear error instead |
+| `7c791d7` | test(backtest): portfolio-construction sensitivity (size 5/10/20 + sector cap) |
+| `88a97f7` | docs: concentration null test + CONCENTRATION_ANALYSIS_REPORT.md |
+| `3b8c4a8` | fix(backtest): apply approved portfolio config -- size=10, sector cap=2 |
+| `e61c65a` | docs: forensic 2026 fold + composite score tested directly for the first time |
+
+**Summary**: traced the backtest's worst year (2026, −59.7% while
+VNINDEX rose) to the deployed score itself, not bad luck or
+concentration alone — a null test against 2,000 random portfolios found
+the composite underperforms random stock-picking on average; fixed an
+unrelated silently-wrong benchmark bug found along the way; applied a
+diversification change (portfolio size 5→10, sector cap) that reduces
+variance but doesn't fix the underlying signal problem.
+
+## Phase 4 — v2 (this session, 4 commits)
+
+| Hash | Message |
+|---|---|
+| `6cf15a0` | docs: pre-register SCORE_V2_DESIGN.md before any v2 comparison is run |
+| `066014e` | test(alpha): confirmation run for SCORE_V2_DESIGN.md -- all 3 criteria pass |
+| `deed572` | feat(alpha): install v2 as the deployed score, v1 kept as live shadow |
+| `327b8d4` | fix(screening): stop feeding alpha_score into final_watchlist's momentum_score |
+
+**Summary**: redesigned the deployed score around only the two factors
+with independently validated evidence (realized_vol_20d + value_ma20,
+70/30, weights fixed before any test was run); confirmed it clears all
+3 pre-registered acceptance bars and beats the old composite decisively;
+installed it as the live score with the old composite kept running in
+shadow for ongoing comparison, and cleaned up a downstream file
+(`final_watchlist.py`) that was still averaging the old (now
+repurposed) score into a "momentum" calculation.
+
+---
+
+## Not included in these commits (pre-existing, untouched)
+
+`git status` also shows modified/untracked files this session did not
+create or touch: `data/signals/final_watchlist.csv`, `reports/daily_alpha_ranking.csv`,
+`reports/top_watchlist.csv`, `reports/final_watchlist.xlsx`, and several
+`research_notes/generated/*.md` files. These were already
+modified/untracked before this session began (from an unrelated process)
+and are left alone — not staged, not part of any commit above.
+
+**Note**: running `scripts/run_alpha_scoring.py` in Phase 4 (to seed the
+new shadow log) did regenerate `reports/daily_alpha_ranking.csv` and
+`reports/top_watchlist.csv` with live v2 scores as a side effect of that
+script's normal behavior — they're still sitting as uncommitted local
+changes, not part of any commit, exactly like the rest of this group.
+If you want that refreshed ranking data pushed too, it would need to be
+staged separately; it wasn't bundled into any commit above to keep this
+session's commits scoped to what was actually asked.
