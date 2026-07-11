@@ -1,10 +1,12 @@
-# PUSH_REVIEW — 30 local commits ahead of origin, for your review before pushing
+# PUSH_REVIEW — 32 local commits ahead of origin, for your review before pushing
 
-Branch `claude/charming-bartik-d21dc1` is **30 commits ahead** of
+Branch `claude/charming-bartik-d21dc1` is **32 commits ahead** of
 `origin/claude/charming-bartik-d21dc1` (tip `e7e6728`), 0 behind — a
 clean fast-forward push, nothing to reconcile. **Not pushed.** Grouped
 oldest → newest below; each group's one-line summary states the overall
-outcome, not just what was attempted.
+outcome, not just what was attempted. (Phases 0-4 below, 30 commits,
+were the state as of this file's first version; Phase 5 was added after,
+covering this file's own commit and the round that followed it.)
 
 ---
 
@@ -99,6 +101,23 @@ installed it as the live score with the old composite kept running in
 shadow for ongoing comparison, and cleaned up a downstream file
 (`final_watchlist.py`) that was still averaging the old (now
 repurposed) score into a "momentum" calculation.
+
+---
+
+## Phase 5 — push prep + next-branch design survey (this session, 2 commits)
+
+| Hash | Message |
+|---|---|
+| `87691e7` | docs: PUSH_REVIEW.md -- 30 local commits ahead of origin, grouped for review |
+| `683f611` | docs: survey disclosure data sources + point-in-time pipeline design |
+
+**Summary**: this review document itself; and a read-only survey (no
+crawler built, no new service signed up for) of Vietnamese insider/
+major-shareholder trading disclosure sources for a possible future
+accumulation-detection feature, concluding CafeF.vn is the best
+candidate found but its historical depth is unverified at the row
+level, with a design for point-in-time-safe storage ready for review
+before any of it gets built.
 
 ---
 
