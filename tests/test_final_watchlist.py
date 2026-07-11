@@ -260,3 +260,46 @@ def test_save_watchlist_outputs_drops_forward_columns(tmp_path) -> None:
     save_watchlist_outputs(outputs, config=DEFAULT_FINAL_WATCHLIST_CONFIG, base_dir=tmp_path)
     saved = pd.read_csv(tmp_path / "data/output/client_ready_watchlist.csv")
     assert "forward_return_5d" not in saved.columns
+
+
+def test_momentum_score_ignores_alpha_score() -> None:
+    """SCORE_V2_REPORT.md side effect: alpha_score (from data/signals/
+    alpha_scores.parquet) is now the v2 composite (volatility/liquidity,
+    not momentum) -- momentum_score must no longer move when only
+    alpha_score changes, with every other alpha_* input held fixed."""
+    features = _sample_features()
+    latest = features.sort_values(["symbol", "date"]).groupby("symbol").tail(1)
+    meta = latest[["symbol", "date"]].copy()
+    meta["meta_score"] = np.linspace(40, 95, len(meta))
+    meta["trade_edge_score"] = meta["meta_score"]
+    meta["setup_quality_score"] = meta["meta_score"] - 5
+    meta["risk_penalty_score"] = 20
+
+    def _alpha_scores(alpha_score_values: np.ndarray) -> pd.DataFrame:
+        alpha = latest[["symbol", "date"]].copy()
+        alpha["alpha_score"] = alpha_score_values
+        alpha["momentum_score"] = 50.0  # -> alpha_momentum_score, held fixed
+        alpha["rs_score"] = 50.0
+        alpha["trend_score"] = 50.0
+        alpha["volume_score"] = 50.0
+        alpha["volatility_score"] = 50.0
+        alpha["liquidity_score"] = 50.0
+        return alpha
+
+    n = len(latest)
+    common_kwargs = dict(
+        features=features,
+        benchmark=_sample_benchmark(features),
+        meta_ranking=meta,
+        config={"min_value_ma20": 0, "min_volume_ma20": 0},
+    )
+    low_alpha = build_final_watchlist(alpha_scores=_alpha_scores(np.full(n, 10.0)), **common_kwargs)
+    high_alpha = build_final_watchlist(alpha_scores=_alpha_scores(np.full(n, 90.0)), **common_kwargs)
+
+    merged = low_alpha[["symbol", "momentum_score"]].merge(
+        high_alpha[["symbol", "momentum_score"]], on="symbol", suffixes=("_low_alpha", "_high_alpha")
+    )
+    assert (merged["momentum_score_low_alpha"] == merged["momentum_score_high_alpha"]).all(), (
+        "momentum_score must be unaffected by alpha_score -- alpha_score is a "
+        "volatility/liquidity signal now (SCORE_V2_REPORT.md), not momentum"
+    )

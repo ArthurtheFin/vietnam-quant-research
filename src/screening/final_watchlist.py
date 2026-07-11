@@ -425,12 +425,19 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     ).mean(axis=1)
     out["trend_score"] = (trend_raw * weights["trend"]).round(2)
 
+    # alpha_score removed from this average: since SCORE_V2_REPORT.md,
+    # alpha_score (from data/signals/alpha_scores.parquet) is the v2
+    # composite (70% realized_vol_20d + 30% value_ma20, rewarding LOW vol
+    # and LOW liquidity) -- a volatility/liquidity signal, not a momentum
+    # one. Averaging it into "momentum" was a semantic mismatch left over
+    # from before v2 was installed. alpha_momentum_score (the v1 shadow
+    # composite's own momentum_score, still computed -- see
+    # src/alpha/scoring.py) is unaffected and stays.
     momentum_raw = pd.concat(
         [
             _rank(out["return_20d"]),
             _rank(out["return_60d"]),
             _rank(out.get("alpha_momentum_score", pd.Series(np.nan, index=out.index))),
-            _rank(out.get("alpha_score", pd.Series(np.nan, index=out.index))),
         ],
         axis=1,
     ).mean(axis=1)
