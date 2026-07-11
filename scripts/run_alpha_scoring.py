@@ -9,7 +9,7 @@ import os
 os.chdir(PROJECT_ROOT)
 
 import pandas as pd
-from src.data.loaders import read_parquet, save_parquet
+from src.data.loaders import read_parquet, save_parquet, append_parquet
 from src.alpha.scoring import calculate_alpha_scores
 
 def main():
@@ -47,22 +47,32 @@ def main():
     latest_subset = scored[scored["date"] == latest_date].copy()
     
     cols = [
-        "symbol", "date", "close", "alpha_score", "momentum_score", 
-        "rs_score", "trend_score", "volume_score", "volatility_score", 
+        "symbol", "date", "close", "alpha_score", "alpha_score_shadow_v1", "momentum_score",
+        "rs_score", "trend_score", "volume_score", "volatility_score",
         "liquidity_score", "market_regime"
     ]
     available_cols = [c for c in cols if c in latest_subset.columns]
-    
+
     # Report 1: daily alpha ranking
     ranking = latest_subset[available_cols].sort_values("alpha_score", ascending=False)
     ranking.to_csv(reports_dir / "daily_alpha_ranking.csv", index=False)
     print(f"Exported daily alpha ranking to {reports_dir / 'daily_alpha_ranking.csv'} ({len(ranking)} symbols)")
-    
+
     # Report 2: top 20 watchlist (alpha_score >= 75 or top 20)
     top_watchlist = ranking.head(20).copy()
     top_watchlist.to_csv(reports_dir / "top_watchlist.csv", index=False)
     print(f"Exported top 20 watchlist to {reports_dir / 'top_watchlist.csv'}")
-    
+
+    # Shadow log: v2 (deployed) vs v1 (shadow) side by side, appended daily
+    # so the live out-of-sample comparison accumulates day by day starting
+    # from today (SCORE_V2_REPORT.md).
+    if "alpha_score_shadow_v1" in latest_subset.columns:
+        shadow_cols = ["symbol", "date", "alpha_score", "alpha_score_shadow_v1"]
+        shadow_today = latest_subset[shadow_cols].copy()
+        append_parquet(shadow_today, "data/signals/alpha_score_shadow_log.parquet", subset=["symbol", "date"])
+        print(f"Appended {len(shadow_today)} rows to data/signals/alpha_score_shadow_log.parquet "
+              f"(v2 vs v1 shadow comparison, date={latest_date.date()})")
+
     print("=== Alpha Scoring Complete ===")
 
 if __name__ == "__main__":

@@ -54,12 +54,22 @@ def test_alpha_scoring_logic():
     assert "momentum_score" in scored.columns
     assert "market_regime" in scored.columns
     
-    # Check that AAA has higher score than CCC due to better momentum and relative strength
+    # alpha_score is the v2 composite (SCORE_V2_DESIGN.md: 70% low-vol reward
+    # + 30% low-liquidity reward). AAA has the lowest realized_vol_20d here
+    # (0.15 vs CCC's 0.25), so it scores higher on that basis -- value_ma20
+    # is identical across symbols in this fixture, so the liquidity
+    # component doesn't discriminate; this is no longer testing momentum/RS.
     latest = scored[scored["date"] == dates[-1]]
     aaa_score = float(latest[latest["symbol"] == "AAA"]["alpha_score"].iloc[0])
     ccc_score = float(latest[latest["symbol"] == "CCC"]["alpha_score"].iloc[0])
     assert aaa_score > ccc_score
-    
+
+    # v1 shadow composite must still be present and in bounds (kept for
+    # live comparison logging, see SCORE_V2_REPORT.md).
+    assert "alpha_score_shadow_v1" in scored.columns
+    assert (scored["alpha_score_shadow_v1"] >= 0.0).all()
+    assert (scored["alpha_score_shadow_v1"] <= 100.0).all()
+
     # Check bounds
     assert (scored["alpha_score"] >= 0.0).all()
     assert (scored["alpha_score"] <= 100.0).all()

@@ -9,13 +9,29 @@ import pandas as pd
 
 def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Calculate a 0-100 alpha score cross-sectionally by date using:
-    - momentum score: 25% (60d return rank; 20d return removed, see FACTOR_RETEST_V2_REPORT.md NV4)
-    - relative strength score: 25% (20d & 60d alpha relative to benchmark rank)
-    - trend score: 20% (close > MA20, MA50, MA200 criteria)
-    - volume confirmation score: 15% (volume_ratio_20d rank)
-    - volatility contraction score: 10% (realized volatility rank, lower is better)
-    - liquidity score: 5% (value_ma20 rank)
+    Primary output `alpha_score` is the v2 composite (SCORE_V2_DESIGN.md /
+    SCORE_V2_REPORT.md), installed after the v1 composite (below) was found
+    to have no significant standalone IC anywhere it was tested
+    (SCORE_FORENSIC_REPORT.md NV3) and to have actively driven the 2026
+    walk-forward disaster fold via a momentum/relative-strength reversal
+    (SCORE_FORENSIC_REPORT.md NV2):
+    - v2: 70% realized_vol_20d rank (lower vol = higher score; the one
+      component with independently validated IC, t_NW=-5.41 both universes,
+      SCORE_FORENSIC_REPORT.md) + 30% value_ma20 rank (lower/less-liquid =
+      higher score, matching its own validated but narrower IC evidence,
+      t_NW=-3.33 full universe only, with a disclosed survivorship-bias
+      caveat -- DATA_BASELINE.md). Confirmation run: null-test avg
+      percentile 71.0/2000 across 5 folds (no fold <5th), IC t_NW=+6.09
+      (full) / +5.67 (top150) residualized, same-signed all 3 periods.
+
+    The v1 composite is retained as `alpha_score_shadow_v1` for live,
+    ongoing out-of-sample comparison (not used by any downstream
+    consumer) -- momentum score 25% (60d return rank), relative strength
+    25% (20d & 60d alpha vs. benchmark), trend 20% (MA20/50/200), volume
+    15% (volume_ratio_20d rank), volatility 10% (realized_vol_20d rank,
+    lower is better), liquidity 5% (value_ma20 rank, higher is better --
+    note this is the OPPOSITE direction from v2's liquidity component;
+    v1's direction was never independently validated).
     """
     if stock_df.empty:
         return stock_df.copy()
@@ -136,8 +152,10 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
         liq_metric = group.get("value_ma20", pd.Series(1.0, index=group.index))
         group["liquidity_score"] = (liq_metric.rank(pct=True, na_option="keep") * 100.0).fillna(50.0).clip(0.0, 100.0)
         
-        # 7. Final Alpha Score
-        group["alpha_score"] = (
+        # 7. v1 composite -- kept as a shadow/comparison column only, not
+        # consumed downstream. See SCORE_FORENSIC_REPORT.md for why it was
+        # superseded.
+        group["alpha_score_shadow_v1"] = (
             0.25 * group["momentum_score"]
             + 0.25 * group["rs_score"]
             + 0.20 * group["trend_score"]
@@ -145,7 +163,18 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
             + 0.10 * group["volatility_score"]
             + 0.05 * group["liquidity_score"]
         ).clip(0.0, 100.0)
-        
+
+        # 8. v2 composite -- the primary, deployed `alpha_score`
+        # (SCORE_V2_DESIGN.md / SCORE_V2_REPORT.md). Liquidity direction is
+        # intentionally inverted from the v1 liquidity_score column above
+        # (lower value_ma20 = higher v2 score), matching the validated IC
+        # sign -- see the function docstring.
+        vol_metric_v2 = group.get("realized_vol_20d", group.get("atr_pct_14", pd.Series(1.0, index=group.index)))
+        v2_vol_score = ((1.0 - vol_metric_v2.rank(pct=True, na_option="keep")) * 100.0).fillna(50.0)
+        liq_metric_v2 = group.get("value_ma20", pd.Series(1.0, index=group.index))
+        v2_liquidity_score = ((1.0 - liq_metric_v2.rank(pct=True, na_option="keep")) * 100.0).fillna(50.0)
+        group["alpha_score"] = (0.70 * v2_vol_score + 0.30 * v2_liquidity_score).clip(0.0, 100.0)
+
         return group
         
     ranked_frames = [compute_ranks(group.copy()) for _, group in merged.groupby("date", sort=False)]
