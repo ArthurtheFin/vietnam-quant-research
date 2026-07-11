@@ -23,7 +23,7 @@ def run_portfolio_backtest(
     features: pd.DataFrame,
     meta_ranking: pd.DataFrame,
     rebalance_period: int = 20,
-    portfolio_size: int = 5,
+    portfolio_size: int = 10,
     allocation_method: str = "equal_weight",
     transaction_cost_pct: float = 0.0015,
     initial_nav: float = 1_000_000_000.0,
@@ -37,7 +37,7 @@ def run_portfolio_backtest(
     take_profit_pct: float | None = None,
     trend_break_col: str = "above_ma20",
     benchmark_features: pd.DataFrame | None = None,
-    max_per_sector: int | None = None,
+    max_per_sector: int | None = 2,
     sector_map: dict[str, str] | None = None,
     giveback_arm_gain: float | None = None,
     giveback_trigger_gain: float = 0.0,
@@ -96,13 +96,30 @@ def run_portfolio_backtest(
     substituting some other stock's data and labeling it as the benchmark
     (that used to happen here -- see FOLD_AUTOPSY_REPORT.md).
 
-    max_per_sector / sector_map (both optional, both required together):
-    caps how many of the `portfolio_size` selections can share a sector.
-    Selection still walks the score-sorted candidate list top-down, just
-    skipping any symbol whose sector has already hit the cap, until
-    portfolio_size names are filled (or candidates run out). `sector_map`
-    is a plain {symbol: sector} dict; unmapped symbols count as "UNKNOWN".
-    None (default) preserves prior behavior exactly (plain top-N by score).
+    max_per_sector / sector_map: caps how many of the `portfolio_size`
+    selections can share a sector. Selection still walks the score-sorted
+    candidate list top-down, just skipping any symbol whose sector has
+    already hit the cap, until portfolio_size names are filled (or
+    candidates run out). `sector_map` is a plain {symbol: sector} dict;
+    unmapped symbols count as "UNKNOWN". The cap is only active when
+    `sector_map` is actually supplied (max_per_sector alone is a no-op
+    without it) -- callers who don't pass sector_map get plain top-N
+    selection regardless of max_per_sector's value.
+
+    portfolio_size=10 / max_per_sector=2 are the defaults as of
+    CONCENTRATION_ANALYSIS_REPORT.md (was portfolio_size=5, no sector cap).
+    Basis: a pre-registered theoretical prediction ("more names -> shallower
+    worst fold, mean/median converge") was tested and partially confirmed --
+    worst-fold CAGR shallowed monotonically with size (-59.7% -> -55.2% ->
+    -45.3% for 5/10/20 names) and the 10-name+cap-2 variant beat plain
+    size=10 on every metric tested. This is a diversification decision, not
+    a "this config won the sensitivity table" decision -- **it reduces
+    variance, it does not fix signal quality.** The same report's null test
+    (2,000 random portfolios/fold) found the deployed alpha_score actually
+    underperforms random stock-picking on average across the 5 folds tested
+    (mean percentile 41.2, i.e. below the 50th), and one fold's failure
+    (2026, percentile 0.4) was attributed to the score itself, not
+    concentration noise -- more names would not have fixed that fold.
     """
     # 1. Prepare data
     df = features.sort_values(["symbol", "date"]).copy()
