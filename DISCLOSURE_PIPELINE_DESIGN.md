@@ -14,6 +14,105 @@ reports (required within days of a ≥1% change once holding ≥5%).
 
 ---
 
+## ROUND 2 — SSI verified exhaustively via official documentation, closed definitively
+
+Follow-up to Round 1's SSI finding below, which was based on inspecting
+the installed SDK package only. This round checks the **official
+documentation**, independent of what any particular SDK version
+implements, per instruction — a real distinction, since SDKs can lag a
+published API spec. Conclusion did not change, but is now evidenced at
+the documentation level, not just the code level.
+
+### NV1 — full FCData endpoint catalog, cross-checked 3 ways
+
+1. **SDK source** (`ssi_fc_data` v2.2.2, `model/api.py`): defines exactly
+   10 URL constants, all under `api/v2/Market/`.
+2. **Official English docs**: `guide.ssi.com.vn/ssi-products/fastconnect-data/api-specs`.
+3. **Official Vietnamese docs**: `guide.ssi.com.vn/ssi-products/tieng-viet/fastconnect-data/danh-sach-cac-api`.
+
+All three sources list the **same 10 endpoints**, no more, no fewer:
+
+| Endpoint | Path | Description |
+|---|---|---|
+| AccessToken | `Market/AccessToken` | Auth token for API/streaming access |
+| Securities | `Market/Securities` | Securities list by exchange |
+| SecuritiesDetails | `Market/SecuritiesDetails` | Detailed info for a security (ISIN, type, trading specs) |
+| IndexComponents | `Market/IndexComponents` | Constituent securities of an index |
+| IndexList | `Market/IndexList` | Available indices by exchange |
+| DailyOhlc | `Market/DailyOhlc` | Daily OHLC + volume/value (the adjusted, primary price endpoint this whole project is built on) |
+| IntradayOhlc | `Market/IntradayOhlc` | Intraday tick-level OHLC |
+| DailyIndex | `Market/DailyIndex` | Daily index-level trading results |
+| DailyStockPrice | `Market/DailyStockPrice` | Daily price incl. raw/adjusted close, foreign-investor activity (the fallback endpoint `BACKFILL_DESIGN_REPORT.md` root-caused the adjustment bug in) |
+| BackTest | `Market/BackTest` | Present in the SDK's method list and URL constants; not wrapped in `src/data/ssi_client.py`, not documented with a description on either official page found — appears to be a historical-replay/testing utility, not disclosure-related regardless |
+
+**Corporate-actions/events/disclosure check**: **zero** of these 10
+relate to corporate actions, dividends, splits, AGM/shareholder
+meetings, insider trading, or ownership changes — confirmed identically
+by the SDK's own code and by both language versions of the official
+docs. **No endpoint qualified for the requested test-call step (HPG or
+otherwise) — there is nothing in this category to call.** This is a
+stronger result than Round 1's (SDK-only) finding: it rules out the
+possibility that the SDK simply hadn't caught up to a richer published
+API, since the official spec itself has nothing more.
+
+### NV2 — other SSI products
+
+Official product index (`guide.ssi.com.vn/ssi-products`) lists exactly
+**two** FastConnect products total:
+- **FastConnect Data (FCData)** — market data (the 10 endpoints above).
+- **FastConnect Trading (FCTrading)** — account info, order placement/
+  amendment/cancellation, order-status streaming. Purely execution/
+  account management — not a data product, and not disclosure-related
+  by its own stated purpose regardless of what scope our credentials
+  have. Never used anywhere in this codebase.
+
+**Account scope**: not inspected by dumping the live access-token
+response (blocked — printing a real credential/token into this
+transcript isn't something to do without a specific reason, and wasn't
+needed here). Not needed for the conclusion anyway: every successful
+call this whole project has ever made (`get_securities`, `get_daily_ohlc`,
+etc.) is FCData-scoped, FCTrading has never been touched, and FCTrading
+is the wrong *kind* of product for disclosure data regardless of scope
+— so account-scope introspection wouldn't change this section's answer.
+
+**iBoard's disclosure-news backend**: searched official SSI
+documentation and support pages for any description of what powers
+iBoard's "công bố thông tin" news feed. **Found none** — no public SSI
+documentation describes iBoard's disclosure-news data source.
+Per instruction, this was **not pursued further via inspecting iBoard's
+actual network traffic** (that would be reverse-engineering, explicitly
+out of bounds unless terms of service clearly allow it, which wasn't
+established). This line of inquiry is closed as "undocumented
+publicly," not as "confirmed absent."
+
+### NV3 — conclusion: **(b) closed**
+
+**SSI's full FastConnect product line (both products, all 10 FCData
+endpoints, cross-verified via SDK source + 2 official documentation
+pages) has no insider-trading or major-shareholder disclosure data of
+any kind.** This is the complete evidence list for that conclusion —
+nothing further to check within SSI's own documented offering.
+
+**Corporate-actions aside** (as instructed, independent of the main
+disclosure question): **no corporate-action endpoint exists either** —
+neither DailyOhlc/DailyStockPrice nor any other endpoint returns
+dividend/split events directly; the existing pipeline's own adjustment
+handling (`BACKFILL_DESIGN_REPORT.md`) works by consuming `DailyOhlc`'s
+*already-adjusted* close series, not by reading discrete corporate-
+action records. **No reconciliation source was found here** — if a
+future round wants an independent corporate-action feed to cross-check
+`full_history_v2`'s adjustment handling, it isn't SSI; it would need its
+own separate survey, out of scope for this round.
+
+**Decision**: primary source stays **CafeF.vn**, exactly as designed in
+Round 1 below — nothing in this round changes that plan. Proceed to the
+verification spike already recommended (fetch known historical events,
+confirm they match) before committing further.
+
+---
+
+## ROUND 1 — original survey and design
+
 ## NV3 — source survey (read-only, no new signups)
 
 ### 1. SSI FCData (current client) — **no capability, confirmed**
@@ -25,6 +124,11 @@ our wrapper: `MarketDataClient` exposes exactly 9 endpoints —
 `securities`, `securities_details`. Nothing disclosure/event/ownership-
 related exists anywhere in the package, confirming `DATA_AUDIT_REPORT.md`'s
 original scope finding (this feed is price data only). **Ruled out.**
+
+*(Superseded by the deeper check above: this was SDK-code-only —
+**ROUND 2** cross-verifies against SSI's official documentation
+directly and checks SSI's other product, FCTrading, too. Conclusion is
+unchanged, now evidenced independent of any one SDK version.)*
 
 ### 2. HOSE — public viewer not pinned down, submission portal is login-gated
 
