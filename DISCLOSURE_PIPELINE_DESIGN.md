@@ -100,6 +100,87 @@ conclusion drawn.
 
 ---
 
+## CafeF Manual Verification Pilot
+
+**Manual, read-only. No crawler, no scripted/bulk requests, no
+reverse-engineering of any internal API.** All of Step 0-3 below were
+done by fetching individual pages one at a time and reading the
+rendered content, same as a human visiting the site.
+
+### Step 0 — robots.txt / terms-of-use check for automated access
+
+- **`https://cafef.vn/robots.txt`** (fetched directly, verbatim):
+  ```
+  User-agent: *
+  Allow: /
+  Sitemap: https://cafef.vn/sitemap.xml
+  Sitemap: https://cafef.vn/google-news-sitemap.xml
+  ```
+  Explicitly **allows all crawlers on the entire site** — no `Disallow`
+  lines at all, and specifically no `Crawl-delay`.
+- **Dedicated Terms of Use page**: not found. The site's footer links to
+  exactly one legal document — `https://cafef.vn/static/chinh-sach-bao-mat.html`
+  ("Chính sách bảo mật" / Privacy Policy) — no separate "Điều khoản sử
+  dụng" page exists in the footer navigation.
+- **Privacy policy content**: fetched and checked for scraping/reuse/
+  commercial-use clauses. **Contains none** — it covers personal-data
+  collection, cookies, and third-party sharing only; no statement on
+  automated access or content reuse either way.
+- **Footer copyright line** (verbatim): *"© Copyright 2007 - 2026 -
+  Công ty Cổ phần VCCorp. Giấy phép thiết lập trang thông tin điện tử
+  tổng hợp trên mạng số 2216/GP-TTĐT do Sở Thông tin và Truyền thông Hà
+  Nội cấp ngày 10 tháng 4 năm 2019."* — a publishing-license notice, not
+  a usage restriction on the data itself.
+
+**Verdict: not prohibited.** robots.txt affirmatively allows automated
+access to the whole site, and no ToS/legal page found states otherwise.
+Proceeding to Steps 1-3 under the stated constraint (manual/read-only,
+no scripted bulk access) regardless of this permissive robots.txt —
+that constraint is about *this pilot*, not a statement that a future
+real scraper would be unrestricted.
+
+### Step 1 — 10 pre-registered known disclosure events, 2024-2026
+
+Chosen for being widely reported in mainstream Vietnamese financial
+press (independent of CafeF), spanning 6 different tickers, both
+registration and result events, and both insider and major-shareholder
+categories. **Registered here before any CafeF lookup was performed.**
+
+| # | Symbol | Person / entity | Role | Type | Shares | Window / date | Source |
+|---|---|---|---|---|---|---|---|
+| 1 | NVL | Bùi Cao Ngọc Quỳnh | Con gái Chủ tịch Bùi Thành Nhơn | Registration (sell) | 9,100,000 | 9/5–6/6/2024 | mekongasean.vn |
+| 2 | NVL | NovaGroup | Tổ chức liên quan Chủ tịch | Registration (sell) | 9,410,000 | 6/5–31/5/2024 | vneconomy.vn |
+| 3 | VDS | Phạm Mỹ Linh | Mẹ TV HĐQT Phạm Hữu Luân | Registration (sell) | 5,000,000 | 8/9–6/10/2025 | cafef.vn (188250904...) |
+| 4 | VDS | Nguyễn Thị Thu Huyền | TV HĐQT kiêm TGĐ | Registration (sell) | 940,000 | 8/9–6/10/2025 | vneconomy.vn |
+| 5 | VDS | (lãnh đạo, name unconfirmed in this search pass) | Lãnh đạo | Registration (sell) | 400,000 | announced ~18/2/2026 | cafef.vn (188260218...) |
+| 6 | HPG | Trần Vũ Minh | Con trai Chủ tịch Trần Đình Long | Result (buy) | registered 50,000,000 / executed 33,290,000 (66.6%) | 12/3–9/4/2026 | cafef.vn (188260414...), tuoitre.vn |
+| 7 | VIC | Phạm Nhật Vượng | Chủ tịch | Transfer (capital contribution) | >70,600,000 | announced ~11/6/2025 | tuoitre.vn |
+| 8 | VIC | Phạm Nhật Vượng | Chủ tịch | Transfer (capital contribution) | >48,000,000 | announced ~mid-2025 | tuoitre.vn |
+| 9 | VNS | CTCP Tư vấn Kim Ngưu | Liên quan lãnh đạo Vinasun | Result (sell) | registered >3,400,000 / executed 909,091 (26.6%) | 15/5–13/6/2026 | cafef.vn (188260621...) |
+| 10 | MPC | Chu Hồng Hà | Phó Tổng Giám đốc | Registration (sell) | 275,000 | 8/6–30/6/2026 | tinnhanhchungkhoan.vn |
+
+### Step 3 (pre-registered ahead of Step 2, per numbering above) — 5 events, 2020-2021, for historical-depth check
+
+| # | Symbol | Person / entity | Role | Type | Shares | Window / date | Source |
+|---|---|---|---|---|---|---|---|
+| A | TCH | Nguyễn Thị Hà | Vợ Chủ tịch Đỗ Hữu Hạ | Registration (buy) | 18,000,000 | 1/10–30/10/2020 (announced 28/9/2020) | cafef.vn (own archive page) |
+| B | MWG | Phan Thị Thu Hiền | Vợ Chủ tịch Nguyễn Đức Tài | Registration (sell) | 500,000 | 9/12–31/12/2020 | vietnambiz.vn |
+| C | TCB | Hồ Thủy Anh | Con gái Chủ tịch Hồ Hùng Anh | Registration (buy) | 22,474,840 | 12/7–4/8/2021 | baodautu.vn |
+| D | VHM | Tập đoàn Vingroup | Cổ đông lớn | Registration (sell) | ~100,500,000 (~3% vốn điều lệ) | 19/8–17/9/2021 | baodautu.vn |
+| E | MWG | Nguyễn Đức Tài | Chủ tịch HĐQT | Registration (sell) | 1,000,000 | 3/12–31/12/2021 | tuoitre.vn |
+
+### Step 2 — manual CafeF lookup results
+
+*(filled in below as each symbol's "Cổ đông & Nội bộ" tab is checked)*
+
+---
+
+## vnstock License Review
+
+*(filled in below)*
+
+---
+
 ## ROUND 2 — SSI verified exhaustively via official documentation, closed definitively
 
 Follow-up to Round 1's SSI finding below, which was based on inspecting
