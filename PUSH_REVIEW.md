@@ -1,12 +1,13 @@
-# PUSH_REVIEW — 32 local commits ahead of origin, for your review before pushing
+# PUSH_REVIEW — 33 local commits ahead of origin, for your review before pushing
 
-Branch `claude/charming-bartik-d21dc1` is **32 commits ahead** of
+Branch `claude/charming-bartik-d21dc1` is **33 commits ahead** of
 `origin/claude/charming-bartik-d21dc1` (tip `e7e6728`), 0 behind — a
 clean fast-forward push, nothing to reconcile. **Not pushed.** Grouped
 oldest → newest below; each group's one-line summary states the overall
 outcome, not just what was attempted. (Phases 0-4 below, 30 commits,
-were the state as of this file's first version; Phase 5 was added after,
-covering this file's own commit and the round that followed it.)
+were the state as of this file's first version; Phase 5 and 6 were
+added in later rounds, covering this file's own commits and the rounds
+that followed it.)
 
 ---
 
@@ -118,6 +119,18 @@ accumulation-detection feature, concluding CafeF.vn is the best
 candidate found but its historical depth is unverified at the row
 level, with a design for point-in-time-safe storage ready for review
 before any of it gets built.
+
+## Phase 6 — SSI verified exhaustively, closed (this session, 1 commit)
+
+| Hash | Message |
+|---|---|
+| `5f16120` | docs: verify SSI has no disclosure data via official docs, close definitively |
+
+**Summary**: before committing to CafeF, cross-checked SSI's official
+FastConnect documentation (not just the installed SDK) and its other
+product (FastConnect Trading) for any disclosure capability at all —
+found none, three independent sources (SDK code, English docs,
+Vietnamese docs) agree exactly. CafeF.vn stays the plan.
 
 ---
 
