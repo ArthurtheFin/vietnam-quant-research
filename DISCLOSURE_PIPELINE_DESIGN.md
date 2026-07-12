@@ -14,6 +14,92 @@ reports (required within days of a ≥1% change once holding ≥5%).
 
 ---
 
+## ROUND 3 — point-in-time rule fix (look-ahead bug) + CafeF manual verification pilot
+
+### NV1 — the original point-in-time rule was backwards
+
+**The bug**: NV4 below (Round 1) defined
+`effective_knowable_date = ingested_at if disclosure_date_is_estimated
+else min(disclosure_date, ingested_at)`, and justified taking the
+*earlier* of the two dates as the "stricter, safer" choice. That
+reasoning is inverted. Taking the **minimum** doesn't protect against
+look-ahead — it **causes** it: whenever a live-scraped row is captured
+later than the event's stated `disclosure_date` (the normal case —
+scraping always lags the real-world announcement by some amount), `min`
+picks `disclosure_date`, which tells a backtest "this was knowable on
+`disclosure_date`" even though **this pipeline** didn't actually have
+the row until `ingested_at`, strictly later. A backtest driven off that
+rule would be trading on information before its own ingestion pipeline
+had captured it — exactly the class of bug `FOLD_AUTOPSY_REPORT.md` and
+`run_portfolio_backtest`'s T-1 convention were built to prevent
+elsewhere in this project, reintroduced here by an inverted min/max.
+
+**The fix — two cases, not one rule**:
+
+1. **Live-accumulated rows** (`is_backfilled=False`): a row is only
+   knowable once *both* the disclosure has legally happened *and* this
+   pipeline has actually captured it:
+   ```
+   available_at = max(disclosure_date, ingested_at)
+   usable_as_of_T = available_at <= T
+   ```
+   This is the correct direction: `max`, not `min` — the later of the
+   two is the true point-in-time floor, since a backtest cannot act on
+   a row before the pipeline itself possessed it, no matter how early
+   the disclosure was legally dated.
+
+2. **Backfilled rows** (`is_backfilled=True`): backfill has no real
+   `ingested_at` — it's just "whenever the backfill job happened to
+   run," which is unrelated to when the information would have been
+   knowable historically, so it cannot be used in the `max()` rule
+   above (it would make everything artificially "available" only as of
+   the backfill run date, which is wrong in the opposite direction —
+   look-ahead-safe but uselessly conservative for building historical
+   labels). Instead, backfilled rows use a **conservative assumed lag**
+   in place of a real capture timestamp:
+   ```
+   available_at = disclosure_date + 1 trading day  # assumed scrape lag, conservative
+   ```
+   flagged with `is_backfilled=True` so any backtest consuming this
+   table can run a **lag-sensitivity check** later (e.g. redo with +0,
+   +2, +3 trading days and confirm results don't hinge on the assumed
+   value) instead of silently trusting one hardcoded guess.
+
+**Plan to replace the assumption with a measurement**: once the
+pipeline is running live, log both `disclosure_date` (the date printed
+on the source announcement/table row) and `ingested_at` (real capture
+time) for every row, and periodically compute the **empirical
+distribution of `ingested_at - disclosure_date`** across live rows.
+Once enough live observations exist, that measured distribution (e.g.
+its median or a conservative percentile) should replace the flat
+"+1 trading day" backfill assumption above — the assumption is a
+placeholder for a build-phase that has no live data yet, not a
+permanent design choice.
+
+**Also fixes**: `disclosure_date_is_estimated`'s role in the old rule
+(picking `ingested_at` alone when the disclosure date was estimated) is
+superseded by the same two-case split above — `is_backfilled` and
+`disclosure_date_is_estimated` are now orthogonal flags (one about
+whether `ingested_at` is a real timestamp, the other about whether
+`disclosure_date` itself is exact or inferred), both usable together
+with the `max()` rule for any live row.
+
+### NV2 — CafeF manual verification pilot
+
+See the pilot report appended after this section once run (Step 0
+robots.txt/ToS check, Steps 1-3 manual lookups, conclusion) —
+**pilot results below**, not yet present at the point this rule fix was
+written; see the "CafeF Manual Verification Pilot" heading further down
+this document.
+
+### NV3 — vnstock license
+
+See "vnstock License Review" heading further down this document for the
+verbatim non-commercial-use clause, gathered for review, no legal
+conclusion drawn.
+
+---
+
 ## ROUND 2 — SSI verified exhaustively via official documentation, closed definitively
 
 Follow-up to Round 1's SSI finding below, which was based on inspecting
@@ -273,7 +359,8 @@ before investing in the rest of the pipeline.
 | `disclosure_date_is_estimated` | bool | True if backfilled as a proxy (see below), False if taken directly from a source-provided announcement timestamp |
 | `source` | string | e.g. `cafef`, `hnx`, `vietstock` — for auditability and reconciling conflicts across sources |
 | `source_ref` | string | URL or source-internal ID, for manual verification |
-| `ingested_at` | timestamp | When *this pipeline* captured the row — the true point-in-time anchor for anything accumulated live |
+| `ingested_at` | timestamp | When *this pipeline* captured the row. For live-accumulated rows this is a real capture timestamp. For backfilled rows it is **not** a real point-in-time signal (it's just "when the backfill job ran") — see `is_backfilled` and **ROUND 3** below. |
+| `is_backfilled` | bool | True if this row was loaded by a historical backfill job (its `ingested_at` is not a real point-in-time capture); False if accumulated live. Added in **ROUND 3** — distinct from `disclosure_date_is_estimated`, which is about whether `disclosure_date` itself is exact. |
 | `raw_payload` | string (JSON), nullable | Original scraped text/fields, kept for reprocessing if parsing logic improves later |
 
 **Natural key** (uniqueness, append-only enforcement):
@@ -294,7 +381,9 @@ source doesn't give the disclosure date directly —
 `disclosure_date_is_estimated=True` in that case. For live-accumulated
 rows, `ingested_at` is unambiguous and should be preferred.
 
-**Rule for "what did we know as of date T"**:
+**Rule for "what did we know as of date T"** *(SUPERSEDED — this rule has
+a look-ahead bug, see **ROUND 3** below for the fix; kept here
+unmodified for the record)*:
 ```
 effective_knowable_date = ingested_at if disclosure_date_is_estimated else min(disclosure_date, ingested_at)
 usable_as_of_T = effective_knowable_date <= T
