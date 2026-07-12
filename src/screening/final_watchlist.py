@@ -379,9 +379,12 @@ def _merge_latest_alpha(df: pd.DataFrame, alpha_scores: pd.DataFrame | None, as_
         df["alpha_score"] = np.nan
         return df
     alpha = _latest_by_symbol(alpha_scores, as_of_date=as_of_date)
-    keep = [c for c in ["symbol", "alpha_score", "momentum_score", "rs_score", "trend_score", "volume_score", "volatility_score", "liquidity_score"] if c in alpha.columns]
+    # NOTE: v1 shadow's momentum_score is intentionally NOT merged in here.
+    # SCORE_FORENSIC_REPORT.md found its IC was ~0 over 2023-2025 and -0.1050
+    # in 2026 (the largest negative-IC component in that fold); it is a shadow
+    # score for comparison only, not a validated input for this live screen.
+    keep = [c for c in ["symbol", "alpha_score", "rs_score", "trend_score", "volume_score", "volatility_score", "liquidity_score"] if c in alpha.columns]
     rename = {
-        "momentum_score": "alpha_momentum_score",
         "rs_score": "alpha_rs_score",
         "trend_score": "alpha_trend_score",
         "volume_score": "alpha_volume_score",
@@ -430,14 +433,20 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     # composite (70% realized_vol_20d + 30% value_ma20, rewarding LOW vol
     # and LOW liquidity) -- a volatility/liquidity signal, not a momentum
     # one. Averaging it into "momentum" was a semantic mismatch left over
-    # from before v2 was installed. alpha_momentum_score (the v1 shadow
-    # composite's own momentum_score, still computed -- see
-    # src/alpha/scoring.py) is unaffected and stays.
+    # from before v2 was installed.
+    #
+    # alpha_momentum_score (the v1 shadow composite's own momentum_score)
+    # is also removed from this average, not just alpha_score: SCORE_FORENSIC_REPORT.md
+    # found this factor's IC was ~0 over 2023-2025 and -0.1050 in 2026 --
+    # the single largest negative IC of any component in that fold, and a
+    # direct hypothesis test confirmed the cohort it ranked highest went on
+    # to underperform (see SCORE_FORENSIC_REPORT.md's momentum/RS section).
+    # v1 remains available as a shadow score for ongoing comparison; it is
+    # not a validated input for the live product screen.
     momentum_raw = pd.concat(
         [
             _rank(out["return_20d"]),
             _rank(out["return_60d"]),
-            _rank(out.get("alpha_momentum_score", pd.Series(np.nan, index=out.index))),
         ],
         axis=1,
     ).mean(axis=1)
