@@ -14,6 +14,76 @@ reports (required within days of a ≥1% change once holding ≥5%).
 
 ---
 
+## ROUND 5 — full-universe crawl, descriptive baseline, live-update pipeline started
+
+**Scope, stated plainly and enforced as a hard constraint**: this round is
+collection and inventory only. No factor was computed, no signal was
+tested, and — critically — **no statistic anywhere in this round's output
+joins disclosure data against price or return data.** The reason is
+sequencing, not caution for its own sake: a signal-test design must be
+pre-registered *before* anyone looks at how disclosure timing relates to
+subsequent price moves, exactly the discipline this session already
+applied to `SCORE_V2_DESIGN.md` and `FACTOR_RETEST_V2_REPORT.md` elsewhere
+in the codebase. Looking at event-to-return statistics now, even
+"just descriptively," would let that look quietly bias whatever test design
+gets written next — the single most important guardrail for this new
+branch of work, and the reason this round's descriptive doc
+(`DISCLOSURE_BASELINE.md`) is share-count/date statistics only, never
+return statistics.
+
+### NV1 — full-universe crawl
+
+Ran `scripts/crawl_disclosure.py --universe` against all 500 symbols in
+the current universe (`data/full_history_v2/raw/*.parquet` minus
+`config/excluded_symbols.csv`'s `GEE`). **0 fetch errors, 0 rate-limiting,
+~24 minutes wall-clock** — in line with ROUND 4/NV7's estimate. 57,800
+rows parsed, 56,870 valid (in `events.parquet`), 518 rejected (in
+`errors.parquet`, 0.90% reject rate — consistent with the pilot's 0.9%
+found on 5 symbols). Full descriptive results: `DISCLOSURE_BASELINE.md`
+(new document, mirroring `DATA_BASELINE.md`'s role for the price dataset).
+
+**Headline finding**: historical depth is much better than the 5-symbol
+ROUND 4 pilot suggested — **157 of 500 symbols (31%) have disclosure
+history reaching back to 2008**, not just HPG. See `DISCLOSURE_BASELINE.md`
+for the full depth histogram and every other descriptive cut requested
+(period × event type, role distribution, execution/registration ratio,
+field-completeness-by-year, rejected-row breakdown).
+
+**One new data-quality finding from full-universe scale that the 5-symbol
+pilot was too small to surface**: the natural key `(symbol, event_type,
+person_name, disclosure_date)` collides for 829 rows (1.4%) where the same
+person made two genuinely distinct disclosures published the same calendar
+day — `append_parquet`'s dedup keeps only one, meaning up to several
+hundred real events aren't individually represented right now. Documented
+in `DISCLOSURE_BASELINE.md` caveat #1, not fixed this round (schema change,
+out of "kiểm kê" scope) — flagged for whoever next relies on this dataset
+needing an exact event count.
+
+### NV2 — incremental daily update pipeline (live point-in-time branch)
+
+`scripts/update_disclosure_daily.py` + `src/data/disclosure_ingest.py`'s
+new `ingest_new_events_live()`: re-fetches each symbol's current history
+(one request each, same politeness), anti-joins against both the events
+and error tables by natural key, and ingests **only genuinely new rows**
+with `is_backfilled=False` — the first code running the live branch of the
+ROUND 3 point-in-time rule (`available_at = max(disclosure_date,
+ingested_at)`) rather than every row being backfilled. Not yet run on a
+real schedule this round (no cron/launchd entry installed) — the script
+exists and is tested, running it daily is an operational step for whoever
+owns that decision.
+
+### NV3 — not done this round, by design
+
+No join to `data/full_history_v2` or any price/return series. No factor
+built on top of `disclosure_events`. No signal test, walk-forward, or IC
+computation. **Next round, if pursued, should open by pre-registering the
+signal-test design** (event window, label definition, train/test split,
+acceptance bar) **before** running it against this dataset — the same
+discipline `SCORE_V2_DESIGN.md` used, applied to a new data source for the
+first time.
+
+---
+
 ## ROUND 4 — crawler v1 built, run against 5 symbols, historical-depth question closed
 
 **Crawler code written this round** (all under `src/data/disclosure_*.py`,
