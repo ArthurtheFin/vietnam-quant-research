@@ -1,0 +1,56 @@
+{
+  "AAM": {
+    "pages": [
+      "data/disclosure/raw/AAM/page01_2026-07-12T111749.113828+0000.json"
+    ],
+    "rows_seen": 87,
+    "status": "ok",
+    "symbol": "AAM",
+    "total_count": 87
+  },
+  "HPG": {
+    "pages": [
+      "data/disclosure/raw/HPG/page01_2026-07-12T111409.834048+0000.json"
+    ],
+    "rows_seen": 247,
+    "status": "ok",
+    "symbol": "HPG",
+    "total_count": 247
+  },
+  "MWG": {
+    "pages": [
+      "data/disclosure/raw/MWG/page01_2026-07-12T111401.968909+0000.json"
+    ],
+    "rows_seen": 352,
+    "status": "ok",
+    "symbol": "MWG",
+    "total_count": 352
+  },
+  "TCB": {
+    "pages": [
+      "data/disclosure/raw/TCB/page01_2026-07-12T111359.123774+0000.json"
+    ],
+    "rows_seen": 164,
+    "status": "ok",
+    "symbol": "TCB",
+    "total_count": 164
+  },
+  "TCH": {
+    "pages": [
+      "data/disclosure/raw/TCH/page01_2026-07-12T111404.523798+0000.json"
+    ],
+    "rows_seen": 29,
+    "status": "ok",
+    "symbol": "TCH",
+    "total_count": 29
+  },
+  "VHM": {
+    "pages": [
+      "data/disclosure/raw/VHM/page01_2026-07-12T111407.131147+0000.json"
+    ],
+    "rows_seen": 14,
+    "status": "ok",
+    "symbol": "VHM",
+    "total_count": 14
+  }
+}
