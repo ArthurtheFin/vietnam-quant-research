@@ -1,11 +1,11 @@
-# PUSH_REVIEW — 40 local commits ahead of origin, for your review before pushing
+# PUSH_REVIEW — 46 local commits ahead of origin, for your review before pushing
 
-Branch `claude/charming-bartik-d21dc1` is **40 commits ahead** of
+Branch `claude/charming-bartik-d21dc1` is **46 commits ahead** of
 `origin/claude/charming-bartik-d21dc1` (tip `e7e6728`), 0 behind — a
 clean fast-forward push, nothing to reconcile. **Not pushed.** Grouped
 oldest → newest below; each group's one-line summary states the overall
 outcome, not just what was attempted. (Phases 0-4 below, 30 commits,
-were the state as of this file's first version; Phases 5-7 were added
+were the state as of this file's first version; Phases 5-8 were added
 in later rounds, covering this file's own commits and the rounds that
 followed it.)
 
@@ -161,6 +161,41 @@ missing data. CafeF confirmed sufficient as primary source for live
 accumulation; historical depth for high-turnover names stays an open
 question. vnstock's non-commercial license clause quoted for the
 record, no legal conclusion drawn.
+
+## Phase 8 — disclosure crawler v1 built + run, historical-depth question closed (this session, 5 commits)
+
+| Hash | Message |
+|---|---|
+| `2e17be7` | feat(data): polite crawler v1 for CafeF disclosure history (raw tier) |
+| `5b96c44` | feat(data): parse tier for disclosure_events schema (raw JSON -> records) |
+| `b02d419` | feat(data): ingest pipeline applying ROUND 3 point-in-time schema |
+| `7e2c2de` | fix(data): correct ICT timezone offset in disclosure date parsing |
+| `b56eeed` | docs+data: Round 4 -- crawler run, historical-depth question closed |
+
+**Summary**: built the disclosure crawler design approved in Round 3
+into working code -- `src/data/disclosure_client.py` (polite HTTP:
+single-threaded, >=2.5s floor between requests, backs off then gives up
+on 429/403), `disclosure_crawler.py` (checkpoint/resume manifest, same
+pattern as the price backfill), `disclosure_parser.py` (raw JSON ->
+`disclosure_events` schema, pure function of the immutable raw tier),
+`disclosure_ingest.py` (Round 3's point-in-time rule, natural-key
+append-only, validation/rejection). During investigation, discovered
+the manual pilot's page is backed by a public JSON AJAX endpoint that
+returns a symbol's *entire* history in one response -- pivoted the
+crawler to hit that directly instead of scraping rendered HTML (more
+polite, same source, no new dependency; documented as a deliberate
+deviation from the literal "store raw HTML" instruction, not a
+shortcut).
+
+Ran the real crawler against TCB/MWG/TCH/VHM/HPG (as instructed) plus
+one extra symbol for a size estimate. Found and fixed a real timezone
+bug (dates were one calendar day off) by cross-validating against the 5
+historical events ROUND 3 couldn't reach -- after the fix, all 5 match
+exactly, closing the historical-depth question: HPG genuinely reaches
+back to 2008 (matching CafeF's own claim), others to 2013-2020
+per-symbol, confirmed by real data rather than pagination-limited
+inference. Full-universe crawl (501 symbols) NOT run -- estimated
+~20-30 min / ~53MB, proposed for approval in Round 4/NV8.
 
 ---
 
