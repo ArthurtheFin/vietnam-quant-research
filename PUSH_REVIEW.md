@@ -1,13 +1,13 @@
-# PUSH_REVIEW — 33 local commits ahead of origin, for your review before pushing
+# PUSH_REVIEW — 37 local commits ahead of origin, for your review before pushing
 
-Branch `claude/charming-bartik-d21dc1` is **33 commits ahead** of
+Branch `claude/charming-bartik-d21dc1` is **37 commits ahead** of
 `origin/claude/charming-bartik-d21dc1` (tip `e7e6728`), 0 behind — a
 clean fast-forward push, nothing to reconcile. **Not pushed.** Grouped
 oldest → newest below; each group's one-line summary states the overall
 outcome, not just what was attempted. (Phases 0-4 below, 30 commits,
-were the state as of this file's first version; Phase 5 and 6 were
-added in later rounds, covering this file's own commits and the rounds
-that followed it.)
+were the state as of this file's first version; Phases 5-7 were added
+in later rounds, covering this file's own commits and the rounds that
+followed it.)
 
 ---
 
@@ -131,6 +131,36 @@ FastConnect documentation (not just the installed SDK) and its other
 product (FastConnect Trading) for any disclosure capability at all —
 found none, three independent sources (SDK code, English docs,
 Vietnamese docs) agree exactly. CafeF.vn stays the plan.
+
+## Phase 7 — point-in-time fix, momentum-score removal, CafeF pilot (this session, 4 commits)
+
+| Hash | Message |
+|---|---|
+| `5f2ced4` | fix(docs): correct point-in-time rule in disclosure pipeline design (look-ahead bug) |
+| `517a3d0` | fix(screening): remove v1 alpha_momentum_score from final_watchlist momentum |
+| `a2e5933` | docs: CafeF pilot Step 0 (robots.txt/ToS check) + pre-registered event list |
+| `d3bc803` | docs: CafeF pilot Steps 2-3 results + vnstock license review (Round 3) |
+
+**Summary**: fixed a real look-ahead bug in the disclosure design's
+point-in-time rule (it took `min(disclosure_date, ingested_at)` and
+called that "stricter" — backwards; now `max()` for live rows, a
+conservative `+1 trading day` placeholder for backfilled rows, flagged
+`is_backfilled`); removed the v1 shadow's `momentum_score` from
+`final_watchlist.py`'s live scoring (`SCORE_FORENSIC_REPORT.md` found
+it IC ~0 over 2023-2025 and -0.1050 in 2026, the worst component in that
+fold) — full test suite passes, one pre-existing unrelated failure
+confirmed via `git stash` to predate this change; and ran a manual,
+read-only CafeF verification pilot (robots.txt allows crawling, no ToS
+found restricting it) against 15 pre-registered real disclosure events
+— 10/10 found for 2024-2026 with exact field matches plus real
+execution-vs-registration and multi-tranche findings press didn't
+carry, 1/5 confirmed for 2020-2021 (VHM, exact, with a bonus finding of
+real depth back to Nov 2018) with the other 4 blocked by browser-
+automation tooling limits reaching deep pagination, not by evidence of
+missing data. CafeF confirmed sufficient as primary source for live
+accumulation; historical depth for high-turnover names stays an open
+question. vnstock's non-commercial license clause quoted for the
+record, no legal conclusion drawn.
 
 ---
 
