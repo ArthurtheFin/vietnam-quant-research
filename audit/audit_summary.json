@@ -1,0 +1,66 @@
+{
+  "audit_status": "COMPLETED",
+  "overall_score": 58,
+  "maximum_score": 100,
+  "readiness_classification": "Experimental",
+  "critical_failure_count": 4,
+  "p0_count": 4,
+  "p1_count": 14,
+  "category_scores": {
+    "data_quality": {
+      "score": 9,
+      "max_score": 15
+    },
+    "universe_eligibility": {
+      "score": 6,
+      "max_score": 8
+    },
+    "signal_alpha": {
+      "score": 4,
+      "max_score": 12
+    },
+    "expected_return": {
+      "score": 1,
+      "max_score": 8
+    },
+    "covariance_risk": {
+      "score": 8,
+      "max_score": 12
+    },
+    "portfolio_optimization": {
+      "score": 9,
+      "max_score": 12
+    },
+    "monte_carlo": {
+      "score": 3,
+      "max_score": 5
+    },
+    "backtesting_validation": {
+      "score": 10,
+      "max_score": 15
+    },
+    "robustness_overfitting": {
+      "score": 4,
+      "max_score": 8
+    },
+    "engineering_production": {
+      "score": 4,
+      "max_score": 5
+    }
+  },
+  "known_vs_new_finding_counts": {
+    "note": "Approximate, derived from the 75-row gap matrix by keyword heuristic (citation of a prior report or explicit 'confirmed fixed/still open' language counted as KNOWN_DOCUMENTED). Individual finding-level [KNOWN_DOCUMENTED]/[NEW] tags are authoritative where present in critical_findings.md, portfolio_math_validation.md, and the four subagent source reports; this JSON field is a rollup estimate, not a re-derivation.",
+    "known_documented": 23,
+    "new": 52,
+    "total_gap_matrix_rows": 75
+  },
+  "top_critical_findings": [
+    "P0-1: No point-in-time universe exists anywhere in the codebase; every backtest and factor-IC test runs on today's listed 500-symbol universe projected backward to 2020, with zero ability to include historically delisted/suspended names -- severe, structural survivorship bias affecting every performance figure in every report.",
+    "P0-2: scripts/build_portfolio_stack.py (the production portfolio-construction and risk-reporting script) reads data/processed/stock_features.parquet directly, which this repo's own DATA_BASELINE.md documents as still containing the raw/adjusted-close corruption for an uncatalogued subset of symbols -- the fixed data/full_history_v2 dataset has not been merged in or repointed to.",
+    "P0-3: Independent Phase D recomputation of the committed data/output/portfolio_risk_report.json, using the exact documented method, the same weights, the same source file, and the report's own stated date cutoff, could not reproduce annual_return, annual_volatility, sharpe_ratio, or max_drawdown -- nor even the reported row count (1317 vs. 1621). Weight-derived metrics (max_weight, effective_n, herfindahl_index) reproduced exactly, isolating the gap to the mutable historical return window with no snapshot/hash recorded alongside the output.",
+    "P0-4: src/screening/final_watchlist.py's relative_strength_score still merges in alpha_rs_score, the exact v1-shadow rs_score component that SCORE_FORENSIC_REPORT.md identified as flipping from +0.0141 to -0.1060 IC in 2026 and calls a primary driver of a real -59.7% backtest fold. The sibling leak (momentum_score) was already fixed in this same session (commits 517a3d0/327b8d4); the same class of bug in rs_score was not caught and remains live in the composite that reaches Client Ready/Trading Watchlist tiers.",
+    "Confirmed strength, for balance: the core portfolio-risk mathematics (w^T Sigma w, marginal/component/percentage risk contribution) is correct and independently confirmed robust to symbol-order mismatches via a direct reversed-order test -- ruling out the single most severe common bug class the audit brief warns about."
+  ],
+  "recommended_next_phase": "Phase 1 of the remediation roadmap (data and mathematical correctness): repoint the production portfolio pipeline off the stale dataset (P0-2), remove the confirmed-harmful alpha_rs_score component from final_watchlist (P0-4), add data-lineage hashing so outputs become reproducible (P0-3), and begin the point-in-time universe effort (P0-1). Shadow/paper-trading mode (already running via alpha_score_shadow_v1) may continue in parallel since it commits no capital. Do not proceed to a real-capital pilot until P0-1 through P0-4 are resolved and Phase D validation is re-run and passes.",
+  "protected_paths_modified": false
+}
