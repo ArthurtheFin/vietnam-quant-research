@@ -171,13 +171,152 @@ categories. **Registered here before any CafeF lookup was performed.**
 
 ### Step 2 — manual CafeF lookup results
 
-*(filled in below as each symbol's "Cổ đông & Nội bộ" tab is checked)*
+Method: for each symbol, opened `cafef.vn/du-lieu/lich-su-giao-dich/{exchange}/{symbol}-6.chn`
+in a real browser session, read the rendered "Cổ đông & Nội bộ" table
+(same view a human sees), and compared every field against the
+pre-registered row above. **No scripted bulk requests, no API reverse-
+engineering** — one page view per symbol, exactly as designed for this
+pilot.
+
+#### 2024-2026 pool — 10/10 found, fields match almost exactly
+
+| # | Symbol | Found? | CafeF's actual row (verbatim fields) | Match vs. pre-registration |
+|---|---|---|---|---|
+| 1 | NVL | Yes | Bùi Cao Ngọc Quỳnh (Con của Bùi Thành Nhơn, Chủ tịch HĐQT): trước GD 24,678,549; đăng ký bán 9,109,784, 09/05/24–06/06/24; kết quả bán 9,109,784, 14/05/24; sau GD 15,568,765 (0.65%) | Exact — share count, window, and post-transaction holding all match the press figures to the unit |
+| 2 | NVL | Yes | CTCP Novagroup (liên quan Nguyễn Hiếu Liêm, Phó Chủ tịch HĐQT): trước GD 358,176,865; đăng ký bán 9,413,000, 06/05/24–31/05/24; **kết quả bán chỉ 40,475**, 09/05/24 | Registration matches exactly (9,413,000); **execution was ~0.4% of the registered amount** — CafeF captured the large registration-vs-tiny-execution gap that a naive "assume registration = outcome" pipeline would have missed entirely |
+| 3 | VDS | Yes | Phạm Mỹ Linh (Mẹ của Phạm Hữu Luân, TV HĐQT): trước GD 29,999,219; đăng ký bán 5,000,000, 08/09/25–06/10/25; kết quả bán 5,000,000, **10/09/25** (2 days after window opened, well before window close) | Exact on shares/window; execution date now known precisely |
+| 4 | VDS | Yes | Nguyễn Thị Thu Huyền (Tổng Giám đốc): trước GD 1,452,212; đăng ký bán 940,000, 08/09/25–06/10/25; kết quả bán 939,000 (1,000 short), 06/10/25 | Registered amount exact; execution 1,000 shares short of registration |
+| 5 | VDS | Yes | Nguyễn Chí Trung (Thành viên HĐQT): trước GD 768,150; đăng ký bán 400,000, **25/02/26–26/03/26** (article was published 18/02/26); kết quả bán 400,000, 25/02/26 (same day the window opened) | Share count exact; **registration window start (25/2) is 7 days after the press article's publish date (18/2)** — a real, observed data point for the lag question, see NV1 note below |
+| 6 | HPG | Yes | Trần Vũ Minh (Con của Trần Đình Long, Chủ tịch HĐQT): trước GD 176,391,996; đăng ký mua 50,000,000, 12/03/26–**10/04/26**; kết quả mua 33,291,904, 09/04/26; sau GD 209,683,900 (2.48%) | Registered and executed amounts exact; window end date is 10/4 not 9/4 as press paraphrased — CafeF's date is authoritative |
+| 7 | VIC | Yes | Phạm Nhật Vượng → CTCP Năng lượng VinEnergo: 70,646,767 shares, 16/06/25–15/07/25, executed 17/06/25 | Exact — but this is **one of four separate VinEnergo tranches** Vượng made in 2025 (17/4: 35.0M; 5-10/6: 48.1M to VinSpeed, see #8; 16-17/6: 70.6M; 9/10-9/11: 60.0M) — press coverage of "the VinEnergo transfer" collapsed a multi-tranche series into a single number |
+| 8 | VIC | Yes | Phạm Nhật Vượng → CTCP Đầu tư và Phát triển Đường sắt cao tốc VinSpeed: 48,086,745 shares, 05/06/25–04/07/25, executed 10/06/25 | Exact — also one tranche of a larger VinSpeed series (later tranches: 28/10/25 243.5M via a different related entity; 15/12/25 76.0M more from Vượng directly) |
+| 9 | VNS | Yes | Công ty TNHH Tư vấn Kim Ngưu (not "CTCP" as press paraphrased — CafeF's legal-form field is authoritative): đăng ký bán 3,423,020, 15/05/26–13/06/26; kết quả bán 909,091 (26.6%), 13/06/26 | Exact on both registered and executed counts |
+| 10 | MPC | Yes | Chu Hồng Hà (Phó Tổng GĐ): trước GD 319,140; đăng ký bán 275,000, 08/06/26–30/06/26; **kết quả: still blank/0 as of this pilot's run (12/07/26)**, i.e. 12 days after the window closed | Share count and window exact; the still-missing result row past window-close is itself a data-quality observation (either non-execution or a CafeF update lag), not an error in this pilot |
+
+**Coverage: 10/10.** Every field this pilot checked (person/entity name,
+role, related-party link, shares before/after, registration mua/bán +
+window, result mua/bán + execution date, resulting ownership %) was
+present and matched independent press reporting to the unit wherever
+press gave exact numbers. Three genuinely new things were learned that
+press coverage didn't carry: exact execution-vs-registration shortfalls
+(#2, #4), a corrected window end-date (#6), and confirmation that
+several "single transactions" reported in the press are actually
+multi-tranche series (#7, #8).
+
+#### 2020-2021 pool — 1/5 confirmed, 4/5 blocked by a pagination tooling limit, not a data-absence finding
+
+| # | Symbol | Result |
+|---|---|---|
+| D | VHM | **Confirmed, exact.** Tập đoàn Vingroup → (liên quan Phạm Nhật Vượng, Chủ tịch HĐQT): trước GD 2,333,164,250; đăng ký bán 100,485,418, 19/08/21–17/09/21; kết quả bán 100,485,418, 06/09/21; sau GD 2,232,678,832 (54.36%, i.e. post-transaction stake). **Bonus finding**: VHM's entire "Cổ đông & Nội bộ" history fits on a single page (15 rows total) and reaches back to **29/11/2018** (a Phó Tổng GĐ's wife's transaction) — real evidence the historical-depth claim holds for at least one large-cap, low-insider-turnover symbol. |
+| A | TCH | **Not reached.** Page 1 (~20 rows) covers only Sept 2025–June 2026; a 2nd page exists but this pilot's browser-automation tooling could not reliably drive the site's date-range filter or its JS-based pagination control (`ownerCDL.handleChangePage`) to load it — repeated attempts hit either an unresponsive filter (same unfiltered "most recent" rows returned regardless of the dates entered) or renderer timeouts when trying to click the page-2 control. **This is a tooling limitation of this pilot, not a finding that the 2020 row is absent.** |
+| B, E | MWG | **Not reached.** MWG has 18 pages of insider/major-shareholder rows; page 1 only reaches back to Feb 2026. The Dec-2020 and Dec-2021 target rows are many pages further back than this pilot could navigate to, for the same tooling reason as TCH. |
+| C | TCB | **Not reached.** TCB has 9 pages; page 1 only reaches back to Nov 2024. Same tooling limitation. |
+
+**Honest summary of the historical-depth check**: 1 of 5 pre-registered
+2020-2021 events was directly confirmed (VHM), with a bonus data point
+showing genuine depth to late 2018 for that symbol. The other 4 could
+not be checked this round — **not because CafeF appeared not to have
+the data**, but because this pilot's date-range-filter and pagination
+interactions were unreliable in the browser-automation tool used
+(the filter form frequently ignored the entered dates and returned the
+unfiltered "most recent" page regardless; the pagination widget's
+click target could be located in the DOM but not consistently
+triggered without further tooling work). **This is a distinct, weaker
+conclusion than Round 1's "no row has been observed yet at all"** — one
+real 2018-era row has now been observed and matches exactly — but it
+does not close the historical-depth question for high-frequency-insider
+names like TCB/MWG. A follow-up spike with either a more capable
+browser-automation setup or a direct look at the page's underlying data
+endpoint (still manual, still read-only, still not a scraper) would be
+the next step if this matters before committing to a build.
+
+### NV1 — real disclosure-lag data point observed
+
+Event #5 above (VDS, Nguyễn Chí Trung) gives one real number for the
+question ROUND 3/NV1 flagged as needing live measurement: the press
+article reporting this registration was published 18/02/2026, while
+CafeF's own record shows the registration window itself only started
+25/02/2026 — a **7-day gap** between "the market found out" and "the
+registration period began." This is a single data point, not a
+distribution, but it's directly relevant to calibrating the backfill's
+`+1 trading day` placeholder (this round's default is likely too
+short for at least some disclosure types) — flagged for the live-phase
+lag-measurement plan in ROUND 3/NV1, not acted on here (one data point
+doesn't justify changing the placeholder value).
 
 ---
 
 ## vnstock License Review
 
-*(filled in below)*
+Fetched `github.com/thinh-vu/vnstock`'s license (`LICENSE.md`). Verbatim
+excerpts of the relevant restriction (short quotes only, per citation
+norms):
+
+- The Vietnamese-language README states the license is *"hướng đến cá
+  nhân, không dành cho mục đích thương mại"* — i.e. aimed at
+  individuals, not for commercial purposes.
+- The license text itself states the software is **"intended for
+  personal use only"** and **"may not be redistributed or used for"**
+  commercial purposes without the author's written approval, where
+  commercial use is defined to include anything that "directly or
+  indirectly contributes to generating revenue."
+- Permitted without special permission: individual research, academic
+  study, editing/modification, learning.
+- The license "will automatically terminate immediately without
+  notice" on breach, requiring destruction of all copies.
+
+**No legal conclusion is drawn here** — this is a citation/gathering
+exercise only, per instruction. Whether this project's use of
+`vnstock` (a research pipeline, not a resold product, but one whose
+output informs paid or investment-relevant decisions) falls inside or
+outside "personal, non-commercial" is a judgment call for whoever owns
+that decision, ideally with the author contacted directly given the
+license's own suggestion to do so for anything beyond personal use.
+This was flagged as a blocker for *production* use in Round 1; nothing
+in this round changes that — it remains unresolved, not cleared.
+
+### ROUND 3 conclusion — CafeF: sufficient for recent data, historical depth still open
+
+- **Coverage**: 10/10 pre-registered 2024-2026 events found, every
+  field matching independent press reporting exactly wherever press
+  gave exact numbers, plus three concrete things CafeF captured that
+  press didn't (registration-vs-execution shortfalls, a corrected
+  window date, multi-tranche series press collapsed into one number).
+  **For live/recent accumulation, CafeF is sufficient as the primary
+  source** — this is a stronger, evidence-backed version of Round 1's
+  "best candidate found" verdict, not just an unverified plausibility.
+- **Historical depth**: genuinely mixed evidence, not a clean answer.
+  One low-insider-turnover symbol (VHM) showed real depth back to
+  November 2018. Zero evidence either way for high-turnover names
+  (TCB, MWG) or for reaching all the way back to 2008 for any symbol —
+  this pilot's tooling could not page deep enough to test it. **The
+  central open risk from Round 1 is now partially retired (2018 depth
+  confirmed for at least one symbol) but not closed** — a pipeline
+  that needs pre-2023 history for names like TCB/MWG/HPG specifically
+  should re-run this same manual check with either a sturdier browser
+  session or a direct (still manual, still read-only) look at the
+  page's data endpoint before relying on that depth.
+- **Lag**: one real data point (7 days, press-to-registration-window for
+  one VDS event) — nowhere near enough for a distribution, but it's the
+  first real number this project has, and it's consistent with the
+  backfill's `+1 trading day` placeholder in ROUND 3/NV1 being too
+  short for at least some disclosure types (a registration *window*
+  starting isn't the same thing `+1 trading day` was modeling, so this
+  isn't a direct apples-to-apples comparison either — flagged, not
+  acted on).
+- **robots.txt/ToS**: not prohibited (Step 0 above) — nothing here
+  changes the earlier build-phase plan to use CafeF as primary source,
+  manually/read-only for now.
+
+**Decision**: CafeF remains primary source, now with real verification
+behind the recent-data claim. Before committing to a production
+crawler, whoever approves the build phase should decide whether the
+historical-depth gap (for high-turnover names specifically) is
+acceptable to launch with live-accumulation-only, or whether it's worth
+another verification pass first — this round doesn't force that
+decision either way, it just makes the tradeoff visible with real
+numbers instead of Round 1's "central open risk, unverified at the row
+level" framing.
 
 ---
 
