@@ -112,3 +112,55 @@ def read_events(events_path: Path = EVENTS_PATH) -> pd.DataFrame:
 
 def read_errors(errors_path: Path = ERRORS_PATH) -> pd.DataFrame:
     return read_parquet(errors_path)
+
+
+def ingest_new_events_live(
+    parsed_df: pd.DataFrame,
+    events_path: Path = EVENTS_PATH,
+    errors_path: Path = ERRORS_PATH,
+    universe_dir: Path = UNIVERSE_DIR,
+) -> dict[str, int]:
+    """Incremental/live counterpart to ingest_events, for the daily update
+    script (scripts/update_disclosure_daily.py).
+
+    ingest_events() re-derives is_backfilled/available_at for every row it's
+    given every time -- correct for the one-shot bulk historical load, but
+    wrong for a daily job that re-parses a symbol's *entire* history each
+    run: re-ingesting an already-known row here would silently overwrite its
+    original is_backfilled=True / available_at with today's is_backfilled=
+    False and a fresh available_at, corrupting the point-in-time record of
+    when it actually became knowable.
+
+    This function instead anti-joins parsed_df against what's already in
+    events_path (both valid and rejected -- a previously-rejected row should
+    not be silently re-admitted just because it reappears in a fresh parse),
+    ingests ONLY genuinely new rows, and forces is_backfilled=False on them --
+    this is the first point where the live branch of the ROUND 3 point-in-time
+    rule (available_at = max(disclosure_date, ingested_at)) actually starts
+    running, as opposed to every row so far being backfilled.
+    """
+    if parsed_df.empty:
+        return {"n_new_valid": 0, "n_new_rejected": 0, "n_new_unknown_symbol": 0}
+
+    existing_events = read_events(events_path)
+    existing_errors = read_errors(errors_path)
+    known_keys: set[tuple] = set()
+    if not existing_events.empty:
+        known_keys |= set(map(tuple, existing_events[NATURAL_KEY].itertuples(index=False, name=None)))
+    if not existing_errors.empty:
+        known_keys |= set(map(tuple, existing_errors[NATURAL_KEY].itertuples(index=False, name=None)))
+
+    row_keys = list(map(tuple, parsed_df[NATURAL_KEY].itertuples(index=False, name=None)))
+    is_new_mask = pd.Series([key not in known_keys for key in row_keys], index=parsed_df.index)
+    new_df = parsed_df.loc[is_new_mask].copy()
+
+    if new_df.empty:
+        return {"n_new_valid": 0, "n_new_rejected": 0, "n_new_unknown_symbol": 0}
+
+    new_df["is_backfilled"] = False
+    result = ingest_events(new_df, events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+    return {
+        "n_new_valid": result["n_valid"],
+        "n_new_rejected": result["n_rejected"],
+        "n_new_unknown_symbol": result["n_unknown_symbol"],
+    }

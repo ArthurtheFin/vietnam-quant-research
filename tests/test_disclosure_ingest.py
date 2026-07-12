@@ -3,7 +3,13 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from src.data.disclosure_ingest import ingest_events, load_universe_symbols, read_errors, read_events
+from src.data.disclosure_ingest import (
+    ingest_events,
+    ingest_new_events_live,
+    load_universe_symbols,
+    read_errors,
+    read_events,
+)
 from src.data.disclosure_parser import DISCLOSURE_EVENTS_COLUMNS
 
 
@@ -160,3 +166,91 @@ def test_empty_input_is_a_no_op(tmp_path) -> None:
     result = ingest_events(df, events_path=events_path, errors_path=errors_path)
     assert result == {"n_valid": 0, "n_rejected": 0, "n_unknown_symbol": 0}
     assert not events_path.exists()
+
+
+# --- ingest_new_events_live (incremental / daily-update path) -------------
+
+
+def test_live_ingest_first_run_treats_everything_as_new(tmp_path) -> None:
+    df = pd.DataFrame([_base_row(is_backfilled=True)])  # incoming rows may say anything -- forced to False
+    events_path = tmp_path / "events.parquet"
+    errors_path = tmp_path / "errors.parquet"
+    universe_dir = _universe_dir(tmp_path, ["HPG"])
+
+    result = ingest_new_events_live(df, events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+    assert result == {"n_new_valid": 1, "n_new_rejected": 0, "n_new_unknown_symbol": 0}
+
+    events = read_events(events_path)
+    assert len(events) == 1
+    assert events.iloc[0]["is_backfilled"] == False
+    # live rule: available_at = max(disclosure_date, ingested_at)
+    assert events.iloc[0]["available_at"] == events.iloc[0]["ingested_at"]
+
+
+def test_live_ingest_skips_already_known_rows(tmp_path) -> None:
+    row = _base_row()
+    events_path = tmp_path / "events.parquet"
+    errors_path = tmp_path / "errors.parquet"
+    universe_dir = _universe_dir(tmp_path, ["HPG"])
+
+    # Original bulk backfill already put this row in with is_backfilled=True.
+    ingest_events(pd.DataFrame([row]), events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+
+    # A daily run re-parses the symbol's full history and sees the same row again.
+    result = ingest_new_events_live(
+        pd.DataFrame([row]), events_path=events_path, errors_path=errors_path, universe_dir=universe_dir
+    )
+    assert result == {"n_new_valid": 0, "n_new_rejected": 0, "n_new_unknown_symbol": 0}
+
+    events = read_events(events_path)
+    assert len(events) == 1
+    # untouched -- still backfilled, not silently flipped to live
+    assert events.iloc[0]["is_backfilled"] == True
+
+
+def test_live_ingest_only_new_rows_get_live_treatment(tmp_path) -> None:
+    old_row = _base_row()
+    new_row = _base_row(
+        person_name="Ai Đó Khác",
+        disclosure_date=pd.Timestamp("2026-07-11"),
+        link_key="HPG|Ai Đó Khác|2026-07-10",
+    )
+    events_path = tmp_path / "events.parquet"
+    errors_path = tmp_path / "errors.parquet"
+    universe_dir = _universe_dir(tmp_path, ["HPG"])
+
+    ingest_events(pd.DataFrame([old_row]), events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+    result = ingest_new_events_live(
+        pd.DataFrame([old_row, new_row]), events_path=events_path, errors_path=errors_path, universe_dir=universe_dir
+    )
+    assert result["n_new_valid"] == 1
+
+    events = read_events(events_path)
+    assert len(events) == 2
+    old = events[events["person_name"] == "Trần Vũ Minh"].iloc[0]
+    new = events[events["person_name"] == "Ai Đó Khác"].iloc[0]
+    assert old["is_backfilled"] == True
+    assert new["is_backfilled"] == False
+
+
+def test_live_ingest_does_not_readmit_previously_rejected_row(tmp_path) -> None:
+    bad_row = _base_row(shares_registered_or_changed=-5)  # will be rejected
+    events_path = tmp_path / "events.parquet"
+    errors_path = tmp_path / "errors.parquet"
+    universe_dir = _universe_dir(tmp_path, ["HPG"])
+
+    ingest_events(pd.DataFrame([bad_row]), events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+    assert len(read_errors(errors_path)) == 1
+
+    # Same bad row reappears in a later daily parse -- must not be re-admitted.
+    result = ingest_new_events_live(
+        pd.DataFrame([bad_row]), events_path=events_path, errors_path=errors_path, universe_dir=universe_dir
+    )
+    assert result == {"n_new_valid": 0, "n_new_rejected": 0, "n_new_unknown_symbol": 0}
+    assert len(read_errors(errors_path)) == 1  # still just the one, not duplicated
+
+
+def test_live_ingest_empty_input_is_a_no_op(tmp_path) -> None:
+    df = pd.DataFrame(columns=DISCLOSURE_EVENTS_COLUMNS)
+    result = ingest_new_events_live(df, events_path=tmp_path / "e.parquet", errors_path=tmp_path / "r.parquet")
+    assert result == {"n_new_valid": 0, "n_new_rejected": 0, "n_new_unknown_symbol": 0}

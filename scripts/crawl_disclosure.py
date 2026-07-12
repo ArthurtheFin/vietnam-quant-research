@@ -28,10 +28,31 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+UNIVERSE_DIR = Path("data/full_history_v2/raw")
+EXCLUDED_SYMBOLS_PATH = Path("config/excluded_symbols.csv")
+
+
+def get_universe_symbols(universe_dir: Path = UNIVERSE_DIR, excluded_path: Path = EXCLUDED_SYMBOLS_PATH) -> list[str]:
+    """Current tracked universe (data/full_history_v2/raw/*.parquet -- the
+    same 501-symbol set disclosure_ingest.py already validates symbols
+    against), minus config/excluded_symbols.csv."""
+    import pandas as pd
+
+    symbols = {p.stem.upper() for p in universe_dir.glob("*.parquet")}
+    if excluded_path.exists():
+        excluded = set(pd.read_csv(excluded_path)["symbol"].astype(str).str.upper())
+        symbols -= excluded
+    return sorted(symbols)
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--symbols", nargs="+", required=True, help="Symbols to crawl, e.g. TCB MWG TCH VHM HPG")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--symbols", nargs="+", help="Symbols to crawl, e.g. TCB MWG TCH VHM HPG")
+    group.add_argument(
+        "--universe", action="store_true",
+        help="Crawl the full current universe (data/full_history_v2/raw/*.parquet minus config/excluded_symbols.csv)",
+    )
     parser.add_argument("--raw-dir", default=str(RAW_DIR), help="Raw (immutable) tier output directory")
     parser.add_argument("--events-path", default=str(EVENTS_PATH), help="Ingested events parquet path")
     parser.add_argument("--errors-path", default=str(ERRORS_PATH), help="Rejected-rows parquet path")
@@ -39,9 +60,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     raw_dir = Path(args.raw_dir)
+    symbols = args.symbols if args.symbols else get_universe_symbols()
+    logger.info("Target: %s symbol(s)%s", len(symbols), " (full universe)" if args.universe else "")
 
     if not args.skip_crawl:
-        crawl_result = crawl_symbols(args.symbols, raw_dir=raw_dir)
+        crawl_result = crawl_symbols(symbols, raw_dir=raw_dir)
         logger.info("Crawl complete: %s", crawl_result)
     else:
         logger.info("--skip-crawl set: re-parsing existing raw files only, no network requests made")
