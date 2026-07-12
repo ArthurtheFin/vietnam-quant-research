@@ -1,6 +1,6 @@
-# PUSH_REVIEW — 37 local commits ahead of origin, for your review before pushing
+# PUSH_REVIEW — 40 local commits ahead of origin, for your review before pushing
 
-Branch `claude/charming-bartik-d21dc1` is **37 commits ahead** of
+Branch `claude/charming-bartik-d21dc1` is **40 commits ahead** of
 `origin/claude/charming-bartik-d21dc1` (tip `e7e6728`), 0 behind — a
 clean fast-forward push, nothing to reconcile. **Not pushed.** Grouped
 oldest → newest below; each group's one-line summary states the overall
