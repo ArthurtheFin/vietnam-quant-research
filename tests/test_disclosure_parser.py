@@ -13,8 +13,10 @@ from src.data.disclosure_parser import (
 
 
 def test_parse_dotnet_date_epoch_ms() -> None:
+    # Raw value is Vietnam-local midnight serialized as UTC-7h; parser shifts
+    # +7h back to the intended ICT calendar date (see parse_dotnet_date docstring).
     ts = parse_dotnet_date("/Date(1626022800000)/")
-    assert ts == pd.Timestamp("2021-07-11 17:00:00")
+    assert ts == pd.Timestamp("2021-07-12 00:00:00")
 
 
 def test_parse_dotnet_date_null_is_none() -> None:

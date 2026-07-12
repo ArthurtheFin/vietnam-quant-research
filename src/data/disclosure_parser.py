@@ -46,19 +46,28 @@ DISCLOSURE_EVENTS_COLUMNS = [
 ]
 
 
+_ICT_OFFSET = pd.Timedelta(hours=7)
+
+
 def parse_dotnet_date(value: Any) -> pd.Timestamp | None:
     """Parse ASP.NET AJAX's '/Date(1626022800000)/' epoch-ms wire format.
-    Returns a naive UTC-derived timestamp (no timezone conversion attempted --
-    a known v1 simplification, consistent with the rest of this project's date
-    columns which are also naive)."""
+
+    The raw epoch values are Vietnam-local (ICT, UTC+7) calendar dates
+    serialized as UTC midnight minus 7 hours (e.g. plan/registration/execution
+    dates all land on ...17:00:00 the *previous* day when read as naive UTC).
+    Confirmed against 5 independently-known 2020-2021 disclosure events during
+    ROUND 4 cross-validation: without the +7h shift, every date parsed one
+    calendar day earlier than the real disclosure date. Shifting first, then
+    treating the result as the naive local calendar timestamp, fixes this.
+    """
     if value is None:
         return None
     if isinstance(value, (int, float)):
-        return pd.to_datetime(value, unit="ms")
+        return pd.to_datetime(value, unit="ms") + _ICT_OFFSET
     match = _DOTNET_DATE_RE.match(str(value))
     if not match:
         return None
-    return pd.to_datetime(int(match.group(1)), unit="ms")
+    return pd.to_datetime(int(match.group(1)), unit="ms") + _ICT_OFFSET
 
 
 def _normalize_person_name(raw: str) -> str:
