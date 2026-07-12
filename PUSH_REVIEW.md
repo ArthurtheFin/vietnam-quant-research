@@ -1,11 +1,11 @@
-# PUSH_REVIEW — 46 local commits ahead of origin, for your review before pushing
+# PUSH_REVIEW — 50 local commits ahead of origin, for your review before pushing
 
-Branch `claude/charming-bartik-d21dc1` is **46 commits ahead** of
+Branch `claude/charming-bartik-d21dc1` is **50 commits ahead** of
 `origin/claude/charming-bartik-d21dc1` (tip `e7e6728`), 0 behind — a
 clean fast-forward push, nothing to reconcile. **Not pushed.** Grouped
 oldest → newest below; each group's one-line summary states the overall
 outcome, not just what was attempted. (Phases 0-4 below, 30 commits,
-were the state as of this file's first version; Phases 5-8 were added
+were the state as of this file's first version; Phases 5-9 were added
 in later rounds, covering this file's own commits and the rounds that
 followed it.)
 
@@ -196,6 +196,43 @@ back to 2008 (matching CafeF's own claim), others to 2013-2020
 per-symbol, confirmed by real data rather than pagination-limited
 inference. Full-universe crawl (501 symbols) NOT run -- estimated
 ~20-30 min / ~53MB, proposed for approval in Round 4/NV8.
+
+## Phase 9 — full-universe disclosure crawl, descriptive baseline, live-update pipeline (this session, 4 commits)
+
+| Hash | Message |
+|---|---|
+| `7933e91` | feat(data): incremental daily disclosure update (live point-in-time branch) |
+| `bc56f50` | data(disclosure): full-universe crawl -- 500 symbols, 0 errors, 0 rate limits |
+| `40e928e` | docs(disclosure): DISCLOSURE_BASELINE.md -- descriptive stats only, Round 5 |
+
+(3 commits shown; a 4th, the PUSH_REVIEW.md update itself, follows this one.)
+
+**Summary**: with the crawler nghiệm thu'd in Round 4, ran it against the
+full 500-symbol universe (`data/full_history_v2/raw/*.parquet` minus
+`GEE`) -- 0 fetch errors, 0 rate-limiting, ~24 minutes wall-clock,
+matching the Round 4 estimate exactly. 56,870 valid events + 518 rejected
+(0.90%, same rate as the pilot, all genuine source-data anomalies).
+Historical depth turned out much better than the 5-symbol pilot
+suggested: **157/500 symbols (31%) reach back to 2008**, not just HPG.
+
+Built the incremental daily-update pipeline
+(`scripts/update_disclosure_daily.py` + `ingest_new_events_live()`) --
+the first code path where the *live* branch of the point-in-time rule
+(`available_at = max(disclosure_date, ingested_at)`) actually runs,
+anti-joining against existing events+errors so already-known rows are
+never silently reflagged. Not yet scheduled/run for real (script exists
+and is tested; installing a cron/launchd entry is a separate decision).
+
+Wrote `DISCLOSURE_BASELINE.md` (descriptive stats only -- composition,
+period distribution, role distribution, historical depth, execution/
+registration ratio, field completeness, rejected-row breakdown).
+**Deliberately contains zero price/return statistics anywhere** -- the
+hard constraint for this round, protecting whatever signal-test design
+comes next from being biased by an early look at event-to-return
+patterns. One new full-universe-scale finding: 829 rows (1.4%) collide
+on the natural key and get silently collapsed by dedup -- flagged as an
+open caveat, not fixed (schema change, out of this round's "kiểm kê"
+scope).
 
 ---
 
