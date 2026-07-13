@@ -472,3 +472,25 @@ có 2 đợt fetch chưa từng đồng bộ, không có cơ chế cập nhật 
    watchlist (`scripts/run_daily_pipeline.py`). Gate STALE_DATA trong
    `final_watchlist.py` là chốt chặn cuối nếu quên chạy update — không phải
    cơ chế cập nhật, không dựa vào nó để tự động lấy dữ liệu mới.
+3. **NV3 — Rebuild features + regenerate artifact (commit `a184047`)** —
+   `data/raw/index_ohlcv` (nguồn VNINDEX/benchmark) là dữ liệu tách biệt
+   khỏi `full_history_v2`, vẫn dừng ở 2026-07-06 sau khi đồng bộ giá cổ
+   phiếu — chạy thêm `scripts/update_index_data.py` (cơ chế đã có sẵn,
+   không phải viết mới) trước khi `generate_features.py` để tránh
+   benchmark/stock_features lệch mốc nhau. Sau đó chạy
+   `run_daily_pipeline.py --offline`: gate giờ cho qua
+   `client_ready=10, trading=20, research=174, data_review=296`
+   (`freshness_status: OK`, trước đó `ERROR` với 500/500 bị loại). Lý do
+   loại trong 296 mã còn lại giờ chủ yếu là tiêu chí kinh doanh thật
+   (`LOW_LIQUIDITY`, `SEVERE_DISTRIBUTION_RISK`), `STALE_DATA` chỉ còn
+   đúng 60 mã đã xác định ở NV1 — không còn là lỗi hàng loạt.
+   `client_ready_watchlist` so với bản tiền-fix: 5/10 mã trùng (MSB, CTS,
+   NAB, BMP, VIC) — hợp lý, phản ánh đúng các fix điểm số + dữ liệu, không
+   phải xáo trộn toàn bộ. Chi tiết đầy đủ:
+   `audit/NV4_ARTIFACT_REGENERATION_COMPARISON.md` (mục cập nhật
+   2026-07-13).
+4. **NV4 — Nghiệm thu** — full suite: 263 passed. Không có mục nào trong
+   `audit/critical_findings.md` nhắc tới eligibility-gate/coverage-gap này
+   (vấn đề mới phát sinh và đã đóng trong chính vòng này, không phải P0/P1
+   đang mở) nên không cần cập nhật thêm ở đó. Commit riêng từng nhiệm vụ
+   vào `main`, không push.
