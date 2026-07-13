@@ -253,3 +253,68 @@ changes, not part of any commit, exactly like the rest of this group.
 If you want that refreshed ranking data pushed too, it would need to be
 staged separately; it wasn't bundled into any commit above to keep this
 session's commits scoped to what was actually asked.
+
+---
+
+## Hợp nhất về main — 2026-07-13
+
+**Từ hôm nay (2026-07-13): `main` tại thư mục gốc
+(`/Users/jamesb/Desktop/vietnam-quant-research`) là nhánh làm việc duy
+nhất.** Mọi session/commit từ nay chạy thẳng trên `main` tại thư mục
+gốc, không tạo worktree/nhánh `claude/*` mới cho công việc thường xuyên.
+
+Toàn bộ ~88 commit trên `claude/charming-bartik-d21dc1` (backfill dữ
+liệu v2, retest 44 nhân tố, score v2, forensic 2026, disclosure
+pipeline, audit 58/100) đã được **fast-forward thẳng vào `main`**
+(`git merge --ff-only`, không rebase, không squash) — lịch sử commit
+giữ nguyên. HEAD `main` sau hợp nhất: `6671db3`, sau đó có thêm 2 commit
+dọn dẹp working-tree-bẩn tại gốc (`cb4d7c9`, `8d42be0` — xem chi tiết
+bên dưới).
+
+**Các nhánh/worktree sau đây đóng băng, chưa xoá, giữ làm hồ sơ tham
+khảo, KHÔNG dùng cho việc mới:**
+- `claude/charming-bartik-d21dc1` — nguồn của lần fast-forward này, nay
+  trùng lịch sử với `main` tính đến `6671db3`.
+- `claude/charming-bartik-d21dc1-8335fa`, `claude/infallible-mayer-ea5023`,
+  `claude/youthful-franklin-62cac4`, `claude/audit-gates-17-6-12-049aeb`
+  — đứng nguyên tại `d7c283e` (=tip cũ của `main` trước hợp nhất), chưa
+  từng có commit riêng, rỗng.
+- `backup/root-wip-20260713` — snapshot toàn bộ working-tree-bẩn ở thư
+  mục gốc *trước khi* hợp nhất (101 mục: xem chi tiết bên dưới). Giữ
+  làm bằng chứng, không merge tiếp.
+
+**Cảnh báo artifact tiền-fix**: mọi watchlist/report/research-note nằm
+trong `backup/root-wip-20260713` (tức là mọi thứ đã được sinh ra tại
+thư mục gốc *trước* khi hợp nhất — `reports/`, `data/signals/`,
+16+7 file `research_notes/generated/*.md`, các notebook đã chạy,
+`config/core_universe.csv` bản cũ) **đến từ code CHƯA có các fix của
+88 commit vừa hợp nhất** (score v2, sửa raw/adjusted-close, sửa
+momentum_score leak, v.v.). **Không dùng trực tiếp các file này** —
+cần regenerate lại bằng pipeline hiện tại của `main` trước khi tin
+tưởng bất kỳ số liệu nào trong đó. Các file này KHÔNG được khôi phục
+vào `main` (trừ output `stock-decision-engine/` của người dùng, đã
+khôi phục có chủ đích — xem dưới).
+
+**Chi tiết quá trình dọn working-tree-bẩn tại gốc** (thực hiện trước
+khi fast-forward, theo yêu cầu người dùng, không xoá/discard gì):
+1. Snapshot toàn bộ 101 mục bẩn tại gốc vào `backup/root-wip-20260713`
+   (commit `4b66766`), sau đó gốc mới sạch để fast-forward.
+2. `git merge --ff-only claude/charming-bartik-d21dc1` → HEAD `6671db3`.
+3. Khôi phục có chủ đích output phân tích của người dùng ở
+   `stock-decision-engine/` (64 file: `*_metrics.csv`, `*_sub_scores.csv`,
+   `*_decision_summary.txt`, biểu đồ `.png` cho GEX/HDB/POW/STB/VIX/VPB,
+   và notebook `stock_buy_decision.ipynb`) từ snapshot vào `main`
+   (commit `cb4d7c9`) — đây là thành quả chạy thật của người dùng, cần
+   giữ lại, khác với các artifact tiền-fix ở trên.
+4. `src/validation/freshness_check.py` có 2 bản sửa không xung đột
+   logic nhưng nằm cạnh nhau trong file (bản chưa commit ở gốc: tự suy
+   core universe từ dữ liệu OHLCV thô cục bộ khi
+   `config/core_universe.csv` chưa tồn tại; bản trên nhánh vừa hợp
+   nhất: so khớp với lịch giao dịch thật, đã được audit xác nhận
+   `IMPLEMENTED_AND_VALID`). Hợp nhất thủ công, giữ cả hai (commit
+   `8d42be0`), xác nhận bằng `tests/test_freshness_check.py` (19/19
+   pass).
+5. Không phát hiện cron/LaunchAgent/tiến trình nào đang chạy tạo ra các
+   file bẩn tại gốc (`crontab -l`, `~/Library/LaunchAgents/`, `ps aux`
+   đều không có kết quả liên quan) — nguồn gốc nhiều khả năng là chạy
+   tay ở phiên trước, không phải tiến trình định kỳ đang hoạt động.
