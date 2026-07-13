@@ -1,0 +1,33 @@
+Ticker: HDB
+Date: 2026-07-02
+
+Final Score: 63/100
+Decision: WATCH / WAIT FOR PULLBACK
+Confidence: Medium
+
+Entry Zone: 26,402 - 26,650
+Stop-loss: 25,807
+Target 1: 27,789
+Target 2: 28,582
+Risk/Reward: 1.50
+
+Market Regime: Weak
+Trend: Downtrend
+Momentum: Positive
+Relative Strength: Outperforming
+Alpha: 81.71%
+Risk: Controlled
+Liquidity: Passed
+Simulation: 41.0% target-before-stop probability
+
+Main Reasons:
+1. relative_strength: 100/100 - Excess return, RS slope, beta, and correlation.
+2. liquidity: 93/100 - Average value, volume participation, z-score, MFI, and CMF.
+3. alpha: 78/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
+
+Warnings:
+1. Risk/reward is below the preferred buy threshold.
+2. Monte Carlo paths hit stop before target more often than the reverse.
+
+Vietnamese Broker Note:
+HDB hiện được hệ thống chấm 63/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái weak, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength so với VNINDEX đang cải thiện, tức mã có dấu hiệu khỏe hơn thị trường chung. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 41.0%.
