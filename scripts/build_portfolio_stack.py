@@ -26,8 +26,10 @@ from src.portfolio.construction import (
 from src.portfolio.input_resolver import load_default_portfolio_candidates
 from src.risk.management import build_portfolio_risk_report
 from src.utils.pipeline_io import (
+    build_lineage_metadata,
     relative_path,
     utc_now_iso,
+    validate_lineage_metadata,
     validate_portfolio_stack_metadata,
     write_json,
 )
@@ -177,6 +179,10 @@ def main() -> int:
             "rejected_symbols_portfolio_gate": rejected_reasons,
         }
         empty_risk.update(source_metadata)
+        empty_risk["lineage"] = validate_lineage_metadata(
+            build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=PROJECT_ROOT),
+            label="portfolio_risk_report.json",
+        )
         portfolio_risk_report_path = OUTPUT_DIR / "portfolio_risk_report.json"
         write_json(empty_risk, portfolio_risk_report_path)
         
@@ -270,6 +276,10 @@ def main() -> int:
     )
     risk_report["allocation_fallbacks"] = sorted(fallback_used)
     risk_report["warnings"] = warnings
+    risk_report["lineage"] = validate_lineage_metadata(
+        build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=PROJECT_ROOT),
+        label="portfolio_risk_report.json",
+    )
     portfolio_risk_report_path = OUTPUT_DIR / "portfolio_risk_report.json"
     write_json(risk_report, portfolio_risk_report_path)
 

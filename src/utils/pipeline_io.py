@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -222,6 +224,83 @@ def validate_portfolio_stack_metadata(payload: dict[str, object]) -> dict[str, o
         label="portfolio_stack_metadata.json",
     )
     _validate_no_absolute_paths(payload, "portfolio_stack_metadata.json")
+    return payload
+
+
+def _git_commit_hash(base_dir: str | Path = ".") -> str | None:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(base_dir),
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except Exception:
+        return None
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+
+def build_lineage_metadata(
+    features_path: str | Path,
+    config_path: str | Path = "config/strategy_config.yaml",
+    dataset_version: str = "full_history_v2",
+    base_dir: str | Path = ".",
+) -> dict[str, object]:
+    """Reproducibility lineage for a generated artifact (audit gate #12 /
+    critical finding P0-3: committed portfolio risk reports could not be
+    traced back to the data + code that produced them). Embed the returned
+    dict into any artifact whose numeric output depends on a mutable input
+    file, so a stale/regenerated input is detectable after the fact instead
+    of silently producing a different, unexplainable number."""
+    base = Path(base_dir)
+    features_full_path = base / features_path
+    features_sha256: str | None = None
+    features_row_count: int | None = None
+    if features_full_path.exists():
+        features_sha256 = hashlib.sha256(features_full_path.read_bytes()).hexdigest()
+        features_row_count = int(len(read_parquet(features_full_path)))
+
+    config_full_path = base / config_path
+    config_hash = (
+        hashlib.sha256(config_full_path.read_bytes()).hexdigest()
+        if config_full_path.exists()
+        else None
+    )
+
+    return {
+        "dataset_version": dataset_version,
+        "features_path": str(features_path),
+        "features_sha256": features_sha256,
+        "features_row_count": features_row_count,
+        "config_path": str(config_path),
+        "config_hash": config_hash,
+        "git_commit_hash": _git_commit_hash(base),
+        "lineage_generated_at": utc_now_iso(),
+    }
+
+
+def validate_lineage_metadata(payload: dict[str, object], label: str) -> dict[str, object]:
+    """Enforces the "no lineage, no commit" convention (audit gate #12):
+    raises if a required lineage field is missing or empty. Call this right
+    before writing any artifact whose reproducibility matters."""
+    required_keys = (
+        "dataset_version",
+        "features_sha256",
+        "features_row_count",
+        "config_hash",
+        "git_commit_hash",
+        "lineage_generated_at",
+    )
+    _validate_required_keys(payload, required_keys=required_keys, label=label)
+    empty = [key for key in required_keys if payload.get(key) in (None, "")]
+    if empty:
+        raise ValueError(
+            f"{label} lineage is incomplete (no lineage, no commit): "
+            f"empty/missing value(s) for {', '.join(empty)}"
+        )
     return payload
 
 
