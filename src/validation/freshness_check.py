@@ -81,26 +81,97 @@ def inspect_artifacts(base_dir: str | Path = ".") -> dict[str, dict[str, object]
     return inspected
 
 
+def _build_core_universe_from_local_data(base_dir: str | Path = ".") -> pd.DataFrame:
+    base = Path(base_dir)
+    raw_dir = base / "data/raw/daily_ohlcv"
+    processed_path = base / "data/processed/clean_daily_ohlcv.parquet"
+
+    if not raw_dir.exists() or not processed_path.exists():
+        return pd.DataFrame()
+
+    market_map_df = pd.read_parquet(processed_path, columns=["symbol", "market"])
+    market_map = (
+        market_map_df.dropna(subset=["symbol", "market"])
+        .drop_duplicates(subset=["symbol"])
+        .assign(symbol=lambda frame: frame["symbol"].astype(str).str.upper().str.strip())
+        .set_index("symbol")["market"]
+        .to_dict()
+    )
+
+    rows: list[dict[str, object]] = []
+    for path in sorted(raw_dir.glob("*.parquet")):
+        symbol = path.stem.upper()
+        market = market_map.get(symbol)
+        if market not in {"HOSE", "HNX", "UPCOM"}:
+            continue
+
+        try:
+            df = pd.read_parquet(path, columns=["date", "close", "volume"])
+        except Exception:
+            continue
+
+        if df.empty or "date" not in df.columns:
+            continue
+
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df["close"] = pd.to_numeric(df.get("close"), errors="coerce")
+        df["volume"] = pd.to_numeric(df.get("volume"), errors="coerce")
+        df = df.dropna(subset=["date"]).sort_values("date")
+        if df.empty:
+            continue
+
+        tail20 = df.tail(20)
+        rows.append(
+            {
+                "symbol": symbol,
+                "market": market,
+                "latest_date": df["date"].iloc[-1].date().isoformat(),
+                "latest_close": float(df["close"].iloc[-1]) if pd.notna(df["close"].iloc[-1]) else None,
+                "latest_volume": float(df["volume"].iloc[-1]) if pd.notna(df["volume"].iloc[-1]) else None,
+                "avg_value_20d": float((tail20["close"] * tail20["volume"]).mean()) if not tail20.empty else None,
+                "avg_volume_20d": float(tail20["volume"].mean()) if not tail20.empty else None,
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame()
+
+    universe = pd.DataFrame(rows)
+    universe = universe[universe["symbol"].astype(str).str.fullmatch(r"[A-Z0-9]{1,3}", na=False)].copy()
+
+    active_mask = pd.to_datetime(universe["latest_date"]).ge(pd.Timestamp("2026-06-27"))
+    tradable_mask = (
+        pd.to_numeric(universe["latest_close"], errors="coerce").fillna(0.0).gt(0.0)
+        & pd.to_numeric(universe["latest_volume"], errors="coerce").fillna(0.0).gt(0.0)
+    )
+    liquidity_mask = (
+        pd.to_numeric(universe["avg_value_20d"], errors="coerce").fillna(0.0).ge(5_000_000_000.0)
+        | pd.to_numeric(universe["avg_volume_20d"], errors="coerce").fillna(0.0).ge(50_000.0)
+    )
+
+    filtered = universe[active_mask & tradable_mask & liquidity_mask].copy()
+    if filtered.empty:
+        return filtered
+
+    filtered = filtered.sort_values(
+        ["market", "avg_value_20d", "avg_volume_20d", "symbol"],
+        ascending=[True, False, False, True],
+    ).reset_index(drop=True)
+    filtered["reason"] = "Active + liquid market-wide core universe"
+    filtered["source"] = "raw daily ohlcv scan (HOSE/HNX/UPCOM)"
+    filtered["updated_at"] = "2026-07-07"
+    return filtered
+
+
 def ensure_core_universe(base_dir: str | Path = ".") -> list[str]:
     base = Path(base_dir)
     csv_path = base / "config/core_universe.csv"
-    current_watchlist = [
-        "ACB", "BID", "CTG", "DGC", "FPT", "GAS", "GVR", "HDB", "HPG", "LPB",
-        "MBB", "MSN", "MWG", "PLX", "SAB", "SHB", "SSB", "SSI", "STB", "TCB",
-        "TPB", "VCB", "VHM", "VIB", "VIC", "VJC", "VNM", "VPB", "VRE", "VPL"
-    ]
     if not csv_path.exists():
-        csv_path.parent.mkdir(parents=True, exist_ok=True)
-        rows = []
-        for symbol in current_watchlist:
-            rows.append({
-                "symbol": symbol,
-                "reason": "Core Watchlist / High Liquidity",
-                "source": "strategy_config.yaml",
-                "updated_at": "2026-07-02"
-            })
-        df = pd.DataFrame(rows)
-        df.to_csv(csv_path, index=False, encoding="utf-8")
+        derived = _build_core_universe_from_local_data(base)
+        if not derived.empty:
+            csv_path.parent.mkdir(parents=True, exist_ok=True)
+            derived.to_csv(csv_path, index=False, encoding="utf-8")
+            return sorted(derived["symbol"].dropna().astype(str).unique().tolist())
     else:
         try:
             df = pd.read_csv(csv_path)
@@ -108,7 +179,13 @@ def ensure_core_universe(base_dir: str | Path = ".") -> list[str]:
                 return sorted(list(df["symbol"].dropna().astype(str).unique()))
         except Exception:
             pass
-    return current_watchlist
+
+    fallback_watchlist = [
+        "ACB", "BID", "CTG", "DGC", "FPT", "GAS", "GVR", "HDB", "HPG", "LPB",
+        "MBB", "MSN", "MWG", "PLX", "SAB", "SHB", "SSB", "SSI", "STB", "TCB",
+        "TPB", "VCB", "VHM", "VIB", "VIC", "VJC", "VNM", "VPB", "VRE", "VPL",
+    ]
+    return fallback_watchlist
 
 
 def load_market_holidays(base_dir: str | Path = ".") -> set:
