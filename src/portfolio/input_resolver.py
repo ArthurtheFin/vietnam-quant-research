@@ -5,13 +5,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet
 from src.utils.pipeline_io import latest_timestamp, relative_path, resolve_watchlist_source, utc_now_iso
 
 
 def load_default_portfolio_candidates(
     base_dir: str | Path = ".",
-    features_path: str = "data/processed/stock_features.parquet",
+    features_path: str = OFFICIAL_FEATURES_PATH,
 ) -> tuple[pd.DataFrame, dict[str, object]]:
     base = Path(base_dir)
     source = resolve_watchlist_source(base)

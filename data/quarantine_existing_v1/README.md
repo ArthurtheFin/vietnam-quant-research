@@ -35,3 +35,30 @@ writes to the same canonical paths (`data/processed/stock_features.parquet`,
 these files used to occupy. Every downstream consumer
 (`src/screening/`, `src/alpha/`, `scratch/diagnose_*.py`, etc.) picks up
 the new data automatically without needing its own path changes.
+
+## Execution log
+
+This move was described here but not actually performed until **2026-07-13**
+(audit gate #6 / NV2 remediation, commit history on `main`). Before that
+date `data/processed/stock_features.parquet` etc. were still the
+pre-backfill files despite this README — a background daily-update process
+kept writing into the legacy `data/raw/daily_ohlcv/` directory, and
+`generate_features.py`, though already reading from `full_history_v2/raw`
+in code, had not been re-run since the final backfill (see
+`SCORE_FORENSIC_REPORT.md` / `critical_findings.md` P0-2 for the forensic
+trail). On 2026-07-13 the following were physically moved into this
+directory for the first time:
+
+- `data/raw/daily_ohlcv/*.parquet` (567 files) → `raw_daily_ohlcv/`
+- `data/processed/clean_daily_ohlcv.parquet` → `clean_daily_ohlcv.parquet`
+- `data/processed/stock_features.parquet` → `stock_features.parquet`
+- `data/processed/market_features.parquet` → `market_features.parquet`
+
+Immediately after, `scripts/generate_features.py` was re-run against
+`data/full_history_v2/raw/` to regenerate the three canonical files fresh.
+All path references across the codebase were also consolidated to import
+from `src/data/dataset_config.py` (the single source of truth introduced
+in this same change) instead of hardcoding these strings — see that
+module for the canonical vs. legacy/quarantine path constants, and
+`tests/test_dataset_config.py` for the regression test that fails if any
+module reads a hardcoded legacy/quarantine path outside of it.

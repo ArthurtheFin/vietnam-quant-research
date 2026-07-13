@@ -18,6 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 os.chdir(PROJECT_ROOT)
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet
 from src.utils.logger import get_logger
 from src.utils.pipeline_io import (
@@ -39,7 +40,7 @@ PIPELINE_STEPS = [
     {
         "name": "generate_features",
         "script": "scripts/generate_features.py",
-        "outputs": ["data/processed/stock_features.parquet", "data/processed/benchmark_vnindex.parquet"],
+        "outputs": [OFFICIAL_FEATURES_PATH, "data/processed/benchmark_vnindex.parquet"],
     },
     {
         "name": "generate_signals",
@@ -649,7 +650,7 @@ def _build_pipeline_metadata(
     online_update: dict[str, object] | None = None,
     flags_used: list[str] | None = None,
 ) -> dict[str, object]:
-    stock_df = read_parquet(PROJECT_ROOT / "data/processed/stock_features.parquet")
+    stock_df = read_parquet(PROJECT_ROOT / OFFICIAL_FEATURES_PATH)
     watchlist_source = resolve_watchlist_source(PROJECT_ROOT)
     watchlist_source_metadata = watchlist_source.metadata()
     watchlist_source_metadata["source_path"] = relative_path(watchlist_source_metadata.get("source_path"), PROJECT_ROOT)

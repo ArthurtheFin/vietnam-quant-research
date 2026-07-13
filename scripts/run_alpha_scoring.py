@@ -9,14 +9,15 @@ import os
 os.chdir(PROJECT_ROOT)
 
 import pandas as pd
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet, append_parquet
 from src.alpha.scoring import calculate_alpha_scores
 
 def main():
     print("=== Running Alpha Scoring System ===")
-    
+
     # 1. Load data
-    stock_path = Path("data/processed/stock_features.parquet")
+    stock_path = Path(OFFICIAL_FEATURES_PATH)
     bench_path = Path("data/processed/benchmark_vnindex.parquet")
     
     if not stock_path.exists():

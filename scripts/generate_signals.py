@@ -10,6 +10,7 @@ import os
 os.chdir(PROJECT_ROOT)
 
 import yaml
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.backtest.setup_rules import add_breakout_signal, add_pullback_ma_signal, add_volume_spike_signal
 
@@ -23,7 +24,7 @@ pullback_ma_col = signal_cfg.get('pullback_ma_col', 'ma20')
 pullback_tolerance = signal_cfg.get('pullback_tolerance', 0.015)
 volume_spike_threshold = signal_cfg.get('volume_spike_threshold', 2.0)
 
-features = read_parquet('data/processed/stock_features.parquet')
+features = read_parquet(OFFICIAL_FEATURES_PATH)
 if features.empty:
     raise SystemExit('No features found. Run scripts/generate_features.py first.')
 

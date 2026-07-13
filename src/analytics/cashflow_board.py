@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.utils.logger import get_logger
 from src.utils.pipeline_io import (
@@ -62,7 +63,7 @@ def load_cashflow_inputs(base_dir: str | Path = ".") -> dict[str, pd.DataFrame |
         return read_parquet(p)
 
     return {
-        "stock_features": _read_safe(base / "data/processed/stock_features.parquet"),
+        "stock_features": _read_safe(base / OFFICIAL_FEATURES_PATH),
         "benchmark_vnindex": _read_safe(base / "data/processed/benchmark_vnindex.parquet"),
         "client_ready": _read_safe(base / "data/output/client_ready_watchlist.parquet"),
         "trading_watchlist": _read_safe(base / "data/output/trading_watchlist.parquet"),

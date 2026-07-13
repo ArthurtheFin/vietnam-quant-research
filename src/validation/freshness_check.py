@@ -7,6 +7,7 @@ from typing import Iterable
 
 import pandas as pd
 
+from src.data.dataset_config import OFFICIAL_CLEAN_OHLCV_PATH, OFFICIAL_FEATURES_PATH, OFFICIAL_PRICE_RAW_DIR
 from src.utils.pipeline_io import (
     DEFAULT_DATE_COLUMNS,
     dataframe_metadata,
@@ -25,8 +26,8 @@ class ArtifactSpec:
 
 
 ARTIFACT_SPECS: tuple[ArtifactSpec, ...] = (
-    ArtifactSpec("clean_daily_ohlcv", ("data/processed/clean_daily_ohlcv.parquet",), severity="error", required=True),
-    ArtifactSpec("stock_features", ("data/processed/stock_features.parquet",), severity="error", required=True),
+    ArtifactSpec("clean_daily_ohlcv", (OFFICIAL_CLEAN_OHLCV_PATH,), severity="error", required=True),
+    ArtifactSpec("stock_features", (OFFICIAL_FEATURES_PATH,), severity="error", required=True),
     ArtifactSpec(
         "setup_signals",
         ("data/signals/setup_signals.parquet", "data/processed/setup_signals.parquet"),
@@ -83,8 +84,11 @@ def inspect_artifacts(base_dir: str | Path = ".") -> dict[str, dict[str, object]
 
 def _build_core_universe_from_local_data(base_dir: str | Path = ".") -> pd.DataFrame:
     base = Path(base_dir)
-    raw_dir = base / "data/raw/daily_ohlcv"
-    processed_path = base / "data/processed/clean_daily_ohlcv.parquet"
+    # OFFICIAL_PRICE_RAW_DIR (not the legacy data/raw/daily_ohlcv), per
+    # audit gate #6 -- every price-reading path must trace back to the
+    # one verified, bug-fixed raw source.
+    raw_dir = base / OFFICIAL_PRICE_RAW_DIR
+    processed_path = base / OFFICIAL_CLEAN_OHLCV_PATH
 
     if not raw_dir.exists() or not processed_path.exists():
         return pd.DataFrame()
@@ -264,9 +268,9 @@ def _market_latest_date_from_summary(base_dir: str | Path) -> pd.Timestamp | Non
 
 def check_symbol_freshness(base_dir: str | Path, baseline_date: pd.Timestamp, scope: str = "core") -> dict[str, object]:
     base = Path(base_dir)
-    ohlcv_path = base / "data/processed/clean_daily_ohlcv.parquet"
+    ohlcv_path = base / OFFICIAL_CLEAN_OHLCV_PATH
     if not ohlcv_path.exists():
-        ohlcv_path = base / "data/processed/stock_features.parquet"
+        ohlcv_path = base / OFFICIAL_FEATURES_PATH
     if not ohlcv_path.exists():
         return {
             "baseline_date": baseline_date.date().isoformat() if baseline_date else None,

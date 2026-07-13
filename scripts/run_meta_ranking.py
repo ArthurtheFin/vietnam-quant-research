@@ -11,6 +11,7 @@ os.chdir(PROJECT_ROOT)
 import pandas as pd
 
 from src.analytics.meta_ranking import build_meta_ranking, merge_alpha_score_v2, save_meta_ranking_outputs, top_meta_candidates
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet
 from src.screening.final_watchlist import build_watchlist_tiers, save_watchlist_outputs
 
@@ -44,7 +45,7 @@ def _assert_not_stale(reference_df, target_df, reference_name: str, target_name:
 features = read_parquet("data/signals/setup_signals.parquet")
 trade_cards = read_parquet("data/signals/breakout_20d_trade_cards.parquet")
 stealth_latest = read_parquet("data/signals/stealth_accumulation_latest.parquet")
-stock_features = read_parquet("data/processed/stock_features.parquet")
+stock_features = read_parquet(OFFICIAL_FEATURES_PATH)
 alpha_scores = read_parquet("data/signals/alpha_scores.parquet")
 
 if features.empty and trade_cards.empty and stealth_latest.empty:

@@ -18,6 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 os.chdir(PROJECT_ROOT)
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet
 from src.analytics.drawdown import calculate_max_drawdown, calculate_recovery_time, calculate_drawdown
 from src.analytics.advanced import compute_rolling_beta
@@ -56,7 +57,7 @@ def main() -> None:
     print("=== Starting main_visual_dashboard Pipeline ===")
 
     # 1. Check & Load data
-    stock_path = Path("data/processed/stock_features.parquet")
+    stock_path = Path(OFFICIAL_FEATURES_PATH)
     bench_path = Path("data/processed/benchmark_vnindex.parquet")
     alpha_path = Path("data/signals/alpha_scores.parquet")
 

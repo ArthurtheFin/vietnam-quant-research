@@ -15,6 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 os.chdir(PROJECT_ROOT)
 
 from src.capital.management import align_capital_plan_to_target_weights, build_capital_plan
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.portfolio.construction import (
     equal_weight_allocation,
@@ -219,7 +220,7 @@ def main() -> int:
         print("=== Portfolio Stack Complete with WARNING (Empty candidates) ===")
         return 0
 
-    features = read_parquet(PROJECT_ROOT / "data/processed/stock_features.parquet")
+    features = read_parquet(PROJECT_ROOT / OFFICIAL_FEATURES_PATH)
     benchmark = read_parquet(PROJECT_ROOT / "data/processed/benchmark_vnindex.parquet")
     symbols = candidates["symbol"].dropna().astype(str).str.upper().tolist()
     return_matrix = _build_return_matrix(features, symbols)

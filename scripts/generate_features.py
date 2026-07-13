@@ -11,6 +11,12 @@ os.chdir(PROJECT_ROOT)
 import pandas as pd
 import yaml
 from src.data.benchmark import build_benchmark_file, load_index_files, prepare_index_features
+from src.data.dataset_config import (
+    OFFICIAL_CLEAN_OHLCV_PATH,
+    OFFICIAL_FEATURES_PATH,
+    OFFICIAL_MARKET_FEATURES_PATH,
+    OFFICIAL_PRICE_RAW_DIR,
+)
 from src.data.loaders import read_symbol_files, save_parquet
 from src.data.validators import filter_primary_equity_symbols, standardize_ohlcv, validate_ohlcv
 from src.features.returns import add_returns
@@ -33,8 +39,11 @@ ewma_span = cfg.get('volatility', {}).get('ewma_span', 20)
 percentile_window = cfg.get('volatility', {}).get('percentile_window', 252)
 distribution_window = cfg.get('distribution', {}).get('window', 60)
 
-# Step 1: Load and standardize raw data
-raw = read_symbol_files('data/full_history_v2/raw')
+# Step 1: Load and standardize raw data. OFFICIAL_PRICE_RAW_DIR
+# (src/data/dataset_config.py) is the single source of truth for the raw
+# price dataset -- audit gate #6 / critical finding P0-2 -- never read from
+# the legacy data/raw/daily_ohlcv/ directory here.
+raw = read_symbol_files(OFFICIAL_PRICE_RAW_DIR)
 # full_history_v2 files already carry a parsed `date` column alongside the
 # original `tradingdate` string -- drop the latter so standardize_ohlcv's
 # tradingdate->date alias doesn't collide with the column that already exists.
@@ -43,7 +52,7 @@ raw = standardize_ohlcv(raw)
 raw_checks = validate_ohlcv(raw)
 
 if raw.empty:
-    raise SystemExit("No raw data found in data/full_history_v2/raw. Run scratch/full_backfill_v2.py first.")
+    raise SystemExit(f"No raw data found in {OFFICIAL_PRICE_RAW_DIR}. Run scratch/full_backfill_v2.py first.")
 
 raw = raw.dropna(subset=["symbol", "date", "close"]).copy()
 raw = filter_primary_equity_symbols(raw)
@@ -54,7 +63,7 @@ raw = raw[~raw["symbol"].isin(excluded["symbol"])].copy()
 raw = raw.sort_values(["symbol", "date"]).drop_duplicates(["symbol", "date"], keep="last").reset_index(drop=True)
 
 # Step 2: Save clean OHLCV (needed by stealth screener and other downstream)
-save_parquet(raw, 'data/processed/clean_daily_ohlcv.parquet')
+save_parquet(raw, OFFICIAL_CLEAN_OHLCV_PATH)
 print("clean_daily_ohlcv", raw.shape)
 print("raw_validation", raw_checks)
 
@@ -75,7 +84,7 @@ features = add_volatility_percentile(features, vol_col=preferred_vol_col, window
 features = classify_volatility_regime(features)
 features = add_rolling_distribution_stats(features, window=distribution_window)
 features = add_liquidity_features(features)
-save_parquet(features, 'data/processed/stock_features.parquet')
+save_parquet(features, OFFICIAL_FEATURES_PATH)
 print("stock_features", features.shape)
 
 # Step 4: Generate index features and benchmark (moved ahead of market regime
@@ -104,7 +113,7 @@ breadth = calculate_market_breadth(features)
 market = add_market_regime(breadth, benchmark=benchmark)
 market_entropy = build_market_entropy_profile(features, windows=[21, 63, 126], n_bins=24)
 market = market.merge(market_entropy, on="date", how="left")
-save_parquet(market, 'data/processed/market_features.parquet')
+save_parquet(market, OFFICIAL_MARKET_FEATURES_PATH)
 print("market_features", market.shape)
 
 print("\n=== Feature generation complete ===")

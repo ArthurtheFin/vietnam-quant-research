@@ -17,6 +17,7 @@ if "PYTEST_CURRENT_TEST" not in os.environ:
 import pandas as pd
 import yaml
 
+from src.data.dataset_config import OFFICIAL_CLEAN_OHLCV_PATH, OFFICIAL_FEATURES_PATH
 from src.data.fetch_daily import update_symbol_history
 
 with open("config/strategy_config.yaml", "r", encoding="utf-8") as f:
@@ -69,7 +70,7 @@ def get_full_universe_symbols(base_dir=".") -> list[str]:
 def get_tracked_universe_symbols(base_dir=".") -> list[str]:
     """Symbols already present in local processed data (the old, self-referential 'full')."""
     base = Path(base_dir)
-    for name in ("data/processed/stock_features.parquet", "data/processed/clean_daily_ohlcv.parquet"):
+    for name in (OFFICIAL_FEATURES_PATH, OFFICIAL_CLEAN_OHLCV_PATH):
         path = base / name
         if path.exists():
             try:
@@ -85,9 +86,9 @@ def get_tracked_universe_symbols(base_dir=".") -> list[str]:
 
 def calculate_freshness_metrics(base_dir=".") -> dict[str, object]:
     base = Path(base_dir)
-    ohlcv_path = base / "data/processed/clean_daily_ohlcv.parquet"
+    ohlcv_path = base / OFFICIAL_CLEAN_OHLCV_PATH
     if not ohlcv_path.exists():
-        ohlcv_path = base / "data/processed/stock_features.parquet"
+        ohlcv_path = base / OFFICIAL_FEATURES_PATH
     if not ohlcv_path.exists():
         return {"total": 0, "fresh": 0, "stale": 0, "ratio": 0.0}
     try:

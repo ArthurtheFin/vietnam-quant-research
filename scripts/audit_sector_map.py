@@ -12,6 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
 os.chdir(PROJECT_ROOT)
 
 from src.analytics.sector_board import audit_sector_mapping, load_sector_map
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet
 from src.utils.logger import get_logger
 from src.utils.pipeline_io import relative_path, write_json
@@ -25,7 +26,7 @@ def main() -> int:
     if not sector_map_file.exists():
         raise SystemExit("config/sector_map.csv is missing. Import the provided sector map before running audit.")
 
-    stock_features = read_parquet(PROJECT_ROOT / "data/processed/stock_features.parquet")
+    stock_features = read_parquet(PROJECT_ROOT / OFFICIAL_FEATURES_PATH)
     if stock_features.empty:
         raise SystemExit("stock_features is missing or empty. Run generate_features or the daily pipeline before auditing sector coverage.")
 

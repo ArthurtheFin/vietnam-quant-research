@@ -10,6 +10,7 @@ os.chdir(PROJECT_ROOT)
 
 import pandas as pd
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.reporting.trade_card_pipeline import build_trade_cards, save_trade_cards
 
@@ -26,7 +27,7 @@ def _latest_date(df: object, column: str = "date"):
 
 
 signals = read_parquet("data/signals/setup_signals.parquet")
-features = read_parquet("data/processed/stock_features.parquet")
+features = read_parquet(OFFICIAL_FEATURES_PATH)
 
 if signals.empty:
     raise SystemExit("No signals found. Run scripts/generate_signals.py first.")

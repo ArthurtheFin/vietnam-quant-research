@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.data.validators import filter_primary_equity_symbols
 from src.utils.logger import get_logger
@@ -794,7 +795,7 @@ def load_sector_board_inputs(
     base = Path(base_dir)
     sector_map, sector_map_meta = load_sector_map(base)
     return {
-        "stock_features": read_parquet(base / "data/processed/stock_features.parquet"),
+        "stock_features": read_parquet(base / OFFICIAL_FEATURES_PATH),
         "benchmark_vnindex": read_parquet(base / "data/processed/benchmark_vnindex.parquet"),
         "client_ready": read_parquet(base / "data/output/client_ready_watchlist.parquet"),
         "trading_watchlist": read_parquet(base / "data/output/trading_watchlist.parquet"),

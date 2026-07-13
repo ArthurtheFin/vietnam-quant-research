@@ -8,6 +8,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import os
 os.chdir(PROJECT_ROOT)
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH, OFFICIAL_MARKET_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.screening.stealth_accumulation import (
     compare_screen_backtests,
@@ -20,8 +21,8 @@ from src.screening.stealth_accumulation import (
 config = load_screen_config("config/screens/stealth_accumulation.yaml")
 
 # Use stock_features directly — it already contains clean OHLCV + all computed features
-features_df = read_parquet("data/processed/stock_features.parquet")
-market_df = read_parquet("data/processed/market_features.parquet")
+features_df = read_parquet(OFFICIAL_FEATURES_PATH)
+market_df = read_parquet(OFFICIAL_MARKET_FEATURES_PATH)
 benchmark_df = read_parquet("data/processed/benchmark_vnindex.parquet")
 
 if features_df.empty:

@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.data.validators import filter_primary_equity_symbols
 from src.utils.scoring import deep_merge
@@ -80,7 +81,7 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
         "signal": 10,
     },
     "paths": {
-        "features": "data/processed/stock_features.parquet",
+        "features": OFFICIAL_FEATURES_PATH,
         "benchmark": "data/processed/benchmark_vnindex.parquet",
         "meta_ranking": "data/signals/meta_ranking.parquet",
         "alpha_scores": "data/signals/alpha_scores.parquet",
