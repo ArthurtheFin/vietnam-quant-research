@@ -62,5 +62,17 @@
     "Confirmed strength, for balance: the core portfolio-risk mathematics (w^T Sigma w, marginal/component/percentage risk contribution) is correct and independently confirmed robust to symbol-order mismatches via a direct reversed-order test -- ruling out the single most severe common bug class the audit brief warns about."
   ],
   "recommended_next_phase": "Phase 1 of the remediation roadmap (data and mathematical correctness): repoint the production portfolio pipeline off the stale dataset (P0-2), remove the confirmed-harmful alpha_rs_score component from final_watchlist (P0-4), add data-lineage hashing so outputs become reproducible (P0-3), and begin the point-in-time universe effort (P0-1). Shadow/paper-trading mode (already running via alpha_score_shadow_v1) may continue in parallel since it commits no capital. Do not proceed to a real-capital pilot until P0-1 through P0-4 are resolved and Phase D validation is re-run and passes.",
-  "protected_paths_modified": false
+  "protected_paths_modified": false,
+  "remediation_log": {
+    "note": "Scores/category_scores/p0_count above are the original 2026-07-12 audit snapshot and were NOT recomputed here (out of scope for this remediation round -- no re-scoring, no other PATH_TO_100 item touched). This log only records which P0 findings have since been closed and their commit hashes. See audit/critical_findings.md's per-finding STATUS lines for full detail.",
+    "round_date": "2026-07-13",
+    "findings": {
+      "P0-1": {"gate": 3, "status": "OPEN", "reason": "explicitly out of scope this round (survivorship bias / point-in-time universe)"},
+      "P0-2": {"gate": 6, "status": "RESOLVED", "commit": "28b9f60"},
+      "P0-3": {"gate": 12, "status": "RESOLVED", "commit": "72be363"},
+      "P0-4": {"gate": 17, "status": "RESOLVED", "commit": "b966aa2"}
+    },
+    "consumer_artifacts_regenerated_commit": "ccad49f",
+    "artifact_comparison_report": "audit/NV4_ARTIFACT_REGENERATION_COMPARISON.md"
+  }
 }

@@ -11,6 +11,12 @@ what's needed to act.
 
 ## P0-1 — No point-in-time universe; every backtest and factor test has severe, unaddressed survivorship bias
 
+**STATUS (2026-07-13): OPEN.** Explicitly out of scope for the NV1-NV5
+remediation round that closed P0-2/P0-3/P0-4 below ("KHÔNG đụng Gate #3
+(survivorship)"). Not touched, not investigated further, no code changed.
+Still the single largest unresolved issue in this repository — see the
+Impact paragraph below, which continues to apply in full.
+
 **Severity**: CRITICAL. **Confidence**: CONFIRMED (independently verified by two audit passes).
 
 **Exact location**: structural — no file constructs a point-in-time
@@ -60,6 +66,21 @@ backtest".
 
 ## P0-2 — Production portfolio pipeline reads the known-corrupted, superseded dataset instead of the fixed one
 
+**STATUS (2026-07-13): RESOLVED — commit `28b9f60`** (gate #6). Root cause
+was broader than the exact line cited below: `scripts/generate_features.py`
+already read from `data/full_history_v2/raw` in code, but the on-disk
+`data/processed/stock_features.parquet` (and siblings) predated the final
+backfill and had never been regenerated. Fix: added
+`src/data/dataset_config.py` as the single source of truth for all official
+dataset paths, migrated all ~17 consumer files (`build_portfolio_stack.py`
+included) to import from it, physically quarantined the stale files into
+`data/quarantine_existing_v1/`, and regenerated clean
+`stock_features.parquet`/`clean_daily_ohlcv.parquet`/`market_features.parquet`
+from `full_history_v2/raw`. Verified via a 0%-mismatch re-check on the
+same 9-symbol sample (previously up to 100% mismatch) plus a new AST-based
+regression test (`tests/test_dataset_config.py`) guarding against any future
+hardcoded path outside `dataset_config.py`.
+
 **Severity**: CRITICAL. **Confidence**: CONFIRMED (direct code citation).
 
 **Exact location**: `scripts/build_portfolio_stack.py`, line 222:
@@ -104,6 +125,21 @@ stale dataset still in use".
 
 ## P0-3 — The committed portfolio risk report cannot be reproduced from currently-available data
 
+**STATUS (2026-07-13): RESOLVED — commit `72be363`** (gate #12). Added
+`build_lineage_metadata()`/`validate_lineage_metadata()` (`src/utils/pipeline_io.py`):
+every `portfolio_risk_report.json` now embeds `dataset_version`,
+`features_sha256`, `features_row_count`, `config_hash`, `git_commit_hash`,
+and `lineage_generated_at`, with `validate_lineage_metadata` raising before
+write if any field is missing/empty ("no lineage, no commit" convention
+enforced as a runtime guard, not just documentation). Verified: two
+back-to-back runs of `build_portfolio_stack.py` produced bit-identical output
+(diffed programmatically, excluding timestamps); re-ran this finding's own
+three-attempt independent recompute methodology against the now-regenerated,
+hash-pinned `stock_features.parquet` and all four metrics
+(`annual_return`, `annual_volatility`, `sharpe_ratio`, `max_drawdown`) plus
+`track_record_days` matched the committed report to 1e-9 (previously: 0/3
+attempts matched).
+
 **Severity**: HIGH-to-CRITICAL (scored HIGH in the gap matrix; elevated to
 P0 priority because it is empirically confirmed, not theoretical, and
 directly triggers critical failure gate #12). **Confidence**: CONFIRMED
@@ -145,6 +181,20 @@ metrics reproducibility".
 ---
 
 ## P0-4 — `final_watchlist.py`'s live scoring still includes the exact factor this repo's own forensic work found actively harmful
+
+**STATUS (2026-07-13): RESOLVED — commit `b966aa2`** (gate #17). Fixed the
+exact `alpha_rs_score` leak cited below, and a broader sweep found the same
+class of bug independently reintroduced in `scripts/run_meta_ranking.py`
+(which had re-leaked the already-fixed `momentum_score`, plus all other v1
+shadow components, into the saved meta-ranking outputs via its own inline
+merge). Removed all v1 shadow `alpha_*` component merges from every
+non-shadow-log consumer; `alpha_score_shadow_v1` and its per-component
+fields remain available only in `data/signals/alpha_scores.parquet` and
+`alpha_score_shadow_log.parquet` for out-of-sample comparison. Added
+`tests/test_final_watchlist.py::test_no_v1_shadow_alpha_fields_in_any_watchlist_output`
+and `tests/test_meta_ranking.py::test_meta_ranking_report_outputs_never_carry_v1_shadow_fields`
+as regressions against every field in `FORBIDDEN_V1_SHADOW_FIELDS`
+reappearing in any output.
 
 **Severity**: CRITICAL. **Confidence**: CONFIRMED (direct code citation,
 cross-referenced against `SCORE_FORENSIC_REPORT.md`).

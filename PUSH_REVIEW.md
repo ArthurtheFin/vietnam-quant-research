@@ -283,8 +283,10 @@ khảo, KHÔNG dùng cho việc mới:**
   mục gốc *trước khi* hợp nhất (101 mục: xem chi tiết bên dưới). Giữ
   làm bằng chứng, không merge tiếp.
 
-**Cảnh báo artifact tiền-fix**: mọi watchlist/report/research-note nằm
-trong `backup/root-wip-20260713` (tức là mọi thứ đã được sinh ra tại
+**Cảnh báo artifact tiền-fix** (CẬP NHẬT 2026-07-13, xem mục
+"Regenerate artifact sau fix gate #6/#12/#17" bên dưới cho phần đã
+thu hẹp): mọi watchlist/report/research-note nằm trong
+`backup/root-wip-20260713` (tức là mọi thứ đã được sinh ra tại
 thư mục gốc *trước* khi hợp nhất — `reports/`, `data/signals/`,
 16+7 file `research_notes/generated/*.md`, các notebook đã chạy,
 `config/core_universe.csv` bản cũ) **đến từ code CHƯA có các fix của
@@ -294,6 +296,13 @@ cần regenerate lại bằng pipeline hiện tại của `main` trước khi ti
 tưởng bất kỳ số liệu nào trong đó. Các file này KHÔNG được khôi phục
 vào `main` (trừ output `stock-decision-engine/` của người dùng, đã
 khôi phục có chủ đích — xem dưới).
+
+**Phạm vi cảnh báo còn hiệu lực sau 2026-07-13**: `research_notes/generated/*.md`
+(23 file, KHÔNG regenerate hàng loạt — xem mục bên dưới), mọi notebook
+đã chạy trong `backup/root-wip-20260713`, `config/core_universe.csv`
+bản cũ. Cảnh báo đã được GỠ cho `reports/top_watchlist.csv`,
+`reports/daily_alpha_ranking.csv`, `data/signals/final_watchlist.csv`
+— các file này đã regenerate trên code post-fix, xem mục kế tiếp.
 
 **Chi tiết quá trình dọn working-tree-bẩn tại gốc** (thực hiện trước
 khi fast-forward, theo yêu cầu người dùng, không xoá/discard gì):
@@ -318,3 +327,71 @@ khi fast-forward, theo yêu cầu người dùng, không xoá/discard gì):
    file bẩn tại gốc (`crontab -l`, `~/Library/LaunchAgents/`, `ps aux`
    đều không có kết quả liên quan) — nguồn gốc nhiều khả năng là chạy
    tay ở phiên trước, không phải tiến trình định kỳ đang hoạt động.
+
+## Đóng 3 critical gate (#6, #12, #17) + regenerate artifact — 2026-07-13
+
+Vòng remediation trên `audit/critical_findings.md`'s P0-2/P0-3/P0-4 (=
+gate #6/#12/#17). Gate #3 (P0-1, survivorship) **giữ nguyên OPEN**, không
+đụng theo đúng ràng buộc của vòng này. 5 nhiệm vụ, mỗi nhiệm vụ 1 commit
+riêng trên `main`, không push:
+
+1. **NV1 (gate #17, commit `b966aa2`)** — gỡ toàn bộ họ `alpha_*` v1
+   shadow khỏi mọi consumer không phải shadow-log. Không chỉ sửa
+   `alpha_rs_score` trong `final_watchlist.py` như finding gốc mô tả —
+   rà soát phát hiện thêm một leak độc lập trong
+   `scripts/run_meta_ranking.py` (đã tái phát chính leak `momentum_score`
+   từng fix trước đó, cộng toàn bộ 5 v1-shadow component khác). 2 test
+   regression mới chặn mọi field trong `FORBIDDEN_V1_SHADOW_FIELDS`
+   tái xuất hiện ở bất kỳ output nào.
+2. **NV2 (gate #6, commit `28b9f60`)** — `src/data/dataset_config.py`
+   là điểm cấu hình duy nhất cho mọi đường dẫn dataset chính thức; sửa
+   ~17 file consumer (`build_portfolio_stack.py` và toàn bộ script/module
+   khác) để import từ đó thay vì hard-code. Quarantine vật lý
+   `data/processed/{clean_daily_ohlcv,stock_features,market_features}.parquet`
+   bản nhiễm vào `data/quarantine_existing_v1/`, regenerate bản sạch từ
+   `data/full_history_v2/raw`. Xác nhận 0% mismatch (trước đó tới 100%)
+   trên mẫu 9 mã. Test AST-scan mới (`tests/test_dataset_config.py`)
+   chặn hard-code đường dẫn ngoài `dataset_config.py`.
+3. **NV3 (gate #12, commit `72be363`)** — mọi `portfolio_risk_report.json`
+   giờ nhúng `lineage` (dataset_version, features SHA-256, số dòng,
+   config hash, git commit hash, ngày sinh); `validate_lineage_metadata`
+   raise nếu thiếu — quy ước "không lineage thì không commit" được thực
+   thi bằng code, không chỉ ghi chú. Xác nhận: chạy `build_portfolio_stack.py`
+   2 lần cho kết quả giống hệt (trừ timestamp); recompute độc lập theo
+   đúng phương pháp 3-attempt của `audit/portfolio_math_validation.md`
+   khớp report đã commit đến 1e-9 (trước đó 0/3 attempt khớp).
+4. **NV4 (regenerate artifact, commit `ccad49f`)** — chạy lại
+   `final_watchlist`/`daily_alpha_ranking`/`top_watchlist` trên pipeline
+   đã fix + dataset v2, nhúng lineage. So sánh top-20 với bản tiền-fix
+   trong `backup/root-wip-20260713`: `top_watchlist.csv` (không qua
+   eligibility gate) đổi hoàn toàn 0/20 mã trùng — đúng như kỳ vọng vì
+   `alpha_score` phụ thuộc trực tiếp `close`, vốn bị fix khỏi lỗi 2x
+   raw/adjusted-close. `client_ready_watchlist` KHÔNG so sánh được vòng
+   này — pipeline post-fix hiện cho ra 0 candidate hợp lệ (500/500 vào
+   `data_review`), truy nguyên do `full_history_v2` có độ phủ ngày
+   không đều theo từng mã (411/500 mã dừng ở 2026-07-06, 28 mã lẻ tới
+   2026-07-09), khiến eligibility gate's `data_age_days>1` rule đánh
+   `STALE_DATA` hàng loạt — đây là vấn đề Gate #3/eligibility-gate,
+   ngoài phạm vi vòng này, chỉ ghi nhận + tạo task riêng, KHÔNG sửa.
+   Chi tiết đầy đủ: `audit/NV4_ARTIFACT_REGENERATION_COMPARISON.md`.
+   `research_notes/generated/*.md` (23 file) **không** regenerate hàng
+   loạt theo đúng phạm vi yêu cầu — xem cảnh báo artifact tiền-fix ở
+   mục trên.
+5. **NV5 (nghiệm thu, commit này)** — full test suite: 256 passed, 1
+   fail đã biết trước và ngoài phạm vi
+   (`test_reversal_quality_score.py::test_full_history_calibration_matches_strategy_research_report`
+   — hằng số hiệu chỉnh `DEFAULT_SIGNS`/`DEFAULT_WEIGHTS` tính trên dữ
+   liệu cũ bị nhiễm, giờ lệch dấu so với dữ liệu sạch; đây là việc tune
+   scoring, ngoài phạm vi vòng này, đã tạo task riêng theo dõi). Cập
+   nhật `audit/critical_findings.md` (P0-2/3/4 → RESOLVED kèm commit
+   hash, P0-1 → giữ OPEN) và `audit/audit_summary.json` (thêm
+   `remediation_log`, không đụng điểm số gốc).
+
+Trong lúc rà soát, phát hiện thêm 2 vấn đề ngoài phạm vi, đã tạo task
+riêng để theo dõi (không sửa trong vòng này):
+- `reversal_quality_score`'s hằng số hiệu chỉnh cần tính lại trên dữ
+  liệu sạch (xem NV5 ở trên).
+- `full_history_v2` có độ phủ ngày không đều theo từng mã, khiến
+  eligibility gate hiện tại loại toàn bộ candidate — cần quyết định
+  data-engineering (backfill bổ sung) và/hoặc policy (đổi ngày tham
+  chiếu freshness) trước khi động vào Gate #3.
