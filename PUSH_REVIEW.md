@@ -395,3 +395,47 @@ riêng để theo dõi (không sửa trong vòng này):
   eligibility gate hiện tại loại toàn bộ candidate — cần quyết định
   data-engineering (backfill bổ sung) và/hoặc policy (đổi ngày tham
   chiếu freshness) trước khi động vào Gate #3.
+
+## Chẩn đoán blocker eligibility gate + fix reversal_quality_score — 2026-07-13 (vòng 2)
+
+Sau vòng đóng gate #6/#12/#17, phát hiện eligibility gate loại 100%
+candidate (0/500 hợp lệ). Vòng này: chẩn đoán trước, sửa gốc chỉ khi
+đúng giả thuyết.
+
+1. **Chẩn đoán (commit `801d3b0`)** — kiểm tra giả thuyết "gate chưa
+   thích ứng quy ước bỏ dòng volume=0" nêu trong `DATA_BASELINE.md`
+   caveat #3: **BÁC BỎ** cho vấn đề mass-rejection này. Kiểm tra trực
+   tiếp raw parquet của VIC/FPT/VCB/HPG/VNM/MWG: không có dòng nào
+   (kể cả volume=0) sau 2026-07-06 — tức thiếu dữ liệu thật, không
+   phải "dòng hợp lệ bị lược". Nguyên nhân thật, đã ghi sẵn trong
+   `DATA_BASELINE.md:20-21` từ trước: `full_history_v2` được fetch 2
+   đợt — đợt chính đến 2026-07-06 (411/500 mã), đợt bổ sung 48 mã đến
+   2026-07-10 (28 mã trong số đó chạm 07-09) — chưa từng đồng bộ lại.
+   5 mã mẫu (VIC, FPT, DHA, VTO, APL) xác nhận: 4/5 mã có coverage
+   95-96% so với lịch giao dịch thật, hoàn toàn sạch đến 07-06; chỉ bị
+   gắn STALE_DATA vì `analysis_as_of` neo vào mốc mới nhất của nhóm 28
+   mã ngoại lệ. Chi tiết đầy đủ:
+   `audit/ELIGIBILITY_GATE_STALE_DATA_DIAGNOSIS.md`.
+   Sau chẩn đoán, hỏi người dùng hướng đi tiếp — **chọn "dừng lại, chỉ
+   báo cáo"** — không sửa gate, không chạy update dữ liệu online,
+   không regenerate lại artifact NV4 trong vòng này. 3 phương án sửa
+   thật đã liệt kê cho vòng sau.
+2. **Fix `reversal_quality_score` (commit `e7c305c`)** — xác nhận đây
+   là tính toán xác định (không phải tune): `derive_factor_weights` là
+   hàm thuần của `compute_factor_ic`'s output, docstring module tự ghi
+   rõ đây là quy trình hiệu chỉnh định kỳ. Chạy lại đúng quy trình đó
+   trên dữ liệu sạch: `DEFAULT_WEIGHTS`/`DEFAULT_SIGNS` đổi từ
+   `{0.39,0.32,0.29 / -1,-1,-1}` (tính trên dữ liệu cũ bị nhiễm) sang
+   `{0.22,0.20,0.58 / +1,+1,-1}`. Phát hiện đáng chú ý (chỉ báo cáo,
+   không quyết định thêm): IC của `distance_ma20`/`return_20d` gần như
+   biến mất và đổi dấu trên dữ liệu sạch — tín hiệu mean-reversion cũ
+   không sống sót qua fix dữ liệu; `realized_vol_20d` vẫn giữ IC âm và
+   giờ chiếm ưu thế trong tổ hợp. Rà nhanh (chỉ liệt kê, chưa sửa) các
+   hằng số hard-code khác có ghi nguồn gốc từ IC/dữ liệu:
+   `src/alpha/scoring.py`'s tổ hợp `alpha_score` v2 (70%
+   realized_vol_20d / 30% value_ma20, trích t-stat từ
+   `SCORE_FORENSIC_REPORT.md`/`SCORE_V2_REPORT.md`) là ứng viên rõ
+   ràng duy nhất khác — chưa xác minh được tính trên dữ liệu cũ hay
+   mới, để vòng sau kiểm tra riêng.
+3. **Nghiệm thu** — full suite: 257 passed (không còn fail nào). Commit
+   riêng từng nhiệm vụ vào `main`, không push.
