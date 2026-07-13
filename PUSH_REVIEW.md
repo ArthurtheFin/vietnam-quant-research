@@ -439,3 +439,36 @@ candidate (0/500 hợp lệ). Vòng này: chẩn đoán trước, sửa gốc ch
    mới, để vòng sau kiểm tra riêng.
 3. **Nghiệm thu** — full suite: 257 passed (không còn fail nào). Commit
    riêng từng nhiệm vụ vào `main`, không push.
+
+## Đồng bộ full_history_v2 + cơ chế cập nhật giá hằng ngày — 2026-07-13 (vòng 3)
+
+Xác nhận với `task_42360495` (đã dừng, đã đối chiếu, không đụng code) trước
+khi bắt đầu. Đóng nguyên nhân gốc đã chẩn đoán ở vòng 2: `full_history_v2`
+có 2 đợt fetch chưa từng đồng bộ, không có cơ chế cập nhật hằng ngày.
+
+1. **NV1 — Đồng bộ về một mốc (commit `296a2f4`)** — chạy fetch trực tiếp
+   (`get_daily_ohlc`, single-call, KHÔNG bao giờ dùng đường chunked/fallback
+   — đúng cơ chế đã miễn nhiễm với bug raw/adjusted-close) cho toàn bộ 501
+   mã, từ mốc hiện có của từng mã đến ngày giao dịch gần nhất phát hiện qua
+   VNINDEX (`get_daily_index`, không phải `get_daily_ohlc` — endpoint chỉ số
+   khác endpoint cổ phiếu). Kết quả: 441/501 mã (88%) chung mốc 2026-07-13;
+   42 mã lệch 3-10 ngày (thanh khoản thấp, có thật); 18 mã lệch 12-1634
+   ngày (ASA/ART/AMD/KPF/PSH/ATB/TCD/BCG/BBC/SVI/ARM/LGC/APL/SSC/ACS/ATS/
+   ADC/TTE) — xác nhận qua chính lần fetch trực tiếp hôm nay (không phải suy
+   từ snapshot cũ) là không còn phiên khớp lệnh nào kể từ ngày cuối, khả
+   năng ngừng giao dịch thật. Cập nhật `DATA_BASELINE.md`.
+2. **NV2 — `scripts/update_prices_daily.py` (commit tiếp theo)** — đối
+   xứng `update_disclosure_daily.py`: fetch incremental từ max(date) từng
+   mã, checkpoint qua `manifest.json`, quality-flag (|return|>20%, toàn
+   volume=0) không chặn append, log JSONL. Chạy 2 lần liên tiếp để kiểm
+   chứng idempotent: lần 2 ban đầu vẫn báo "UPDATED" cho 60 mã ít giao dịch
+   (vì fetch lại thành công nhưng không có phiên mới) — sửa để phân biệt
+   trạng thái `NO_NEW_DATA` (không đổi file/manifest) khỏi `UPDATED` (có
+   dữ liệu mới thật); chạy lại lần 3: `n_updated: 0, total_new_rows: 0` —
+   no-op sạch.
+   **Quy trình vận hành** (bổ sung vào quy ước repo): chạy
+   `scripts/update_prices_daily.py --universe` và
+   `scripts/update_disclosure_daily.py --universe` **trước** khi sinh
+   watchlist (`scripts/run_daily_pipeline.py`). Gate STALE_DATA trong
+   `final_watchlist.py` là chốt chặn cuối nếu quên chạy update — không phải
+   cơ chế cập nhật, không dựa vào nó để tự động lấy dữ liệu mới.
