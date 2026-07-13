@@ -90,10 +90,57 @@ fixes. `daily_alpha_ranking.csv`/`top_watchlist.csv` (Result 1 above) are the
 only consumer artifacts this round for which a like-for-like comparison was
 possible.
 
-## Follow-up flagged (not actioned here)
+## Follow-up flagged (not actioned in this NV4 round)
 
 A background task was spawned to investigate the `full_history_v2` per-symbol
 coverage gap (411 symbols capped 2026-07-06 vs. 28 capped 2026-07-09) and
 whether the eligibility gate's freshness reference date should be reconsidered
 — both are Gate #3-adjacent design questions requiring explicit scope
 approval, not something this round's NV1-NV5 instructions authorized.
+
+---
+
+## UPDATE 2026-07-13 (later same day) — data-coverage gap closed, Result 2 now comparable
+
+Follow-up round: diagnosed the mass-rejection (see
+`audit/ELIGIBILITY_GATE_STALE_DATA_DIAGNOSIS.md` — confirmed the gate logic
+itself was correct; root cause was the two un-reconciled fetch batches
+above, not a gate bug), then synced `full_history_v2` to a common latest
+trading date (`scripts/update_prices_daily.py`, commits `296a2f4`/`1fe2725`)
+and re-ran `generate_features.py` + `scripts/update_index_data.py` +
+`scripts/run_daily_pipeline.py --offline`.
+
+**Result 2, revised — now comparable**: `client_ready=10, trading=20,
+research=174, data_review=296` (`freshness_status: OK`, 0 warnings, 0
+errors — previously `ERROR` with 500/500 rejected). Rejection reasons in
+the 296 data-reviewed candidates are now dominated by legitimate business
+criteria, not a freshness artifact: `LOW_LIQUIDITY` (158 alone + 57 combined
+with other reasons), `SEVERE_DISTRIBUTION_RISK` (67 alone + 87 combined),
+`STALE_DATA` only 60 total (exactly the 60 symbols identified in the sync
+as thin-trading/long-inactive — see `DATA_BASELINE.md`'s sync section, not
+a bug).
+
+**`client_ready_watchlist` top-10 comparison, pre-fix (`backup/root-wip-20260713`) vs. post-sync**:
+
+| Pre-fix (as_of 2026-07-06) | Post-sync (as_of 2026-07-13) |
+|---|---|
+| MSB, POW, CTS, SSB, NAB, BMP, VIC, VAB, VPI, VHM | VIC, MSB, ABB, MST, BVS, CTS, KLB, BMP, NAB, HDB |
+
+**Retained (5/10)**: MSB, CTS, NAB, BMP, VIC. **Dropped**: POW, SSB, VAB,
+VPI, VHM. **Added**: ABB, MST, BVS, KLB, HDB. A moderate, plausible
+overlap — consistent with real score changes from the gate-17 fix (v1
+shadow `alpha_rs_score` no longer feeds `relative_strength_score`) plus the
+underlying price-data correction, not the near-total turnover seen in
+Result 1 (which is driven by `alpha_score`'s different, vol/liquidity-only
+composite).
+
+**`reports/top_watchlist.csv`/`daily_alpha_ranking.csv`**: now ranks 441
+symbols (up from 28 pre-sync) — the alpha-scoring cross-section is no
+longer dominated by the outlier-fresh subset. New top-20: HCD, VSH, DRL,
+BTP, CLL, SMB, HUB, TCL, ALV, ABI, ILB, DVP, CHP, SJD, DSN, GDT, HAR, VFG,
+SHP, AFX (1/20 retained vs. the pre-sync-but-post-gate6-fix top-20 -- `HUB`
+only; expected, since that ranking was computed over a near-arbitrary
+28-symbol subset before the sync).
+
+All three artifacts re-embed lineage from this run
+(`features_row_count: 715674`, `git_commit_hash` = this round's commits).
