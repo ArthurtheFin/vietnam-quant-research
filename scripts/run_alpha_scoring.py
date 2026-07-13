@@ -12,6 +12,7 @@ import pandas as pd
 from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet, append_parquet
 from src.alpha.scoring import calculate_alpha_scores
+from src.utils.pipeline_io import build_lineage_metadata, validate_lineage_metadata, write_json
 
 def main():
     print("=== Running Alpha Scoring System ===")
@@ -63,6 +64,30 @@ def main():
     top_watchlist = ranking.head(20).copy()
     top_watchlist.to_csv(reports_dir / "top_watchlist.csv", index=False)
     print(f"Exported top 20 watchlist to {reports_dir / 'top_watchlist.csv'}")
+
+    # Lineage (audit gate #12): daily_alpha_ranking.csv/top_watchlist.csv are
+    # plain CSVs with no metadata slot of their own -- write a sidecar so both
+    # can be traced back to the exact features snapshot + code version that
+    # produced them, same convention as portfolio_risk_report.json.
+    lineage = validate_lineage_metadata(
+        build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=PROJECT_ROOT),
+        label="alpha_scoring_metadata.json",
+    )
+    write_json(
+        {
+            "latest_date": latest_date.date().isoformat(),
+            "symbol_count": int(len(ranking)),
+            "top_watchlist_count": int(len(top_watchlist)),
+            "generated_files": [
+                "data/signals/alpha_scores.parquet",
+                "reports/daily_alpha_ranking.csv",
+                "reports/top_watchlist.csv",
+            ],
+            "lineage": lineage,
+        },
+        reports_dir / "alpha_scoring_metadata.json",
+    )
+    print(f"Wrote lineage metadata to {reports_dir / 'alpha_scoring_metadata.json'}")
 
     # Shadow log: v2 (deployed) vs v1 (shadow) side by side, appended daily
     # so the live out-of-sample comparison accumulates day by day starting

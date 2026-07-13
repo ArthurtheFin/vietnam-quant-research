@@ -227,20 +227,28 @@ def validate_portfolio_stack_metadata(payload: dict[str, object]) -> dict[str, o
     return payload
 
 
+# This file's own repo root (src/utils/pipeline_io.py -> parents[2]) -- the
+# fallback for _git_commit_hash when base_dir isn't a git worktree itself
+# (e.g. a tmp_path test sandbox). The commit hash must reflect the running
+# code's version, not wherever the artifact's data happens to be written.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
 def _git_commit_hash(base_dir: str | Path = ".") -> str | None:
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=str(base_dir),
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-    except Exception:
-        return None
-    if result.returncode != 0:
-        return None
-    return result.stdout.strip() or None
+    for candidate in (Path(base_dir), _REPO_ROOT):
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=str(candidate),
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except Exception:
+            continue
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    return None
 
 
 def build_lineage_metadata(
@@ -263,12 +271,14 @@ def build_lineage_metadata(
         features_sha256 = hashlib.sha256(features_full_path.read_bytes()).hexdigest()
         features_row_count = int(len(read_parquet(features_full_path)))
 
-    config_full_path = base / config_path
-    config_hash = (
-        hashlib.sha256(config_full_path.read_bytes()).hexdigest()
-        if config_full_path.exists()
-        else None
-    )
+    # config/strategy_config.yaml describes the code's run configuration, not
+    # a data artifact -- like the git commit, fall back to this repo's own
+    # copy if base_dir (e.g. a tmp_path test sandbox) doesn't have one.
+    config_hash: str | None = None
+    for candidate in (base / config_path, _REPO_ROOT / config_path):
+        if candidate.exists():
+            config_hash = hashlib.sha256(candidate.read_bytes()).hexdigest()
+            break
 
     return {
         "dataset_version": dataset_version,

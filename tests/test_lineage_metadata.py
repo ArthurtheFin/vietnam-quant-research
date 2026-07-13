@@ -55,12 +55,19 @@ def test_build_lineage_metadata_handles_missing_features_file(tmp_path: Path) ->
     assert lineage["config_hash"] is None
 
 
-def test_build_lineage_metadata_returns_none_commit_hash_outside_git_repo(tmp_path: Path) -> None:
+def test_build_lineage_metadata_falls_back_to_real_repo_commit_when_base_dir_is_not_a_git_repo(
+    tmp_path: Path,
+) -> None:
+    """base_dir is only used to resolve data file paths; the commit hash must
+    reflect the actual running code's version (this repo), not whatever
+    directory a caller happens to write output data into (e.g. a tmp_path
+    test sandbox with no .git of its own)."""
     lineage = build_lineage_metadata(
         features_path=tmp_path / "features.parquet",
         base_dir=tmp_path,
     )
-    assert lineage["git_commit_hash"] is None
+    assert lineage["git_commit_hash"] is not None
+    assert len(lineage["git_commit_hash"]) == 40
 
 
 def test_validate_lineage_metadata_passes_when_complete() -> None:

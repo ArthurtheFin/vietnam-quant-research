@@ -254,6 +254,13 @@ def test_save_watchlist_outputs_drops_forward_columns(tmp_path) -> None:
     and must guard independently, not rely on build_watchlist_tiers having run."""
     from src.screening.final_watchlist import save_watchlist_outputs, DEFAULT_FINAL_WATCHLIST_CONFIG
 
+    # watchlist_metadata.json now embeds reproducibility lineage (audit gate
+    # #12), which needs a real features file on disk to hash -- write a
+    # minimal one at the configured path under tmp_path.
+    features_path = tmp_path / DEFAULT_FINAL_WATCHLIST_CONFIG["paths"]["features"]
+    features_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame({"symbol": ["AAA"], "date": [pd.Timestamp("2025-01-01")]}).to_parquet(features_path)
+
     frame = pd.DataFrame([{"symbol": "AAA", "final_score": 80.0, "forward_return_5d": 0.05}])
     outputs = {"client_ready_watchlist": frame.copy(), "trading_watchlist": pd.DataFrame(),
                "research_candidates": pd.DataFrame()}

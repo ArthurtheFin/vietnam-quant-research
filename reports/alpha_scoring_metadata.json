@@ -1,0 +1,20 @@
+{
+  "latest_date": "2026-07-09",
+  "symbol_count": 28,
+  "top_watchlist_count": 20,
+  "generated_files": [
+    "data/signals/alpha_scores.parquet",
+    "reports/daily_alpha_ranking.csv",
+    "reports/top_watchlist.csv"
+  ],
+  "lineage": {
+    "dataset_version": "full_history_v2",
+    "features_path": "data/processed/stock_features.parquet",
+    "features_sha256": "b7646ab8eedf22db4b1489f91f6eff03972dd7d324bb22fb1f1d765addf19e44",
+    "features_row_count": 713578,
+    "config_path": "config/strategy_config.yaml",
+    "config_hash": "11236e60e4cf4852651ac471f71bf0ff0990c35ec56ac6e0a2dfa2e020a0f771",
+    "git_commit_hash": "72be3634e8024adba715b874ec88170ddd8ab5a1",
+    "lineage_generated_at": "2026-07-13T07:30:11+00:00"
+  }
+}

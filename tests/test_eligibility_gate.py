@@ -182,7 +182,11 @@ def test_post_cashflow_overlay_executes_successfully(
     # Set up temp workspace structure
     (tmp_path / "data/output").mkdir(parents=True)
     (tmp_path / "data/signals").mkdir(parents=True)
+    (tmp_path / "data/processed").mkdir(parents=True)
 
+    # watchlist_metadata.json now embeds reproducibility lineage (audit gate
+    # #12), which needs a real features file on disk to hash.
+    save_parquet(sample_watchlist, tmp_path / "data/processed/stock_features.parquet")
     save_parquet(sample_watchlist, tmp_path / "data/output/client_ready_watchlist.parquet")
     save_parquet(sample_watchlist, tmp_path / "data/output/trading_watchlist.parquet")
     save_parquet(sample_watchlist, tmp_path / "data/output/research_candidates.parquet")

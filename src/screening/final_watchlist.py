@@ -259,7 +259,12 @@ def save_watchlist_outputs(
         saved_paths[f"{name}_parquet"] = parquet_path
 
     # Write watchlist metadata JSON
-    from src.utils.pipeline_io import relative_path, write_json
+    from src.utils.pipeline_io import (
+        build_lineage_metadata,
+        relative_path,
+        validate_lineage_metadata,
+        write_json,
+    )
     
     meta_path = output_dir / "watchlist_metadata.json"
     client_threshold = float(cfg.get("client_ready_threshold", 60.0))
@@ -276,7 +281,11 @@ def save_watchlist_outputs(
         "trading_threshold": trading_threshold,
         "generated_files": [relative_path(stem.with_suffix(".parquet"), base) for stem in mapping.values()] + [relative_path(meta_path, base)],
         "generated_at": pd.Timestamp.now().isoformat(),
-        "warnings": []
+        "warnings": [],
+        "lineage": validate_lineage_metadata(
+            build_lineage_metadata(paths.get("features", OFFICIAL_FEATURES_PATH), base_dir=base),
+            label="watchlist_metadata.json",
+        ),
     }
     write_json(meta_data, meta_path)
     saved_paths["watchlist_metadata"] = meta_path
