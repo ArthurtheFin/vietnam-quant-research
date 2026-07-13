@@ -303,3 +303,95 @@ def test_momentum_score_ignores_alpha_score() -> None:
         "momentum_score must be unaffected by alpha_score -- alpha_score is a "
         "volatility/liquidity signal now (SCORE_V2_REPORT.md), not momentum"
     )
+
+
+def test_relative_strength_score_ignores_alpha_rs_score() -> None:
+    """Audit gate #17 / critical finding P0-4: SCORE_FORENSIC_REPORT.md found
+    the v1 shadow's rs_score IC flipped to -0.1060 in 2026, one of the primary
+    drivers of a real -59.7% backtest loss. relative_strength_score must not
+    move when only the v1 shadow's rs_score changes -- mirrors
+    test_momentum_score_ignores_alpha_score exactly for the sibling field
+    that was missed when momentum_score was fixed."""
+    features = _sample_features()
+    latest = features.sort_values(["symbol", "date"]).groupby("symbol").tail(1)
+    meta = latest[["symbol", "date"]].copy()
+    meta["meta_score"] = np.linspace(40, 95, len(meta))
+    meta["trade_edge_score"] = meta["meta_score"]
+    meta["setup_quality_score"] = meta["meta_score"] - 5
+    meta["risk_penalty_score"] = 20
+
+    def _alpha_scores(rs_score_values: np.ndarray) -> pd.DataFrame:
+        alpha = latest[["symbol", "date"]].copy()
+        alpha["alpha_score"] = 50.0
+        alpha["momentum_score"] = 50.0
+        alpha["rs_score"] = rs_score_values
+        alpha["trend_score"] = 50.0
+        alpha["volume_score"] = 50.0
+        alpha["volatility_score"] = 50.0
+        alpha["liquidity_score"] = 50.0
+        return alpha
+
+    n = len(latest)
+    common_kwargs = dict(
+        features=features,
+        benchmark=_sample_benchmark(features),
+        meta_ranking=meta,
+        config={"min_value_ma20": 0, "min_volume_ma20": 0},
+    )
+    low_rs = build_final_watchlist(alpha_scores=_alpha_scores(np.full(n, 10.0)), **common_kwargs)
+    high_rs = build_final_watchlist(alpha_scores=_alpha_scores(np.full(n, 90.0)), **common_kwargs)
+
+    merged = low_rs[["symbol", "relative_strength_score"]].merge(
+        high_rs[["symbol", "relative_strength_score"]], on="symbol", suffixes=("_low_rs", "_high_rs")
+    )
+    assert (merged["relative_strength_score_low_rs"] == merged["relative_strength_score_high_rs"]).all(), (
+        "relative_strength_score must be unaffected by the v1 shadow's rs_score -- "
+        "SCORE_FORENSIC_REPORT.md found it actively harmful (IC -0.1060 in 2026)"
+    )
+
+
+# Every v1-shadow-only field name that must never appear in a final_watchlist
+# output, however it's spelled (raw from alpha_scores.parquet, or renamed
+# with an alpha_ prefix by a merge step). Audit gate #17.
+FORBIDDEN_V1_SHADOW_FIELDS = [
+    "alpha_momentum_score", "alpha_rs_score", "alpha_trend_score",
+    "alpha_volume_score", "alpha_volatility_score", "alpha_liquidity_score",
+]
+
+
+def test_no_v1_shadow_alpha_fields_in_any_watchlist_output() -> None:
+    """Audit gate #17 regression guard: build the full tier set (not just
+    client_ready_watchlist) with an alpha_scores input carrying every v1
+    shadow component, and assert NONE of the forbidden field names appear in
+    ANY output DataFrame -- including scored_universe/data_review_watchlist,
+    which (unlike client_ready/trading/research) are NOT restricted to
+    FINAL_WATCHLIST_COLUMNS and would silently carry any merged-in column."""
+    from src.screening.final_watchlist import build_watchlist_tiers
+
+    features = _sample_features()
+    latest = features.sort_values(["symbol", "date"]).groupby("symbol").tail(1)
+    meta = latest[["symbol", "date"]].copy()
+    meta["meta_score"] = np.linspace(40, 95, len(meta))
+    meta["trade_edge_score"] = meta["meta_score"]
+    meta["setup_quality_score"] = meta["meta_score"] - 5
+    meta["risk_penalty_score"] = 20
+
+    alpha = latest[["symbol", "date"]].copy()
+    alpha["alpha_score"] = 50.0
+    alpha["momentum_score"] = 50.0
+    alpha["rs_score"] = 50.0
+    alpha["trend_score"] = 50.0
+    alpha["volume_score"] = 50.0
+    alpha["volatility_score"] = 50.0
+    alpha["liquidity_score"] = 50.0
+
+    outputs = build_watchlist_tiers(
+        features=features,
+        benchmark=_sample_benchmark(features),
+        meta_ranking=meta,
+        alpha_scores=alpha,
+        config={"min_value_ma20": 0, "min_volume_ma20": 0},
+    )
+    for output_name, frame in outputs.items():
+        leaked = [c for c in FORBIDDEN_V1_SHADOW_FIELDS if c in frame.columns]
+        assert not leaked, f"v1 shadow field(s) {leaked} leaked into outputs['{output_name}']"

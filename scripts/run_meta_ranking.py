@@ -10,7 +10,7 @@ os.chdir(PROJECT_ROOT)
 
 import pandas as pd
 
-from src.analytics.meta_ranking import build_meta_ranking, save_meta_ranking_outputs, top_meta_candidates
+from src.analytics.meta_ranking import build_meta_ranking, merge_alpha_score_v2, save_meta_ranking_outputs, top_meta_candidates
 from src.data.loaders import read_parquet
 from src.screening.final_watchlist import build_watchlist_tiers, save_watchlist_outputs
 
@@ -69,25 +69,14 @@ ranked = build_meta_ranking(
     signal_col="breakout_20d",
 )
 
-# Merge Alpha Scores into Meta-Ranking dataset
+# Merge Alpha Scores into Meta-Ranking dataset. Only the validated v2
+# alpha_score is merged -- see merge_alpha_score_v2's docstring (audit
+# gate #17: the previous inline merge here pulled in all 6 v1 shadow
+# per-component scores with zero downstream consumer, leaking straight
+# into the saved meta_ranking*.parquet report files).
 if not alpha_scores.empty:
-    alpha_df = alpha_scores.copy()
-    if not alpha_df.empty:
-        # Get latest alpha score per symbol
-        alpha_latest = alpha_df.sort_values("date").groupby("symbol").tail(1)
-        rename_map = {
-            "alpha_score": "alpha_score",
-            "momentum_score": "alpha_momentum_score",
-            "rs_score": "alpha_rs_score",
-            "trend_score": "alpha_trend_score",
-            "volume_score": "alpha_volume_score",
-            "volatility_score": "alpha_volatility_score",
-            "liquidity_score": "alpha_liquidity_score",
-        }
-        cols_to_keep = ["symbol"] + [c for c in rename_map.keys() if c in alpha_latest.columns]
-        alpha_latest_sub = alpha_latest[cols_to_keep].rename(columns={k: v for k, v in rename_map.items() if k in alpha_latest.columns})
-        ranked = ranked.merge(alpha_latest_sub, on="symbol", how="left")
-        print(f"Successfully merged alpha scores into meta ranking dataset.")
+    ranked = merge_alpha_score_v2(ranked, alpha_scores)
+    print("Successfully merged alpha_score (v2) into meta ranking dataset.")
 
 paths = save_meta_ranking_outputs(
     ranked,

@@ -235,3 +235,65 @@ def test_final_watchlist_score_rejects_forward_columns():
     with pytest.raises(ValueError, match="forward-looking"):
         _score(df, DEFAULT_FINAL_WATCHLIST_CONFIG)
 
+
+def test_merge_alpha_score_v2_only_merges_v2_not_v1_shadow_fields():
+    """Audit gate #17: merge_alpha_score_v2 must merge alpha_score (v2, validated)
+    and must NOT merge any v1 shadow per-component score. run_meta_ranking.py
+    previously merged all 6 v1 fields in as alpha_momentum_score/alpha_rs_score/
+    alpha_trend_score/alpha_volume_score/alpha_volatility_score/
+    alpha_liquidity_score with zero downstream consumer, leaking straight into
+    the saved meta_ranking*.parquet report files (save_meta_ranking_outputs
+    applies no column restriction beyond dropping forward-looking columns)."""
+    from src.analytics.meta_ranking import merge_alpha_score_v2
+
+    ranked = pd.DataFrame([{"symbol": "AAA", "meta_score": 80.0}, {"symbol": "BBB", "meta_score": 60.0}])
+    alpha_scores = pd.DataFrame(
+        [
+            {
+                "symbol": sym, "date": pd.Timestamp("2026-07-01"), "alpha_score": 55.0,
+                "momentum_score": 50.0, "rs_score": 50.0, "trend_score": 50.0,
+                "volume_score": 50.0, "volatility_score": 50.0, "liquidity_score": 50.0,
+            }
+            for sym in ("AAA", "BBB")
+        ]
+    )
+    merged = merge_alpha_score_v2(ranked, alpha_scores)
+
+    assert "alpha_score" in merged.columns, "the validated v2 alpha_score must still be merged in"
+    forbidden = [
+        "alpha_momentum_score", "alpha_rs_score", "alpha_trend_score",
+        "alpha_volume_score", "alpha_volatility_score", "alpha_liquidity_score",
+        "momentum_score", "rs_score", "trend_score", "volume_score", "volatility_score", "liquidity_score",
+    ]
+    leaked = [c for c in forbidden if c in merged.columns]
+    assert not leaked, f"v1 shadow field(s) {leaked} must not be merged into the meta-ranking dataset"
+
+
+def test_meta_ranking_report_outputs_never_carry_v1_shadow_fields():
+    """End-to-end guard: even if merge_alpha_score_v2's contract is broken later,
+    the saved meta_ranking report files must never carry a v1 shadow field."""
+    from src.analytics.meta_ranking import merge_alpha_score_v2, save_meta_ranking_outputs
+
+    ranked = pd.DataFrame(
+        [{"symbol": "AAA", "date": pd.Timestamp("2026-07-01"), "meta_score": 80.0,
+          "trade_edge_score": 0.0, "net_accumulation_score": 0.0, "priority_bucket": "Prime Candidate"}]
+    )
+    alpha_scores = pd.DataFrame(
+        [{"symbol": "AAA", "date": pd.Timestamp("2026-07-01"), "alpha_score": 55.0,
+          "momentum_score": 50.0, "rs_score": 50.0, "trend_score": 50.0,
+          "volume_score": 50.0, "volatility_score": 50.0, "liquidity_score": 50.0}]
+    )
+    merged = merge_alpha_score_v2(ranked, alpha_scores)
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        paths = save_meta_ranking_outputs(merged, out_dir=tmp)
+        saved = pd.read_parquet(paths["ranked"])
+        forbidden = [
+            "alpha_momentum_score", "alpha_rs_score", "alpha_trend_score",
+            "alpha_volume_score", "alpha_volatility_score", "alpha_liquidity_score",
+            "momentum_score", "rs_score", "trend_score", "volume_score", "volatility_score", "liquidity_score",
+        ]
+        leaked = [c for c in forbidden if c in saved.columns]
+        assert not leaked, f"v1 shadow field(s) {leaked} leaked into the saved meta_ranking report"
+

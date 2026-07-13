@@ -379,19 +379,23 @@ def _merge_latest_alpha(df: pd.DataFrame, alpha_scores: pd.DataFrame | None, as_
         df["alpha_score"] = np.nan
         return df
     alpha = _latest_by_symbol(alpha_scores, as_of_date=as_of_date)
-    # NOTE: v1 shadow's momentum_score is intentionally NOT merged in here.
-    # SCORE_FORENSIC_REPORT.md found its IC was ~0 over 2023-2025 and -0.1050
-    # in 2026 (the largest negative-IC component in that fold); it is a shadow
-    # score for comparison only, not a validated input for this live screen.
-    keep = [c for c in ["symbol", "alpha_score", "rs_score", "trend_score", "volume_score", "volatility_score", "liquidity_score"] if c in alpha.columns]
-    rename = {
-        "rs_score": "alpha_rs_score",
-        "trend_score": "alpha_trend_score",
-        "volume_score": "alpha_volume_score",
-        "volatility_score": "alpha_volatility_score",
-        "liquidity_score": "alpha_liquidity_score",
-    }
-    return df.merge(alpha[keep].rename(columns=rename), on="symbol", how="left")
+    # NOTE: NONE of the v1 shadow's per-component scores are merged in here
+    # (momentum_score, rs_score, trend_score, volume_score, volatility_score,
+    # liquidity_score). SCORE_FORENSIC_REPORT.md found the v1 composite had
+    # no significant standalone IC anywhere tested, and specifically that
+    # rs_score's IC flipped from +0.0141 (2023-2025) to -0.1060 in 2026 --
+    # the largest negative-IC component in that fold, one of the primary
+    # drivers of a real -59.7% backtest loss. It was being merged in here as
+    # `alpha_rs_score` and consumed by relative_strength_score below (audit
+    # critical finding P0-4 / gate #17) -- removed, along with the other four
+    # renamed-but-never-consumed v1 columns (trend/volume/volatility/
+    # liquidity), which were dead weight riding along in this DataFrame with
+    # no consumer anywhere in _score() but still leaking into unrestricted
+    # output paths like data_review_watchlist. v1's components remain
+    # available for shadow comparison only in data/signals/alpha_scores.parquet
+    # and data/signals/alpha_score_shadow_log.parquet -- never here.
+    keep = [c for c in ["symbol", "alpha_score"] if c in alpha.columns]
+    return df.merge(alpha[keep], on="symbol", how="left")
 
 
 def _merge_latest_meta(df: pd.DataFrame, meta_ranking: pd.DataFrame | None, as_of_date: str | pd.Timestamp | None = None) -> pd.DataFrame:
@@ -452,11 +456,15 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     ).mean(axis=1)
     out["momentum_score"] = (momentum_raw * weights["momentum"]).round(2)
 
+    # alpha_rs_score removed from this average (audit P0-4 / gate #17):
+    # SCORE_FORENSIC_REPORT.md found the v1 shadow's rs_score IC flipped to
+    # -0.1060 in 2026, one of the primary drivers of a real -59.7% backtest
+    # loss. Mirrors the momentum_score fix (commits 517a3d0/327b8d4) applied
+    # to its sibling component earlier -- this was the missed twin.
     rs_raw = pd.concat(
         [
             _rank(out.get("excess_return_20d", pd.Series(np.nan, index=out.index))),
             _rank(out.get("excess_return_60d", pd.Series(np.nan, index=out.index))),
-            _rank(out.get("alpha_rs_score", pd.Series(np.nan, index=out.index))),
         ],
         axis=1,
     ).mean(axis=1)

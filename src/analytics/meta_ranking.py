@@ -461,6 +461,33 @@ def build_meta_ranking(
     return score_meta_ranking(prepared, signal_col=signal_col)
 
 
+def merge_alpha_score_v2(ranked: pd.DataFrame, alpha_scores: pd.DataFrame) -> pd.DataFrame:
+    """Merge only the validated v2 alpha_score into the meta-ranking dataset.
+
+    Does NOT merge any v1 shadow per-component score (momentum_score,
+    rs_score, trend_score, volume_score, volatility_score, liquidity_score).
+    SCORE_FORENSIC_REPORT.md found the v1 composite had no significant
+    standalone IC anywhere tested, and specifically that rs_score's IC
+    flipped to -0.1060 in 2026 (a primary driver of a real -59.7% backtest
+    loss). This function previously merged all 6 v1 fields in as
+    alpha_momentum_score/alpha_rs_score/alpha_trend_score/alpha_volume_score/
+    alpha_volatility_score/alpha_liquidity_score with zero downstream
+    consumer (save_meta_ranking_outputs applies no column restriction, so
+    they rode straight into the saved data/signals/meta_ranking*.parquet
+    report files) -- pure leakage, removed (audit gate #17). v1's
+    components remain available for shadow comparison only in
+    data/signals/alpha_scores.parquet and
+    data/signals/alpha_score_shadow_log.parquet -- never here.
+    """
+    if alpha_scores is None or alpha_scores.empty or ranked.empty:
+        return ranked
+    alpha_latest = alpha_scores.sort_values("date").groupby("symbol").tail(1)
+    keep = [c for c in ["symbol", "alpha_score"] if c in alpha_latest.columns]
+    if len(keep) <= 1:
+        return ranked
+    return ranked.merge(alpha_latest[keep], on="symbol", how="left")
+
+
 def top_meta_candidates(
     ranked: pd.DataFrame,
     top_n: int = 20,
