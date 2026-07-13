@@ -17,13 +17,48 @@ summary for consumers of the data, not a repeat of that investigation.
 |---|---|
 | Path | `data/full_history_v2/raw/{symbol}.parquet` (501 files) + `manifest.json` + `quality_report.csv` |
 | Fetch method | Single direct `get_daily_ohlc` call per symbol, `page_size=1000`, `max_pages=10` (primary/adjusted SSI FCData endpoint; deliberately never uses the chunked `fetch_symbol_history`/fallback path) |
-| Fetch window | 2026-07-09 15:31 UTC → 2026-07-09 16:51 UTC (main run), + supplementary re-fetch pass same day for 48 symbols (see caveats) |
-| Requested date range | 2020-01-01 → 2026-07-06 (2026-07-10 for the 48 supplemented symbols) |
-| Code commit | `2ebd2b0` (includes the Task 1 fix `d12a6ac`: `_normalize_daily_ohlc_response` now correctly maps `closepriceadjusted` → `close` on fallback-sourced chunks, and derives adjusted `open`/`high`/`low` consistently — see BACKFILL_DESIGN_REPORT.md Round 3) |
+| Fetch window | 2026-07-09 15:31 UTC → 2026-07-09 16:51 UTC (main run), + supplementary re-fetch pass same day for 48 symbols, **+ full-universe sync 2026-07-13 (see "Sync to a common date" below — closes the gap between these two original batches)** |
+| Requested date range | 2020-01-01 → 2026-07-06 (2026-07-10 for the 48 supplemented symbols); **now current through 2026-07-13 for 441/501 symbols after the sync** |
+| Code commit | `2ebd2b0` (includes the Task 1 fix `d12a6ac`: `_normalize_daily_ohlc_response` now correctly maps `closepriceadjusted` → `close` on fallback-sourced chunks, and derives adjusted `open`/`high`/`low` consistently — see BACKFILL_DESIGN_REPORT.md Round 3). Sync commit: see PUSH_REVIEW.md's 2026-07-13 price-sync entry. |
 | Symbols | 501 (all currently-listed HOSE/HNX/UPCOM symbols per `data/processed/stock_features.parquet`'s current universe) |
-| Total rows | 714,627 (mean 1,426/symbol, median 1,608, min 100 [very recent/thin IPOs], max 1,622 [full 2020-01-02→2026-07-06 coverage]) |
-| Size on disk | 33 MB |
-| Errors | 0/501 (0 failed fetches, 0 empty responses) |
+| Total rows | 716,725 as of the 2026-07-13 sync (mean 1,431/symbol, median 1,613, min 100, max 1,627 [full 2020-01-02→2026-07-13 coverage]) |
+| Size on disk | 47 MB |
+| Errors | 0/501 (0 failed fetches, 0 empty responses) across both the original backfill and the 2026-07-13 sync |
+
+### Sync to a common date (2026-07-13)
+
+The original backfill's two-batch fetch window (above) left 411/501 symbols
+capped at 2026-07-06 and 28 capped at 2026-07-09, with no mechanism to keep
+the universe current afterward -- root-caused in
+`audit/ELIGIBILITY_GATE_STALE_DATA_DIAGNOSIS.md` as the reason the
+eligibility gate rejected 100% of candidates (`data_age_days` measured
+against a 28-symbol outlier's max date). Ran `scripts/update_prices_daily.py
+--universe` (new script, see PUSH_REVIEW.md for the operating procedure) to
+close this: single-call `get_daily_ohlc` per symbol from each symbol's own
+existing max(date) through the live-detected latest VNINDEX trading date
+(2026-07-13), merged in (existing history before the re-fetch window
+untouched, de-duplicated by date). 501/501 symbols attempted, 0 fetch
+errors, 2,584 new rows total.
+
+**Result**: 441/501 symbols (88%) now share max(date) = 2026-07-13. The
+remaining 60 split into two groups, both confirmed via this same live
+fetch through today (not a stale snapshot):
+- **42 symbols, 3-10 calendar days behind** -- thin/illiquid names with no
+  matched-volume session in the last 1-2 trading days per the `get_daily_ohlc`
+  "real sessions only" convention (caveat #3 below), not a fetch defect.
+- **18 symbols, 12-1,634 days behind** -- ASA (last trade 2022-01-21), ART
+  (2022-11-18), AMD (2023-03-08), KPF (2025-02-25), PSH (2025-03-11), ATB
+  (2025-05-30), TCD/BCG (2025-10-08), BBC (2026-01-15), SVI (2026-02-13),
+  ARM (2026-03-16), LGC (2026-04-29), APL (2026-06-24), SSC/ACS (2026-06-29),
+  ATS (2026-06-30), ADC/TTE (2026-07-01). A live fetch requesting each
+  symbol's full gap window through 2026-07-13 returned no rows past their
+  existing max date, i.e. these are confirmed (as of today, not inferred)
+  to have had zero matched-volume trading sessions since that date --
+  consistent with long-term suspension or a genuinely dead market for the
+  shares, not a data-collection gap. Not independently verified against an
+  official delisting/suspension registry (no such source available to this
+  pipeline) -- treat as "confirmed inactive in the price feed," not
+  "officially delisted."
 
 **Market breakdown**: HOSE 394, UPCOM 61 (+3 more resolved via `data/raw/securities/UPCOM.parquet` — AMD, ART, ASA), HNX 41 (+2 more resolved via `data/raw/securities/HOSE.parquet` — KPF, PSH). 5 symbols have no `market` value anywhere in `data/processed/stock_features.parquet`'s history; resolved via the raw securities-listing fallback files.
 
