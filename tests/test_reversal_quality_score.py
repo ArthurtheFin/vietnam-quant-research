@@ -95,9 +95,12 @@ def test_score_reversal_quality_treats_missing_factor_value_as_neutral():
     )
     scored = score_reversal_quality(features).set_index("symbol")["reversal_quality_score"]
     assert not scored.isna().any()
-    # AAA: full weight on distance_ma20 (rank 1.0) + realized_vol_20d (rank 1.0)
-    # + neutral 0.5 on the missing return_20d.
-    expected_aaa = (DEFAULT_WEIGHTS["distance_ma20"] * 1.0 + DEFAULT_WEIGHTS["return_20d"] * 0.5 + DEFAULT_WEIGHTS["realized_vol_20d"] * 1.0) * 100.0
+    # 2026-07-13 recalibration flipped distance_ma20's sign to +1 (see
+    # reversal_quality_score.py's DEFAULT_SIGNS comment) -- AAA's lower raw
+    # distance_ma20 now ranks at the 0.5 percentile (n=2), not 1.0.
+    # realized_vol_20d's sign is unchanged (-1): AAA's lower raw value (calmer)
+    # still ranks highest (1.0). return_20d is missing for AAA -> neutral 0.5.
+    expected_aaa = (DEFAULT_WEIGHTS["distance_ma20"] * 0.5 + DEFAULT_WEIGHTS["return_20d"] * 0.5 + DEFAULT_WEIGHTS["realized_vol_20d"] * 1.0) * 100.0
     assert scored["AAA"] == pytest.approx(expected_aaa)
 
 

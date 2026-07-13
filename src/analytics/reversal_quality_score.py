@@ -13,12 +13,28 @@ import pandas as pd
 
 FACTORS = ["distance_ma20", "return_20d", "realized_vol_20d"]
 
-# Full-history calibration (matches STRATEGY_RESEARCH_REPORT.md section 6
-# exactly: weights proportional to |IC|, all three signs negative). Treat as
-# a default, not a permanent constant -- recalibrate periodically by calling
-# compute_factor_ic + derive_factor_weights on a fresh TRAIN window.
-DEFAULT_WEIGHTS = {"distance_ma20": 0.39, "return_20d": 0.32, "realized_vol_20d": 0.29}
-DEFAULT_SIGNS = {"distance_ma20": -1, "return_20d": -1, "realized_vol_20d": -1}
+# Full-history calibration -- recalibrated 2026-07-13 by calling
+# compute_factor_ic(features) + derive_factor_weights(mean_ic) with default
+# args against the post-gate-6-fix data/processed/stock_features.parquet
+# (regenerated from data/full_history_v2, commit 28b9f60): mean IC =
+# {distance_ma20: +0.019, return_20d: +0.017, realized_vol_20d: -0.052}.
+# This is a mechanical re-run of the documented recalibration procedure
+# (deterministic given the data -- no parameter/threshold was chosen), not a
+# strategy re-tune. Treat as a default, not a permanent constant --
+# recalibrate periodically the same way on a fresh TRAIN window.
+#
+# Previous calibration (STRATEGY_RESEARCH_REPORT.md section 6, all three
+# signs negative, weights 0.39/0.32/0.29) was computed against the
+# raw/adjusted-close-corrupted pre-gate-6 dataset (DATA_BASELINE.md P0-2 /
+# critical_findings.md). On the corrected data, distance_ma20's and
+# return_20d's mean-reversion IC is now near-zero and sign-flipped (i.e. the
+# apparent signal on the corrupted data does not survive on clean data);
+# realized_vol_20d's negative IC (calm-vol premium) persists and now
+# dominates the composite (~59% weight vs. ~29% before). Whether this
+# materially changes the strategy's viability is a separate research
+# question, not decided here.
+DEFAULT_WEIGHTS = {"distance_ma20": 0.22, "return_20d": 0.20, "realized_vol_20d": 0.58}
+DEFAULT_SIGNS = {"distance_ma20": 1, "return_20d": 1, "realized_vol_20d": -1}
 
 
 def _spearman_ic(x: pd.Series, y: pd.Series) -> float | None:

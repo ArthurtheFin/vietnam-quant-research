@@ -159,14 +159,19 @@ def test_thin_evidence_caps_priority_bucket():
             "insufficient_evidence": insufficient_evidence,
         }
 
+    # reversal_quality_score's 2026-07-13 recalibration flipped distance_ma20's
+    # and return_20d's sign to +1 (high raw value now ranks highest) --
+    # realized_vol_20d's sign (-1, low ranks highest) is unchanged. THIN/FULL
+    # need the best value on all three under the *current* sign convention to
+    # clearly win their own 3-row cross-section.
     data = pd.DataFrame(
         [
-            _row("THIN", "2024-06-20", True, -0.05, -0.05, 0.05),
-            _row("FILLER1A", "2024-06-20", False, 0.05, 0.05, 0.20),
-            _row("FILLER1B", "2024-06-20", False, 0.08, 0.10, 0.30),
-            _row("FULL", "2024-06-21", False, -0.05, -0.05, 0.05),
-            _row("FILLER2A", "2024-06-21", False, 0.05, 0.05, 0.20),
-            _row("FILLER2B", "2024-06-21", False, 0.08, 0.10, 0.30),
+            _row("THIN", "2024-06-20", True, 0.10, 0.10, 0.05),
+            _row("FILLER1A", "2024-06-20", False, 0.02, 0.02, 0.20),
+            _row("FILLER1B", "2024-06-20", False, -0.05, -0.05, 0.30),
+            _row("FULL", "2024-06-21", False, 0.10, 0.10, 0.05),
+            _row("FILLER2A", "2024-06-21", False, 0.02, 0.02, 0.20),
+            _row("FILLER2B", "2024-06-21", False, -0.05, -0.05, 0.30),
         ]
     )
     ranked = score_meta_ranking(data)
