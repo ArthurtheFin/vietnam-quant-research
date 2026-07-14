@@ -75,15 +75,17 @@ date,name,source
 2026-04-27,Gio To Hung Vuong,full_history_v2 empirical (zero symbols traded market-wide)
 2026-04-30,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
 2026-05-01,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
-2026-09-02,Quoc khanh (National Day),"Statutory fixed date (Sep 2), scheduled"
-2027-01-01,Tet Duong lich (New Year),"Statutory fixed date (Jan 1), weekday (Fri), no bridge"
-2027-02-04,"Tet Nguyen Dan (Lunar New Year, estimated)","ESTIMATED -- mung 1 Tet Dinh Mui confirmed Sat 2027-02-06 (thuvienphapluat.vn), weekday span estimated by historical pattern; pending official HOSE/HNX 2027 calendar"
+2026-08-31,Quoc khanh (National Day),"OFFICIAL -- HOSE trading-holiday notice for Quoc khanh 2/9/2026: Mon 31/8-Wed 2/9/2026 (3 trading days), corroborated independently by VSD/VSDC official notice (dated 2025-11-21) and cafef.vn's HOSE republication; makeup workday Sat 2026-08-22 explicitly excluded from trading. Web search lookup date: 2026-07-14."
+2026-09-01,Quoc khanh (National Day),"OFFICIAL -- see 2026-08-31 note. Web search lookup date: 2026-07-14."
+2026-09-02,Quoc khanh (National Day),"OFFICIAL -- see 2026-08-31 note. Web search lookup date: 2026-07-14."
+2027-01-01,Tet Duong lich (New Year),"Statutory fixed date (Jan 1), weekday (Fri), no bridge. Re-checked 2026-07-14: no 2027 calendar published yet that would override this."
+2027-02-04,"Tet Nguyen Dan (Lunar New Year, estimated)","ESTIMATED -- official 2027 Tet holiday schedule NOT YET PUBLISHED as of web search lookup date 2026-07-14 (multiple sources agree: Bo Lao dong-Thuong binh va Xa hoi/Bo Noi vu typically announces Vietnam's Tet calendar Aug-Nov of the preceding year). mung 1 Tet Dinh Mui independently confirmed Sat 2027-02-06 (giao thua Fri 2027-02-05) by multiple sources (dienmayxanh.com, ai-hay.vn, muctim.tuoitre.vn, bachhoaxanh.com); weekday span here (04,05,08,09,10 -- skipping weekend 06-07) matches the commonly-cited unofficial proposal (28 Tet den het mung 5, i.e. 2027-02-04 to 2027-02-10) reported by ai-hay.vn/hometalk.com.vn. Re-confirmed no official calendar yet on 2026-07-14 re-check; estimate unchanged from prior round."
 2027-02-05,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
 2027-02-08,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
 2027-02-09,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
 2027-02-10,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
-2027-04-16,Gio To Hung Vuong,"10/3 am lich; confirmed via web search (bamgio.com et al.), Fri, no bridge"
-2027-04-30,Ngay Giai phong mien Nam (Reunification Day),"Statutory fixed date (Apr 30), weekday (Fri), no bridge"
-2027-05-01,Quoc te Lao dong (Labour Day),Statutory fixed date (May 1) -- falls on Saturday 2027
-2027-05-03,"Quoc te Lao dong (Labour Day, bu/estimated)",ESTIMATED bridge day (Mon) for May 1 falling on Sat -- pending official HOSE/HNX 2027 calendar; pattern matches 2021 (May 1 Sat -> May 3 Mon observed)
-2027-09-02,Quoc khanh (National Day),"Statutory fixed date (Sep 2), weekday (Thu), no bridge assumed"
+2027-04-16,Gio To Hung Vuong,"10/3 am lich -- lunar-to-solar conversion independently confirmed by 3+ sources (penci.vn, bamgio.com, chinese-lunar-calendar.com) as Fri 2027-04-16; falls on Friday so naturally forms a 3-day weekend (Fri-Sun) with no bridge day needed regardless of official decision. Not itself a discretionary government decision (fixed lunar date), so treated as high-confidence though the official trading-holiday notice for 2027 has not been published. Re-checked 2026-07-14."
+2027-04-30,Ngay Giai phong mien Nam (Reunification Day),"Statutory fixed date (Apr 30), weekday (Fri), no bridge. Re-checked 2026-07-14: no 2027 calendar published yet that would override this."
+2027-05-01,Quoc te Lao dong (Labour Day),"Statutory fixed date (May 1) -- falls on Saturday 2027. Re-checked 2026-07-14."
+2027-05-03,"Quoc te Lao dong (Labour Day, bu/estimated)","ESTIMATED bridge day (Mon) for May 1 falling on Sat -- legal basis: Dieu 111 Bo luat Lao dong 2019 (if a paid holiday falls on a weekly rest day, the worker gets the next working day off in lieu), confirmed via web search 2026-07-14 (vov.vn/plo.vn coverage of the rule, though the specific 2027 administrative decision applying it has not been published); pattern matches 2021 (May 1 Sat -> May 3 Mon observed). Official HOSE/HNX 2027 calendar still pending as of this lookup."
+2027-09-02,Quoc khanh (National Day),"Statutory fixed date (Sep 2), weekday (Thu), no bridge assumed. Re-checked 2026-07-14: no 2027 calendar published yet that would override this."
