@@ -193,8 +193,15 @@ def ensure_core_universe(base_dir: str | Path = ".") -> list[str]:
 
 
 def load_market_holidays(base_dir: str | Path = ".") -> set:
-    """Known VN market holidays from config/vn_market_holidays.csv (fixed solar dates only;
-    lunar holidays such as Tet must be added manually — see OPERATIONS.md)."""
+    """Known VN market holidays from config/vn_market_holidays.csv -- both
+    fixed solar-date holidays (New Year, Reunification Day, Labour Day,
+    National Day, incl. weekend-observed bridge days) and Tet Nguyen Dan
+    (Lunar New Year, movable) for 2020-2026 verified empirically against
+    data/full_history_v2 (zero symbols traded market-wide on every listed
+    date, and no unlisted weekday has zero trades either -- see
+    tests/test_freshness_check.py::test_market_holidays_cross_check_against_real_trading_data);
+    2027 Tet/holiday dates are estimated pending official HOSE/HNX publication
+    (flagged in the csv's `source` column)."""
     path = Path(base_dir) / "config/vn_market_holidays.csv"
     if not path.exists():
         return set()

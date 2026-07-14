@@ -1,9 +1,89 @@
-date,name
-2026-01-01,New Year
-2026-04-30,Reunification Day
-2026-05-01,Labour Day
-2026-09-02,National Day
-2027-01-01,New Year
-2027-04-30,Reunification Day
-2027-05-01,Labour Day
-2027-09-02,National Day
+date,name,source
+2020-01-23,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2020-01-24,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2020-01-27,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2020-01-28,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2020-01-29,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2020-04-02,Gio To Hung Vuong,full_history_v2 empirical (zero symbols traded market-wide)
+2020-04-30,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
+2020-05-01,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2020-09-02,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2021-01-01,Tet Duong lich (New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2021-02-10,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2021-02-11,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2021-02-12,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2021-02-15,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2021-02-16,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2021-04-21,Gio To Hung Vuong,full_history_v2 empirical (zero symbols traded market-wide)
+2021-04-30,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
+2021-05-03,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2021-09-02,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2021-09-03,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2022-01-03,Tet Duong lich (New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2022-01-31,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2022-02-01,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2022-02-02,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2022-02-03,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2022-02-04,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2022-04-11,Gio To Hung Vuong,full_history_v2 empirical (zero symbols traded market-wide)
+2022-05-02,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
+2022-05-03,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2022-09-01,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2022-09-02,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2023-01-02,Tet Duong lich (New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2023-01-20,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2023-01-23,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2023-01-24,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2023-01-25,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2023-01-26,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2023-05-01,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2023-05-02,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2023-05-03,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2023-09-01,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2023-09-04,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2024-01-01,Tet Duong lich (New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2024-02-08,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2024-02-09,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2024-02-12,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2024-02-13,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2024-02-14,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2024-04-18,Gio To Hung Vuong,full_history_v2 empirical (zero symbols traded market-wide)
+2024-04-29,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
+2024-04-30,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
+2024-05-01,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2024-09-02,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2024-09-03,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2025-01-01,Tet Duong lich (New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2025-01-27,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2025-01-28,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2025-01-29,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2025-01-30,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2025-01-31,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2025-04-07,Gio To Hung Vuong,full_history_v2 empirical (zero symbols traded market-wide)
+2025-04-30,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
+2025-05-01,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2025-05-02,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2025-09-01,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2025-09-02,Quoc khanh (National Day),full_history_v2 empirical (zero symbols traded market-wide)
+2026-01-01,Tet Duong lich (New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2026-01-02,Tet Duong lich (New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2026-02-16,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2026-02-17,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2026-02-18,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2026-02-19,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2026-02-20,Tet Nguyen Dan (Lunar New Year),full_history_v2 empirical (zero symbols traded market-wide)
+2026-04-27,Gio To Hung Vuong,full_history_v2 empirical (zero symbols traded market-wide)
+2026-04-30,Ngay Giai phong mien Nam (Reunification Day),full_history_v2 empirical (zero symbols traded market-wide)
+2026-05-01,Quoc te Lao dong (Labour Day),full_history_v2 empirical (zero symbols traded market-wide)
+2026-09-02,Quoc khanh (National Day),"Statutory fixed date (Sep 2), scheduled"
+2027-01-01,Tet Duong lich (New Year),"Statutory fixed date (Jan 1), weekday (Fri), no bridge"
+2027-02-04,"Tet Nguyen Dan (Lunar New Year, estimated)","ESTIMATED -- mung 1 Tet Dinh Mui confirmed Sat 2027-02-06 (thuvienphapluat.vn), weekday span estimated by historical pattern; pending official HOSE/HNX 2027 calendar"
+2027-02-05,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
+2027-02-08,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
+2027-02-09,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
+2027-02-10,"Tet Nguyen Dan (Lunar New Year, estimated)",ESTIMATED -- see 2027-02-04 note
+2027-04-16,Gio To Hung Vuong,"10/3 am lich; confirmed via web search (bamgio.com et al.), Fri, no bridge"
+2027-04-30,Ngay Giai phong mien Nam (Reunification Day),"Statutory fixed date (Apr 30), weekday (Fri), no bridge"
+2027-05-01,Quoc te Lao dong (Labour Day),Statutory fixed date (May 1) -- falls on Saturday 2027
+2027-05-03,"Quoc te Lao dong (Labour Day, bu/estimated)",ESTIMATED bridge day (Mon) for May 1 falling on Sat -- pending official HOSE/HNX 2027 calendar; pattern matches 2021 (May 1 Sat -> May 3 Mon observed)
+2027-09-02,Quoc khanh (National Day),"Statutory fixed date (Sep 2), weekday (Thu), no bridge assumed"

@@ -477,6 +477,74 @@ def test_expected_latest_trading_date_calendar_rules() -> None:
     assert expected_latest_trading_date(pd.Timestamp("2026-09-02 20:00"), holidays) == pd.Timestamp("2026-09-01")
 
 
+def test_trading_day_count_skips_a_full_tet_period() -> None:
+    """audit/PATH_TO_100.md Universe/Eligibility item: any consumer counting
+    trading days (available_at+1, event windows, rebalance calendars, the
+    freshness gate) must not count through a Tet closure as if it were
+    ordinary weekdays. Uses the real config/vn_market_holidays.csv (not a
+    synthetic fixture) -- Tet Nguyen Dan 2026 (Binh Ngo) is 2026-02-16
+    through 2026-02-20 (Mon-Fri, verified empirically against
+    data/full_history_v2 -- see DATA_BASELINE.md/config/vn_market_holidays.csv)."""
+    from src.validation.freshness_check import (
+        expected_latest_trading_date,
+        load_market_holidays,
+        trading_sessions_behind,
+    )
+
+    holidays = load_market_holidays()
+    assert pd.Timestamp("2026-02-17").date() in holidays  # sanity: Tet is actually loaded
+
+    # Evening of the first trading day back from Tet (Mon 2026-02-23) ->
+    # expected latest session is that same day, not counting the Tet week.
+    assert expected_latest_trading_date(pd.Timestamp("2026-02-23 20:00"), holidays) == pd.Timestamp("2026-02-23")
+    # Morning of the same day (before 16:00 cutoff) -> previous session is
+    # 2026-02-13 (Friday before Tet), skipping the entire holiday week, not
+    # 2026-02-22 (Sunday) or 2026-02-20 (would be wrong by a naive
+    # weekend-only skip that didn't know about Tet).
+    assert expected_latest_trading_date(pd.Timestamp("2026-02-23 09:00"), holidays) == pd.Timestamp("2026-02-13")
+
+    # trading_sessions_behind must count 0 sessions across the Tet week
+    # itself (baseline = last pre-Tet session, expected = last Tet holiday
+    # day) and exactly 1 once the first post-Tet session is reached.
+    assert trading_sessions_behind(pd.Timestamp("2026-02-13"), pd.Timestamp("2026-02-20"), holidays) == 0
+    assert trading_sessions_behind(pd.Timestamp("2026-02-13"), pd.Timestamp("2026-02-23"), holidays) == 1
+
+
+def test_market_holidays_cross_check_against_real_trading_data() -> None:
+    """Two-way verification of config/vn_market_holidays.csv against the
+    actual full_history_v2 dataset for the range it can be checked against
+    (2020-01-02..2026-07-13): every listed holiday must have zero trades
+    market-wide, and every market-wide zero-trade weekday must be listed.
+    2027 entries are estimates pending official publication and are
+    excluded from this check (not verifiable against real data yet)."""
+    import glob
+
+    from src.validation.freshness_check import load_market_holidays
+
+    holidays = load_market_holidays()
+    data_min, data_max = pd.Timestamp("2020-01-02"), pd.Timestamp("2026-07-13")
+    checkable_holidays = {d for d in holidays if data_min.date() <= d <= data_max.date()}
+
+    files = glob.glob("data/full_history_v2/raw/*.parquet")
+    if not files:
+        pytest.skip("requires real data/full_history_v2/raw")
+    all_trading_dates: set = set()
+    for f in files:
+        df = pd.read_parquet(f, columns=["date"])
+        all_trading_dates.update(pd.to_datetime(df["date"]).dt.date.tolist())
+
+    # Direction 1: no listed holiday (in the checkable range) has trades.
+    violating_holidays = sorted(d for d in checkable_holidays if d in all_trading_dates)
+    assert violating_holidays == [], f"holiday(s) with unexpected trades: {violating_holidays}"
+
+    # Direction 2: no market-wide zero-trade weekday is missing from the list.
+    full_range = pd.bdate_range(data_min, data_max)
+    missing_holidays = sorted(
+        d.date() for d in full_range if d.date() not in all_trading_dates and d.date() not in holidays
+    )
+    assert missing_holidays == [], f"zero-trade weekday(s) not in holiday list: {missing_holidays}"
+
+
 def test_missing_volume_column_rejects_instead_of_fabricating(tmp_path) -> None:
     """H4: a features frame with no volume column must reject candidates as
     VOLUME_DATA_MISSING, not fabricate 100,000 shares and let them pass."""
