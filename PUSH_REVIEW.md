@@ -662,3 +662,49 @@ nguồn dữ liệu hủy niêm yết chính thức để đối chiếu; (b) ha
 thuyết ở NV2 trên (người liên quan gia đình, cụm nhiều người nội bộ) vẫn cần dữ
 liệu sống để kiểm định trong một prereg tương lai nếu người dùng quyết định theo
 đuổi tiếp.
+
+## GĐ3.6 — Phát súng cuối: đối chứng khớp cặp cho 2 giả thuyết cụm/gia đình (đóng nhánh vĩnh viễn)
+
+Vòng theo dõi trực tiếp GĐ3.5, kiểm định XÁC NHẬN (không còn exploratory) hai
+giả thuyết đã sinh ra ở addendum trước — cả hai đều trùng prior trong văn liệu
+insider-trading học thuật (cluster buying, family-related buying). Khác biệt
+cốt lõi: so DCAR với **đối chứng khớp cặp** (5 mã cùng tercile thanh khoản,
+cùng `trading_status=ACTIVE`, "sạch" không có disclosure trong `[t−60,t+120]`)
+thay vì so CAR với 0 — triệt tiêu phần lớn survivorship drift (~+2.9%/120 ngày,
+định lượng ở GĐ3.5/NV1) khỏi cả hai vế của phép so sánh.
+
+1. **NV1 (commit `8e47dfc`)** — `DISCLOSURE_PREREG_2_CLUSTER.md`, khóa TRƯỚC
+   code. H1 (cụm mua, ≥2 người nội bộ khác nhau/20 ngày/cùng mã — tái dùng đúng
+   `multi_insider_cluster` đã tính từ round trước), H2 (người liên quan gia
+   đình — tái dùng đúng `role_group`), H0 nội bộ (đơn lẻ, không cụm không gia
+   đình — vai trò kiểm tra tính hợp lệ của chính thiết kế đối chứng, không phải
+   giả thuyết cần thắng). Tiêu chí PASS: CI dưới DCAR > 0 đồng thời ở CẢ +60 VÀ
+   +120 ngày, VÀ dấu dương ổn định ≥2/3 giai đoạn (tái dùng nguyên biên giai
+   đoạn cũ). N(nhóm)<30 → mô tả + đóng nhánh, không hạ tiêu chí. Ghi nhận trung
+   thực ngay trong prereg: N thực tế theo addendum trước (~909 cụm, ~556 gia
+   đình) cao hơn nhiều "dự kiến không nhiều" của yêu cầu gốc.
+2. **NV2 (commit `02be8c0`)** — chạy đúng prereg, một lần. N báo trước kết quả:
+   2,318 sự kiện S1 gộp cụm (2,320 ở lag +3/+5, lệch biên gộp cụm nhỏ khi dịch
+   `available_at`) → H1=1,023, H2=607, H0=946; 448 sự kiện (19.3%) bị loại vì
+   không tìm được đối chứng hợp lệ (báo cáo, không lặng lẽ bỏ qua); trung bình
+   4.88/5 đối chứng dùng được mỗi sự kiện giữ lại. Cả ba nhóm vượt xa ngưỡng 30
+   sự kiện tối thiểu ở mọi cửa sổ — không rơi vào nhánh N không đủ.
+3. **NV3 (commit `3b4986c`)** — `DISCLOSURE_PREREG_2_REPORT.md`. **Cả H1, H2,
+   H0 đều NEGATIVE ở cả 3 lag** — không nhóm nào đạt CI dương đồng thời ở +60
+   VÀ +120. H0 âm tính xác nhận thiết kế đối chứng không rò rỉ false positive.
+   Gần đạt nhất: H2 (gia đình) có CI dương riêng lẻ ở +20/+60 (lag +1/+5), nhưng
+   +120 luôn chứa 0 và hiệu ứng dương gần như chỉ đến từ Giai đoạn 1
+   (2020–2022, DCAR+120 trung bình +11.3%) — Giai đoạn 2/3 phẳng-đến-âm, đúng
+   mẫu hình "hiệu ứng chỉ sống ở giai đoạn dữ liệu sớm" đã thấy lặp lại ở H1/S1
+   trước đó. Verdict ổn định qua cả 3 lag, không cần gắn cờ mong manh.
+
+**Đóng nhánh "disclosure như tín hiệu" VĨNH VIỄN cho mục đích tín hiệu** — đây
+là round kiểm định có pre-register thứ 3 (test lift/CAR gốc → định lượng
+survivorship bias → đối chứng khớp cặp cho 2 giả thuyết có prior học thuật) và
+không round nào tìm được nhân tố disclosure đạt ngưỡng ứng viên, kể cả sau khi
+đã loại bỏ đúng confound survivorship đã định lượng. Theo đúng ràng buộc đã
+khóa: không mở thêm biến thể nào sau kết quả này. **Pipeline
+`scripts/update_disclosure_daily.py` vẫn chạy live** trong quy trình vận hành
+— lý do giữ lại không đổi so với GĐ3.5 (tiềm năng point-in-time universe qua
+tin hủy niêm yết, Gate #3; dữ liệu vẫn sẵn sàng nếu có hướng nghiên cứu khác
+không liên quan "dự báo bùng nổ/vượt trội giá" trong tương lai).
