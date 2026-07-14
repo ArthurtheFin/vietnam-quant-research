@@ -186,3 +186,96 @@ hiện sau khi nhìn kết quả trên. Quyết định tiếp theo (có đáng 
 event-study khác trong một round hoàn toàn mới, có prereg riêng, hay dừng hẳn
 hướng "insider disclosure dự báo bùng nổ" ở đây) dành cho người dùng, không tự
 quyết trong round này.
+
+---
+
+## Exploratory addendum — hypothesis generation only
+
+**NHÃN: EXPLORATORY. Không có CI, không có kiểm định thống kê, không có kết
+luận pass/fail ở mục này.** Mọi bảng dưới đây chỉ mô tả phân phối CAR(S1) cắt
+theo 4 chiều — mục đích duy nhất là xem có lát cắt nào đáng đưa vào một prereg
+MỚI trong tương lai, không phải để rút ra kết luận về H1/H2 (đã khóa và đã báo
+cáo ở trên, không đổi). Script: `scratch/car_s1_autopsy.py`. Dữ liệu sự kiện đầy
+đủ (mọi cột dùng để cắt + CAR từng sự kiện): `data/disclosure/car_s1_autopsy_events.csv`.
+
+Cơ sở: 2,318 sự kiện S1 đã gộp cụm (giống hệt tập dùng cho CAR(S1) ở mục 4 —
+không tính lại, chỉ cắt lát khác nhau). **Không có dữ liệu free-float/khối lượng
+lưu hành trong pipeline này** → dùng `volume_ma20` (ADV 20 ngày, đơn vị cổ
+phiếu) làm mẫu số cho tỷ lệ quy mô đăng ký, đúng nhánh dự phòng đã nêu trong
+yêu cầu. Tương tự, **không có dữ liệu vốn hóa thị trường** → dùng `value_ma20`
+(giá trị giao dịch bình quân 20 ngày) tam phân vị làm proxy quy mô/thanh khoản
+thay cho nhóm vốn hóa thật — gắn nhãn rõ đây là proxy, không phải vốn hóa.
+
+### 1. Theo quy mô đăng ký / ADV (tứ phân vị `shares_registered_or_changed / volume_ma20`)
+
+| Tứ phân vị | n | CAR+20 mean / median | CAR+60 mean / median | CAR+120 mean / median |
+|---|---|---|---|---|
+| Q1 (nhỏ nhất) | 456/450/432 | +1.08% / −0.63% | +0.80% / −2.18% | +1.34% / −3.43% |
+| Q2 | 449/440/426 | +1.55% / −0.47% | +4.88% / −0.19% | +6.32% / −1.28% |
+| Q3 | 448/437/424 | +0.64% / −0.58% | +2.48% / −1.38% | +4.09% / −1.80% |
+| Q4 (lớn nhất) | 413/400/387 | +1.10% / −0.58% | +2.87% / +0.11% | +4.60% / −0.89% |
+
+Không có mẫu hình đơn điệu rõ ràng theo quy mô tương đối — mean dao động không
+theo thứ tự Q1→Q4, median âm ở mọi mức tại +20/+60 ngày. Không đủ rõ để đề xuất
+làm lát cắt chính cho một prereg tương lai dựa riêng trên bảng này.
+
+### 2. Theo vai trò người đăng ký (gộp nhóm từ chuỗi vai trò gốc, xem `ROLE_GROUPS` trong script)
+
+| Vai trò | n (20d/60d/120d) | CAR+20 mean / median | CAR+60 mean / median | CAR+120 mean / median |
+|---|---|---|---|---|
+| HĐQT (Chủ tịch/Thành viên) | 822/814/785 | +0.75% / −0.46% | +3.00% / −0.09% | +3.86% / −1.37% |
+| Ban điều hành (TGĐ/Phó TGĐ/KTT/GĐTC) | 410/393/383 | +1.05% / −0.40% | +4.38% / +0.27% | +8.05% / +1.99% |
+| Ban kiểm soát | 80/80/73 | −0.07% / −0.60% | +1.77% / −0.19% | +0.56% / −1.20% |
+| Người liên quan (gia đình) | 556/550/541 | +1.38% / −0.31% | +4.68% / +1.67% | +7.34% / +2.26% |
+| Quản trị/Công bố thông tin | 30/29/27 | −2.05% / −1.29% | −6.34% / −4.59% | −7.00% / −7.15% |
+| Không ghi rõ | 112/115/108 | −0.94% / −1.81% | +4.72% / +0.28% | +3.91% / +2.90% |
+| Khác | 82/86/84 | +0.31% / −1.97% | +3.40% / −1.61% | +3.95% / −0.60% |
+
+**Đáng chú ý nhất trong toàn bộ addendum này**: nhóm "Người liên quan (gia đình)"
+(vợ/chồng/con/em đăng ký, không phải chính người có chức vụ) và "Ban điều hành"
+có mean/median CAR dương và tăng theo cửa sổ, rõ rệt hơn nhóm HĐQT — trong khi
+nhóm "Quản trị/Công bố thông tin" (N nhỏ, 27–30) có CAR âm nhất quán ở mọi cửa
+sổ. Cả hai đều **chỉ là quan sát mô tả trên N nhỏ** (đặc biệt nhóm cuối), không
+phải phát hiện đã kiểm định — nhưng là lát cắt hợp lý nhất để đưa vào một prereg
+tương lai nếu muốn theo đuổi hướng này (câu hỏi cụ thể: "người liên quan có mang
+thông tin khác chính người có chức vụ không?").
+
+### 3. Theo cụm nhiều người nội bộ cùng đăng ký trong cửa sổ 20 ngày giao dịch
+
+| Cụm | n (20d/60d/120d) | CAR+20 mean / median | CAR+60 mean / median | CAR+120 mean / median |
+|---|---|---|---|---|
+| 1 người | 1183/1158/1111 | +1.06% / −0.64% | +3.29% / −1.02% | +4.53% / −1.37% |
+| 2+ người nội bộ | 909/909/890 | +0.46% / −0.39% | +4.10% / +1.93% | +6.36% / +2.24% |
+
+Cụm ≥2 người nội bộ khác nhau cùng đăng ký trong 20 ngày có median CAR dương ở
++60/+120 ngày (nhóm 1 người thì âm) — mẫu hình mô tả nhất quán với trực giác
+"nhiều người cùng công bố gần nhau mang tín hiệu mạnh hơn một người", nhưng vẫn
+chỉ là quan sát trên phân phối, không có kiểm định.
+
+### 4. Theo nhóm thanh khoản/quy mô (proxy vốn hóa qua `value_ma20`, tam phân vị)
+
+| Nhóm | n (20d/60d/120d) | CAR+20 mean / median | CAR+60 mean / median | CAR+120 mean / median |
+|---|---|---|---|---|
+| Nhỏ | 556/541/522 | +1.74% / −0.49% | +4.13% / +0.81% | +5.69% / +1.21% |
+| Vừa | 605/594/580 | +1.10% / −0.44% | +3.51% / −1.42% | +4.72% / −2.35% |
+| Lớn | 605/592/567 | +0.48% / −0.74% | +0.71% / −2.19% | +1.90% / −3.56% |
+
+Nhóm "Nhỏ" (thanh khoản/giá trị giao dịch thấp nhất trong 3 nhóm, vẫn ≥ 3 tỷ do
+đã qua gate đủ điều kiện) có mean/median CAR cao nhất và tăng dần theo cửa sổ;
+nhóm "Lớn" thấp nhất, âm ở median mọi cửa sổ. Mẫu hình này **cùng hướng với
+`SURVIVORSHIP_BIAS_ESTIMATE.md`'s giả thuyết** — mã nhỏ/kém thanh khoản hơn
+trong rổ hiện tại là đúng nhóm survivorship bias có khả năng phóng đại mạnh
+nhất (ít mã nhỏ "chết dọc đường" sống sót đến hôm nay hơn mã lớn) — nên không
+nên đọc bảng này như bằng chứng một "small-cap insider-buy premium" thật, mà
+nên đọc như một lát cắt khác thể hiện cùng một confound đã nêu ở
+`SURVIVORSHIP_BIAS_ESTIMATE.md`.
+
+### Kết luận addendum
+
+Bốn lát cắt trên là **giả thuyết để sinh prereg tương lai**, không phải phát
+hiện đã xác nhận. Lát cắt có vẻ đáng theo đuổi nhất nếu có round sau: (a) vai
+trò "người liên quan gia đình" so với chính người có chức vụ, (b) cụm nhiều
+người nội bộ cùng đăng ký. Cả hai đều cần một prereg riêng, N đủ lớn theo giai
+đoạn, và kiểm định CI/bootstrap đầy đủ trước khi coi là bằng chứng — đúng kỷ
+luật đã áp dụng cho `DISCLOSURE_EVENT_STUDY_PREREG.md`, không được bỏ qua chỉ vì
+bảng mô tả "trông đẹp".
