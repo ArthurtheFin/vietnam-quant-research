@@ -6,9 +6,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.utils.logger import get_logger
-from src.utils.pipeline_io import relative_path, utc_now_iso, write_json
+from src.utils.pipeline_io import build_lineage_metadata, relative_path, utc_now_iso, validate_lineage_metadata, write_json
 
 LOGGER = get_logger("research_notes")
 
@@ -466,6 +467,10 @@ def write_research_notes_outputs(
         
     payload = dict(metadata)
     payload["generated_files"] = [str(f) for f in generated_files]
+    payload["lineage"] = validate_lineage_metadata(
+        build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=base),
+        label="research_notes_metadata.json",
+    )
     write_json(payload, metadata_json)
     
     LOGGER.info("Research Notes outputs written successfully: %s", ", ".join(payload["generated_files"]))

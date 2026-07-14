@@ -12,8 +12,10 @@ from src.data.loaders import read_parquet, save_parquet
 from src.data.validators import filter_primary_equity_symbols
 from src.utils.logger import get_logger
 from src.utils.pipeline_io import (
+    build_lineage_metadata,
     relative_path,
     utc_now_iso,
+    validate_lineage_metadata,
     validate_sector_board_metadata,
     write_json,
 )
@@ -783,6 +785,10 @@ def write_sector_outputs(
     ]
     payload = dict(metadata)
     payload["generated_files"] = generated_files
+    payload["lineage"] = validate_lineage_metadata(
+        build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=base),
+        label="sector_board_metadata.json",
+    )
     validate_sector_board_metadata(payload)
     write_json(payload, metadata_json)
     LOGGER.info("Sector Board outputs written: %s", ", ".join(generated_files))

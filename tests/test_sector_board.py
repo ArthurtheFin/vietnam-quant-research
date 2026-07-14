@@ -107,6 +107,12 @@ def test_write_sector_outputs_and_metadata_validation(tmp_path: Path) -> None:
         "generated_files": [],
     }
 
+    # write_sector_outputs now embeds reproducibility lineage (audit gate
+    # #12 convention), which needs a real features file on disk to hash.
+    features_path = tmp_path / "data/processed/stock_features.parquet"
+    features_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame({"symbol": ["AAA"], "date": [pd.Timestamp("2026-06-30")]}).to_parquet(features_path)
+
     payload = write_sector_outputs(board, leaders, metadata, base_dir=tmp_path)
     assert payload["generated_files"]
     assert validate_sector_board_metadata(payload) == payload

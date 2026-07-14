@@ -10,8 +10,10 @@ from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet
 from src.utils.logger import get_logger
 from src.utils.pipeline_io import (
+    build_lineage_metadata,
     relative_path,
     utc_now_iso,
+    validate_lineage_metadata,
     write_json,
 )
 from src.analytics.sector_board import attach_sector, load_sector_map
@@ -661,6 +663,10 @@ def write_cashflow_outputs(
     payload["generated_files"] = generated_files
     # Ensure no absolute paths are present in generated_files
     payload["generated_files"] = [str(p) for p in generated_files]
+    payload["lineage"] = validate_lineage_metadata(
+        build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=base),
+        label="cashflow_board_metadata.json",
+    )
     write_json(payload, metadata_json)
     
     LOGGER.info("Cashflow Board outputs written successfully: %s", ", ".join(payload["generated_files"]))

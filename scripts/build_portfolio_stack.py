@@ -220,9 +220,13 @@ def main() -> int:
                 "capital_plan": generated_files[3],
             },
         }
+        stack_metadata["lineage"] = validate_lineage_metadata(
+            build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=PROJECT_ROOT),
+            label="portfolio_stack_metadata.json",
+        )
         validate_portfolio_stack_metadata(stack_metadata)
         write_json(stack_metadata, OUTPUT_DIR / "portfolio_stack_metadata.json")
-        
+
         print("=== Portfolio Stack Complete with WARNING (Empty candidates) ===")
         return 0
 
@@ -338,6 +342,10 @@ def main() -> int:
             "capital_plan": generated_files[3],
         },
     }
+    stack_metadata["lineage"] = validate_lineage_metadata(
+        build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=PROJECT_ROOT),
+        label="portfolio_stack_metadata.json",
+    )
     validate_portfolio_stack_metadata(stack_metadata)
     write_json(stack_metadata, OUTPUT_DIR / "portfolio_stack_metadata.json")
 

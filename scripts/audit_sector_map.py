@@ -15,7 +15,7 @@ from src.analytics.sector_board import audit_sector_mapping, load_sector_map
 from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet
 from src.utils.logger import get_logger
-from src.utils.pipeline_io import relative_path, write_json
+from src.utils.pipeline_io import build_lineage_metadata, relative_path, validate_lineage_metadata, write_json
 
 
 LOGGER = get_logger("audit_sector_map")
@@ -42,6 +42,10 @@ def main() -> int:
     coverage_path = output_dir / "sector_map_coverage.json"
     missing_path = output_dir / "sector_map_missing_symbols.csv"
 
+    summary["lineage"] = validate_lineage_metadata(
+        build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=PROJECT_ROOT),
+        label="sector_map_coverage.json",
+    )
     write_json(summary, coverage_path)
     missing_report.to_csv(missing_path, index=False)
 

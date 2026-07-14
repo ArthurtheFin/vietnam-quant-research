@@ -153,6 +153,13 @@ def test_research_notes_generator() -> None:
     
     import tempfile
     with tempfile.TemporaryDirectory() as tmp_dir:
+        # write_research_notes_outputs now embeds reproducibility lineage
+        # (audit gate #12 convention), which needs a real features file on
+        # disk to hash.
+        features_path = Path(tmp_dir) / "data/processed/stock_features.parquet"
+        features_path.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame({"symbol": ["AAA"], "date": [pd.Timestamp("2026-06-30")]}).to_parquet(features_path)
+
         payload = write_research_notes_outputs(
             index_df=index_df,
             notes_dict=notes_dict,

@@ -22,10 +22,12 @@ from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet
 from src.utils.logger import get_logger
 from src.utils.pipeline_io import (
+    build_lineage_metadata,
     dataframe_metadata,
     relative_path,
     resolve_watchlist_source,
     utc_now_iso,
+    validate_lineage_metadata,
     validate_pipeline_metadata,
     write_run_snapshot,
     write_json,
@@ -736,6 +738,10 @@ def _build_pipeline_metadata(
         "research_notes": research_notes or _default_research_notes_metadata(),
         "online_update": online_update or _build_online_update_metadata(enabled=False),
         "steps": steps,
+        "lineage": validate_lineage_metadata(
+            build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=PROJECT_ROOT),
+            label="pipeline_metadata.json",
+        ),
     }
     validate_pipeline_metadata(payload)
     return payload

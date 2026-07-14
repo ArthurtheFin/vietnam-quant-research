@@ -214,7 +214,13 @@ def test_write_outputs_and_metadata_validation(tmp_path: Path) -> None:
         "warnings": [],
         "generated_files": [],
     }
-    
+
+    # write_cashflow_outputs now embeds reproducibility lineage (audit gate
+    # #12 convention), which needs a real features file on disk to hash.
+    features_path = tmp_path / "data/processed/stock_features.parquet"
+    features_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame({"symbol": ["AAA"], "date": [pd.Timestamp("2026-06-25")]}).to_parquet(features_path)
+
     payload = write_cashflow_outputs(
         symbol_cf, sector_cf, watchlist_confirm, metadata,
         base_dir=tmp_path
