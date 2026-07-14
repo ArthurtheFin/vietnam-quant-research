@@ -14,7 +14,30 @@ EVENTS_PATH = Path("data/disclosure/events.parquet")
 ERRORS_PATH = Path("data/disclosure/errors.parquet")
 UNIVERSE_DIR = Path("data/full_history_v2/raw")
 
-NATURAL_KEY = ["symbol", "event_type", "person_name", "disclosure_date"]
+# Widened 2026-07-13 (audit PATH_TO_100.md Data Quality item, +1):
+# DISCLOSURE_BASELINE.md's original key (symbol, event_type, person_name,
+# disclosure_date) silently collapsed 829/57,800 parsed rows (1.4%) that
+# share a natural key with at least one other row -- almost always a person
+# making two genuinely distinct disclosures (different registration window,
+# different share count) published the same calendar date. Adding
+# direction + shares_registered_or_changed resolves 633/829 (76%) of those
+# collisions on the current full-universe parse. The remaining 196 (two
+# distinct registration windows, same day/direction/volume -- e.g. Vuong
+# Ngoc Yen/ACE) need `dedup_seq`, a per-base-key row-order tiebreaker (see
+# _assign_dedup_seq), which resolves the rest (0 collisions remaining).
+NATURAL_KEY_BASE = ["symbol", "event_type", "person_name", "disclosure_date", "direction", "shares_registered_or_changed"]
+NATURAL_KEY = NATURAL_KEY_BASE + ["dedup_seq"]
+
+
+def _assign_dedup_seq(df: pd.DataFrame) -> pd.Series:
+    """Per-NATURAL_KEY_BASE sequence number (0, 1, 2, ...) in row order --
+    the final collision tiebreaker (see NATURAL_KEY's comment above). Relies
+    on row order being stable across re-parses of the same immutable raw
+    JSON (true in practice -- the source returns records in a consistent
+    order) so the same historical event gets the same dedup_seq every time;
+    not formally guaranteed by the source, so this is a best-effort
+    tiebreaker, not a cryptographic identity."""
+    return df.groupby(NATURAL_KEY_BASE, dropna=False).cumcount()
 
 
 def load_universe_symbols(universe_dir: Path = UNIVERSE_DIR) -> set[str]:
@@ -80,13 +103,21 @@ def ingest_events(
 ) -> dict[str, int]:
     """Apply the point-in-time schema and validation, then append-only write.
 
-    Natural key (symbol, event_type, person_name, disclosure_date) enforces
-    the design's "never update in place" rule: a later correction/amendment
-    gets its own disclosure_date and becomes a new row; the old row is left
-    exactly as it was.
+    Natural key (symbol, event_type, person_name, disclosure_date, direction,
+    shares_registered_or_changed, dedup_seq) enforces the design's "never
+    update in place" rule: a later correction/amendment gets its own
+    disclosure_date and becomes a new row; the old row is left exactly as
+    it was.
     """
     if events_df.empty:
         return {"n_valid": 0, "n_rejected": 0, "n_unknown_symbol": 0}
+
+    events_df = events_df.copy()
+    if "dedup_seq" not in events_df.columns:
+        # Not already assigned by a caller (e.g. ingest_new_events_live,
+        # which must assign it on the full re-parsed batch before its
+        # anti-join) -- compute fresh here for the bulk one-shot path.
+        events_df["dedup_seq"] = _assign_dedup_seq(events_df)
 
     universe = load_universe_symbols(universe_dir)
     valid_df, error_df = _validate(events_df, universe)
@@ -141,6 +172,13 @@ def ingest_new_events_live(
     """
     if parsed_df.empty:
         return {"n_new_valid": 0, "n_new_rejected": 0, "n_new_unknown_symbol": 0}
+
+    # Assign dedup_seq on the full re-parsed batch (before the anti-join),
+    # not per-row in isolation -- it's a per-NATURAL_KEY_BASE row-order
+    # tiebreaker, so it must be computed over the same full history each
+    # time to keep assigning the same historical event the same value.
+    parsed_df = parsed_df.copy()
+    parsed_df["dedup_seq"] = _assign_dedup_seq(parsed_df)
 
     existing_events = read_events(events_path)
     existing_errors = read_errors(errors_path)

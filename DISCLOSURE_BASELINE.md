@@ -27,9 +27,9 @@ pre-registered signal-test design, not appended here after the fact.
 | Crawl errors | 0/500 (no rate-limiting encountered, no fetch failures) |
 | Raw tier size | 29.3 MB |
 | Parsed rows (pre-validation) | 57,800 |
-| Valid events (post-validation, in `events.parquet`) | 56,870 |
+| Valid events (post-validation, in `events.parquet`) | 57,282 (re-ingested 2026-07-14 with the widened `NATURAL_KEY` -- see caveat #1; was 56,870) |
 | Rejected rows (in `errors.parquet`) | 518 (0.90%) |
-| `events.parquet` size | 9.24 MB |
+| `events.parquet` size | 8.9 MB |
 | `errors.parquet` size | 0.13 MB |
 | Symbols with >=1 disclosure record (valid or rejected) | 497 of 500 |
 | Symbols with zero disclosure records at all | 3 (very likely genuinely quiet/thin names, not investigated further) |
@@ -158,21 +158,30 @@ ROUND 4 five-symbol pilot, just at full-universe scale.
 
 ## Open caveats (do not treat as resolved)
 
-1. **Natural-key collisions silently collapse a small number of distinct
-   real events.** The schema's natural key is `(symbol, event_type,
-   person_name, disclosure_date)`. 829 parsed rows (1.4% of the 57,800
-   parsed) share a natural key with at least one other row — almost always
-   a person who made two genuinely distinct disclosures (different
-   registration window, different share count) published on the exact same
-   calendar date. `append_parquet`'s dedup (`keep="last"`) keeps only one
-   of each colliding group, so **up to several hundred real disclosure
-   events are not individually represented in `events.parquet` right now**.
-   Confirmed the mechanism directly (see examples: Đào Văn Duy/AAA, Vương
-   Ngọc Yến/ACE, both with two different real transactions same-day).
-   **Not fixed this round** (out of the "kiểm kê" scope) — a future round
-   should strengthen the natural key (e.g. include `link_key` or
-   `registration_window_start`) before this dataset is relied on for
-   anything requiring an exact event count.
+1. **RESOLVED 2026-07-14 — natural-key collisions widened + re-ingested.**
+   The schema's natural key was `(symbol, event_type, person_name,
+   disclosure_date)`. 829 parsed rows (1.4% of the 57,800 parsed) shared a
+   natural key with at least one other row — almost always a person who
+   made two genuinely distinct disclosures (different registration window,
+   different share count) published on the exact same calendar date.
+   `append_parquet`'s dedup (`keep="last"`) kept only one of each colliding
+   group. Confirmed the mechanism directly (see examples: Đào Văn Duy/AAA,
+   Vương Ngọc Yến/ACE, both with two different real transactions same-day).
+   Fix: `src/data/disclosure_ingest.py`'s `NATURAL_KEY` widened to add
+   `direction` + `shares_registered_or_changed` (resolves 633/829, 76%, of
+   the collisions) plus a `dedup_seq` row-order tiebreaker for the
+   remaining 196 rows that still share symbol/event_type/person/date/
+   direction/volume but differ only in registration window (e.g. the
+   Vương Ngọc Yến/ACE case above) — **0 collisions remain** on the full
+   widened key. Re-parsed from the immutable raw tier (no re-crawl) and
+   fully re-ingested: `events.parquet` went from 56,870 to 57,282 rows
+   (+412 net rows recovered; `errors.parquet` unaffected at 518, since
+   none of the rescued rows were validation-rejected). Verified: parsed
+   rows (57,800) = valid (57,282) + rejected (518) exactly, i.e. zero rows
+   now lost to dedup collapse. Tests:
+   `tests/test_disclosure_ingest.py::test_widened_key_keeps_two_distinct_same_day_disclosures`,
+   `::test_dedup_seq_keeps_two_identical_looking_registrations_same_day`,
+   `::test_reingest_of_identical_batch_still_dedupes_with_dedup_seq`.
 2. **Panel is skewed toward large/long-listed symbols, same caveat as
    `DATA_BASELINE.md`'s survivorship-bias note, compounded here.** The 500
    symbols are "listed today"; disclosure history depth correlates with how

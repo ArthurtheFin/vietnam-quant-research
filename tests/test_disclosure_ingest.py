@@ -159,6 +159,65 @@ def test_natural_key_prevents_duplicate_rows_on_reingest(tmp_path) -> None:
     assert len(events) == 1  # natural key (symbol, event_type, person_name, disclosure_date) de-dupes
 
 
+def test_widened_key_keeps_two_distinct_same_day_disclosures(tmp_path) -> None:
+    """DISCLOSURE_BASELINE.md caveat #1: a person making two genuinely
+    distinct disclosures (different direction/volume) on the same calendar
+    date must not collapse into one row under the old 4-field key."""
+    df = pd.DataFrame([
+        _base_row(direction="buy", shares_registered_or_changed=50),
+        _base_row(direction="sell", shares_registered_or_changed=200),
+    ])
+    events_path = tmp_path / "events.parquet"
+    errors_path = tmp_path / "errors.parquet"
+    universe_dir = _universe_dir(tmp_path, ["HPG"])
+
+    ingest_events(df, events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+
+    events = read_events(events_path)
+    assert len(events) == 2
+    assert set(events["direction"]) == {"buy", "sell"}
+
+
+def test_dedup_seq_keeps_two_identical_looking_registrations_same_day(tmp_path) -> None:
+    """The remaining collision class after widening: two distinct
+    registration windows, same symbol/person/date/direction/volume (e.g.
+    the real Vuong Ngoc Yen/ACE case in DISCLOSURE_BASELINE.md) -- only
+    dedup_seq (row-order tiebreaker) can tell these apart."""
+    df = pd.DataFrame([
+        _base_row(registration_window_start=pd.Timestamp("2011-02-14"), registration_window_end=pd.Timestamp("2011-04-14")),
+        _base_row(registration_window_start=pd.Timestamp("2011-04-21"), registration_window_end=pd.Timestamp("2011-06-17")),
+    ])
+    events_path = tmp_path / "events.parquet"
+    errors_path = tmp_path / "errors.parquet"
+    universe_dir = _universe_dir(tmp_path, ["HPG"])
+
+    ingest_events(df, events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+
+    events = read_events(events_path)
+    assert len(events) == 2
+    assert set(events["registration_window_start"]) == {pd.Timestamp("2011-02-14"), pd.Timestamp("2011-04-21")}
+    assert sorted(events["dedup_seq"]) == [0, 1]
+
+
+def test_reingest_of_identical_batch_still_dedupes_with_dedup_seq(tmp_path) -> None:
+    """The natural key must still prevent duplication on exact re-ingest,
+    even with dedup_seq added -- re-running the same two-row batch twice
+    must not double the row count."""
+    df = pd.DataFrame([
+        _base_row(registration_window_start=pd.Timestamp("2011-02-14")),
+        _base_row(registration_window_start=pd.Timestamp("2011-04-21")),
+    ])
+    events_path = tmp_path / "events.parquet"
+    errors_path = tmp_path / "errors.parquet"
+    universe_dir = _universe_dir(tmp_path, ["HPG"])
+
+    ingest_events(df, events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+    ingest_events(df, events_path=events_path, errors_path=errors_path, universe_dir=universe_dir)
+
+    events = read_events(events_path)
+    assert len(events) == 2
+
+
 def test_empty_input_is_a_no_op(tmp_path) -> None:
     df = pd.DataFrame(columns=DISCLOSURE_EVENTS_COLUMNS)
     events_path = tmp_path / "events.parquet"
