@@ -546,3 +546,70 @@ có 2 đợt fetch chưa từng đồng bộ, không có cơ chế cập nhật 
    vòng sau.
 8. **NV8 — Nghiệm thu (commit này)** — full suite: 295 passed. Commit
    riêng từng nhiệm vụ vào `main`, không push.
+
+## GĐ3 — Prereg + event study disclosure×giá (kết quả: âm tính, H2 bị thách thức)
+
+Session mới sinh ra tại một worktree (`.claude/worktrees/vietnam-quant-setup-5304a5`)
+thay vì thư mục gốc — đúng theo `CLAUDE.md` mục 1, đã DỪNG lại xin xác nhận trước
+khi làm gì, người dùng chọn "chuyển về gốc" — mọi commit dưới đây thực hiện tại
+`/Users/jamesb/Desktop/vietnam-quant-research`, branch `main` (dùng `git -C`/đường
+dẫn tuyệt đối do shell cwd tự kéo về worktree giữa các lệnh). Bổ sung một dòng làm
+rõ quy ước này vào `CLAUDE.md` mục 1 (commit `0673cea`).
+
+1. **NV0a (commit `86643ce`)** — đối soát 20/196 dòng disclosure còn phụ thuộc
+   `dedup_seq` (tiebreaker theo thứ tự dòng, phần còn lại sau khi mở rộng
+   `NATURAL_KEY` ở GĐ2 NV1) đối chiếu trực tiếp `raw_payload` (JSON nguồn, không
+   chỉ cột đã parse): **20/20 là giao dịch thật khác nhau** (khác cửa sổ đăng ký
+   `PlanBeginDate`/`PlanEndDate`, thường khác cả `RealBuyVolume`/`VolumeAfterTransaction`),
+   0/20 là bản ghi đúp thật — không cần sửa thêm khóa, caveat #1 giữ nguyên
+   RESOLVED. Số "417 dòng vẫn bị gộp" trong đề bài gốc là số học tiền-fix
+   (829−412), không khớp trạng thái code/dữ liệu hiện tại (thực tế 196 dòng/98
+   nhóm phụ thuộc `dedup_seq`) — đã ghi rõ chênh lệch này kèm bằng chứng vào
+   `DISCLOSURE_BASELINE.md`.
+2. **NV0b (commit `9c0773b`)** — web search lịch nghỉ HOSE: phát hiện thiếu
+   2026-08-31 + 2026-09-01 (chỉ có 2026-09-02) trong `config/vn_market_holidays.csv`
+   — Quốc khánh 2026 nghỉ giao dịch 3 ngày (Hai 31/8 → Tư 2/9), xác nhận CHÍNH
+   THỨC qua 3 nguồn độc lập (HOSE/cafef.vn, VSD/VSDC thông báo 2025-11-21,
+   dnse.com.vn) — đã bổ sung, ghi rõ nguồn + ngày tra cứu 2026-07-14. Lịch 2027
+   vẫn CHƯA được công bố chính thức (xác nhận qua tìm kiếm — Bộ LĐTBXH/Bộ Nội vụ
+   thường công bố Tết vào tháng 8-11 năm trước) — giữ nguyên các dòng ESTIMATED,
+   chỉ củng cố trích dẫn (Giỗ Tổ Hùng Vương 2027 xác nhận độc lập 16/4 Thứ Sáu;
+   ngày nghỉ bù 1/5 rơi Thứ Bảy trích dẫn cơ sở pháp lý Điều 111 Bộ luật Lao động
+   2019). 90 dòng, 0 trùng ngày, test suite phụ thuộc lịch nghỉ vẫn 41/41 pass.
+3. **NV1 (commit `7381185`)** — `DISCLOSURE_EVENT_STUDY_PREREG.md`, khóa TRƯỚC
+   khi viết code join disclosure×giá (FIREWALL hiệu lực từ Round 5 tới giờ, đây
+   là lần đầu tiên hai nguồn được nhìn cùng nhau). Khóa: định nghĩa S1/S2/S3 (chỉ
+   pha REGISTRATION, cấm tuyệt đối field RESULT/tỷ lệ thực hiện), quy tắc
+   point-in-time `available_at` (phát hiện 100% dòng hiện tại là
+   `is_backfilled=True`, tức toàn bộ kết quả phụ thuộc giả định lag +1 ngày giao
+   dịch — độ nhạy +1/+3/+5 là bắt buộc, không phải phụ), rổ đủ điều kiện (3 tỷ +
+   `trading_status`, quyết định rõ dùng snapshot hiện tại vì bảng point-in-time
+   chỉ có lịch sử thật từ 2026-07-13), nhãn "bùng nổ" (tái dùng nguyên định nghĩa
+   `EVENT_DETECTION_REPORT.md` đã pre-register, không phát minh mới), lift +
+   block bootstrap (khối 60 ngày, N=1000, seed=42), lát cắt 3 giai đoạn × 2 nhóm
+   thanh khoản (tái dùng biên giai đoạn cũ), tiêu chí PASS/ỨNG VIÊN/âm tính 3 bậc,
+   cách diễn giải riêng cho S3 (đối chứng H2, không dùng lại nguyên tiêu chí của
+   S1/S2), test phụ CAR + gộp cụm sự kiện <20 ngày.
+4. **NV2 (commit `5f8f2b6`)** — chạy đúng prereg, một lần
+   (`scratch/disclosure_event_study.py`). Phát hiện + sửa 1 bug trước khi coi kết
+   quả là cuối cùng (không phải tune theo kết quả): 387 dòng `stock_features.parquet`
+   có `close<=0` (lỗi dữ liệu đã biết, ngoài phạm vi round) làm CAR ra `inf`/`nan`
+   cho một số sự kiện S1 — sửa bằng đúng convention loại giá không dương đã có ở
+   `src/features/returns.py::add_returns`, chạy lại toàn bộ một lần nữa. Kết quả +
+   lineage (git hash, sha256 + số dòng mọi input, hash prereg) trong
+   `data/disclosure/event_study_results.json`.
+5. **NV3 (commit `b95cc37`)** — `DISCLOSURE_EVENT_STUDY_REPORT.md`. **Test chính
+   (lift bùng nổ): NEGATIVE cho cả S1/S2/S3 ở cả 3 lag**, ổn định qua độ nhạy lag
+   (không cần gắn cờ "tín hiệu mong manh"). Mẫu hình mô tả đáng chú ý: lift(S1)
+   giảm đơn điệu qua 3 giai đoạn (1.14 → 0.84 → 0.31), đảo chiều hẳn so với H1 ở
+   giai đoạn gần nhất. **Test phụ (CAR) thách thức H2**: S3 (bán, đối chứng) có
+   CAR dương và tăng theo cửa sổ, độ lớn gần ngang S1/S2 (mua) thay vì CAR≤0 như
+   H2 dự đoán — phân loại đúng nhánh "H2 bị thách thức" đã khóa sẵn trong prereg,
+   không diễn giải lại cho khớp giả thuyết. Theo đúng ràng buộc gốc: **báo cáo,
+   dừng lại — không thử thêm cửa sổ/ngưỡng/vai trò mới trong round này.**
+
+**Nghiệm thu GĐ3**: không chạy full test suite riêng cho round này (không có code
+sản xuất nào bị đổi — `scratch/disclosure_event_study.py` là script nghiên cứu
+một lần, không nối vào pipeline; thay đổi duy nhất chạm production code là
+`config/vn_market_holidays.csv`, đã xác nhận 41/41 test phụ thuộc lịch nghỉ pass
+ở NV0b). Commit riêng từng nhiệm vụ vào `main`, không push.
