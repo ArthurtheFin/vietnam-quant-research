@@ -494,3 +494,55 @@ có 2 đợt fetch chưa từng đồng bộ, không có cơ chế cập nhật 
    (vấn đề mới phát sinh và đã đóng trong chính vòng này, không phải P0/P1
    đang mở) nên không cần cập nhật thêm ở đó. Commit riêng từng nhiệm vụ
    vào `main`, không push.
+
+## GĐ2 — Vệ sinh dữ liệu nhỏ theo PATH_TO_100.md mục 1-2 (8 nhiệm vụ)
+
+1. **NV1 (commit `fbdd4b0`)** — mở rộng `NATURAL_KEY` disclosure thêm
+   `direction` + `shares_registered_or_changed` (cứu 76% trong 829 dòng
+   trùng khóa), thêm `dedup_seq` (tiebreaker theo thứ tự dòng) cho 196 dòng
+   còn lại — 0 va chạm còn sót trên parse thật. Parse lại từ tầng thô
+   (không crawl lại), ingest lại toàn bộ: `events.parquet` 56.870 → 57.282
+   dòng (+412). `DISCLOSURE_BASELINE.md` cập nhật caveat #1 → RESOLVED.
+2. **NV2 (commit `2f53cda`)** — lịch nghỉ Tết âm lịch 2020-2027 vào
+   `config/vn_market_holidays.csv`, suy ra TRỰC TIẾP từ dữ liệu thật (ngày
+   nào cả 501 mã đều không giao dịch = ngày nghỉ), đối chiếu 2 chiều với
+   `full_history_v2` khớp 100% (0 lệch). 2027 (Tết + ngày bù 1/5) chưa có
+   dữ liệu thật, đánh dấu ƯỚC TÍNH kèm nguồn (web search, cột `source`
+   riêng). Rà toàn bộ nơi đếm ngày giao dịch (`next_trading_day`,
+   `expected_latest_trading_date`, `trading_sessions_behind`) — xác nhận
+   tất cả đã dùng chung `load_market_holidays()`, không sửa gì thêm.
+3. **NV3 (commit `edf79af`)** — bảng `trading_status` point-in-time
+   (append-only, chỉ ghi dòng mới khi trạng thái đổi), phân loại
+   ACTIVE/STALE_SHORT/INACTIVE_LONG theo gap-to-latest. Gate loại 18 mã
+   INACTIVE_LONG qua cơ chế trạng thái sống (không hard-code danh sách).
+   Sửa một lỗi rò rỉ dữ liệu test thật (test ghi đè file thật của dự án do
+   thiếu tham số `status_path` cô lập) trong lúc nối dây.
+4. **NV4 (commit `c318df0`)** — hợp nhất `load_universe_symbols`
+   (disclosure) và `get_universe_symbols` (giá) về một hàm duy nhất
+   (`src/data/universe.py::tracked_universe_symbols`) — xác nhận đúng lỗi:
+   GEE bị loại khỏi crawl nhưng KHÔNG bị loại khỏi validate disclosure
+   trước khi sửa.
+5. **NV5 (commit `3c66f36`)** — `validate_ohlcv` thêm 4 nhóm check (OHLC
+   đầy đủ high/low vs open/close, khoảng trống lịch giao dịch bất thường
+   — dùng đúng lịch Tết ở NV2, return vượt biên độ sàn dùng đúng cơ chế G4
+   sẵn có, dtype/schema drift). Nhúng git commit hash + config version vào
+   6 file metadata còn thiếu (sector_board, cashflow_board, research_notes,
+   sector_map_coverage, portfolio_stack — 2 chỗ, pipeline_metadata).
+6. **NV6 (commit `f46b2cc`)** — tỷ lệ ngày-vắng-dòng trong 60 phiên gần
+   nhất làm proxy đình chỉ. Kiểm tra thực tế trước khi nối dây: dải tỷ lệ
+   của STALE_SHORT và INACTIVE_LONG CHỒNG LẤN nhau (0.12-0.95 vs 0.0-0.40)
+   — không thể tách rạch ròi bằng tỷ lệ này — nên gộp vào đúng lý do
+   `LOW_LIQUIDITY` sẵn có, không tạo trạng thái cạnh tranh mới (đúng yêu
+   cầu "một logic, không hai"). Phát hiện + sửa một vấn đề hiệu năng thật:
+   tính tỷ lệ ngay trong gate làm chậm test suite 3 lần (8s→27s) vì phải
+   quét 500 file mỗi lần gọi — chuyển sang snapshot tính trước 1 lần/ngày.
+7. **NV7 (commit `23607d4`)** — báo cáo sector mapping (chỉ báo cáo, không
+   sửa code): 96.4% phủ (482/500), tác động thật hiện tại chỉ 4 mã (đều ở
+   research_candidates, không mã nào ở client_ready/trading). Xác nhận
+   sector mapping hiện là báo-cáo-thuần trên đường sản xuất thật —
+   `check_sector_constraints` (cap 35%) đã có sẵn nhưng chỉ nối vào module
+   Monte Carlo không dùng trong production, không nối vào
+   `build_portfolio_stack.py`. 2 phương án + hệ quả để người dùng quyết
+   vòng sau.
+8. **NV8 — Nghiệm thu (commit này)** — full suite: 295 passed. Commit
+   riêng từng nhiệm vụ vào `main`, không push.
