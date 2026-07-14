@@ -1,0 +1,884 @@
+{
+  "main_test": {
+    "lag_1": {
+      "S1_insider_related_buy": {
+        "lag_label": "lag_1",
+        "pooled": {
+          "lift": 1.020423426361286,
+          "ci_lo": 0.8165771267162839,
+          "ci_hi": 1.1525099318253473,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 24142,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.10943583795874409,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 1.020423426361286,
+            "ci_lo": 0.8165771267162839,
+            "ci_hi": 1.1525099318253473,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 24142,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.10943583795874409,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 1.1372677121995627,
+            "ci_lo": 1.0299393314965037,
+            "ci_hi": 1.2948662272297418,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 9119,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.21723873231714003,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.8400914615305387,
+            "ci_lo": 0.6567261797402519,
+            "ci_hi": 1.002741202919499,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 7980,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.06766917293233082,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.314047456448518,
+            "ci_lo": 0.21698930721901888,
+            "ci_hi": 0.40772097061781987,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7043,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.01718017890103649,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 0.9810920839501459,
+            "ci_lo": 0.7480278940515844,
+            "ci_hi": 1.1593847245311117,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 13782,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.09860687853722247,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 1.0860835697729059,
+            "ci_lo": 0.8189521890636899,
+            "ci_hi": 1.3097894990766372,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 10360,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.12384169884169884,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      },
+      "S2_major_shareholder_buy": {
+        "lag_label": "lag_1",
+        "pooled": {
+          "lift": 0.9059449315315747,
+          "ci_lo": 0.7659517280785635,
+          "ci_hi": 1.0781831981865058,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 24424,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.0971585325908942,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 0.9059449315315747,
+            "ci_lo": 0.7659517280785635,
+            "ci_hi": 1.0781831981865058,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 24424,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.0971585325908942,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 0.9431882043470512,
+            "ci_lo": 0.8007547991922882,
+            "ci_hi": 1.1583709944481315,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 8914,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.18016603096253084,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.7501275676800792,
+            "ci_lo": 0.4971870916157345,
+            "ci_hi": 0.9124736675417597,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 8424,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.06042260208926876,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.6655583805430139,
+            "ci_lo": 0.5441556082729565,
+            "ci_hi": 0.8330718000656663,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7086,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.03640982218458933,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 0.8961336516918266,
+            "ci_lo": 0.7256218003730587,
+            "ci_hi": 1.1004218784551665,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 15455,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.09006793917825946,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 0.9592268487423777,
+            "ci_lo": 0.8033531893463401,
+            "ci_hi": 1.1470955874716278,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 8969,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.10937674211171813,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      },
+      "S3_insider_related_sell": {
+        "lag_label": "lag_1",
+        "pooled": {
+          "lift": 1.094459703139675,
+          "ci_lo": 0.9704877194738964,
+          "ci_hi": 1.1736019118161656,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 34709,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.11737589674147915,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 1.094459703139675,
+            "ci_lo": 0.9704877194738964,
+            "ci_hi": 1.1736019118161656,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 34709,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.11737589674147915,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 0.922731105414267,
+            "ci_lo": 0.8406422932166809,
+            "ci_hi": 1.007709406708931,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 16907,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.1762583545277104,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.9242869220463183,
+            "ci_lo": 0.6875837594803519,
+            "ci_hi": 0.9862129813655645,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 10020,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.07445109780439121,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.817439492754933,
+            "ci_lo": 0.48284376997704176,
+            "ci_hi": 1.1448348739656715,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7782,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.04471858134155744,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 1.2079271178296296,
+            "ci_lo": 1.0406688296592737,
+            "ci_hi": 1.3123009176412748,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 21004,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.1214054465816035,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 0.975219260373099,
+            "ci_lo": 0.799436988993255,
+            "ci_hi": 1.1088485778381372,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 13705,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.11120029186428311,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      }
+    },
+    "lag_3": {
+      "S1_insider_related_buy": {
+        "lag_label": "lag_3",
+        "pooled": {
+          "lift": 1.0103264730653465,
+          "ci_lo": 0.808199941881046,
+          "ci_hi": 1.1455289314298602,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 24171,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.10835298498200323,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 1.0103264730653465,
+            "ci_lo": 0.808199941881046,
+            "ci_hi": 1.1455289314298602,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 24171,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.10835298498200323,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 1.1266646640632825,
+            "ci_lo": 1.031370133293526,
+            "ci_hi": 1.2889936766826473,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 9163,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.21521335807050093,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.821514183689617,
+            "ci_lo": 0.6528607597461739,
+            "ci_hi": 0.9739294183346355,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 7964,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.06617277749874435,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.3114078077022699,
+            "ci_lo": 0.21289948410267087,
+            "ci_hi": 0.414421757271407,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7044,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.017035775127768313,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 0.9626713598195653,
+            "ci_lo": 0.7380724630947121,
+            "ci_hi": 1.1354945439053679,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 13777,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.0967554620018872,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 1.0850621114032029,
+            "ci_lo": 0.8243821705179584,
+            "ci_hi": 1.3061004258253595,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 10394,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.12372522609197614,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      },
+      "S2_major_shareholder_buy": {
+        "lag_label": "lag_3",
+        "pooled": {
+          "lift": 0.9023858697505579,
+          "ci_lo": 0.7644115570613936,
+          "ci_hi": 1.075381549940808,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 24386,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.09677683917001559,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 0.9023858697505579,
+            "ci_lo": 0.7644115570613936,
+            "ci_hi": 1.075381549940808,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 24386,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.09677683917001559,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 0.9447117343957706,
+            "ci_lo": 0.8044484540658803,
+            "ci_hi": 1.151425596986456,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 8883,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.18045705279747834,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.7401829287974452,
+            "ci_lo": 0.49144406857594986,
+            "ci_hi": 0.8895951000872578,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 8403,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.05962156372724027,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.6590968180145845,
+            "ci_lo": 0.5276095161909274,
+            "ci_hi": 0.8386766146047003,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7100,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.036056338028169016,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 0.8952449956125053,
+            "ci_lo": 0.7252755883468474,
+            "ci_hi": 1.0923850072224528,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 15437,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.08997862278940208,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 0.9515707076520769,
+            "ci_lo": 0.7928697906808133,
+            "ci_hi": 1.1440984212859504,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 8949,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.10850374343502067,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      },
+      "S3_insider_related_sell": {
+        "lag_label": "lag_3",
+        "pooled": {
+          "lift": 1.0814401140961403,
+          "ci_lo": 0.9664893412842483,
+          "ci_hi": 1.1570042373312388,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 34713,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.11597960418287097,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 1.0814401140961403,
+            "ci_lo": 0.9664893412842483,
+            "ci_hi": 1.1570042373312388,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 34713,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.11597960418287097,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 0.9093889113138748,
+            "ci_lo": 0.8353374125768773,
+            "ci_hi": 0.9846856507917757,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 16896,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.17370975378787878,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.9274697113546971,
+            "ci_lo": 0.6826253578936566,
+            "ci_hi": 0.9920506121460697,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 9999,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.0747074707470747,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.8043227909146067,
+            "ci_lo": 0.4757079315768736,
+            "ci_hi": 1.1331075017176087,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7818,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.044001023279611154,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 1.2004458023724676,
+            "ci_lo": 1.0383875370263773,
+            "ci_hi": 1.3085443058092803,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 20994,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.12065352005334858,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 0.9544071724089419,
+            "ci_lo": 0.7894526651282893,
+            "ci_hi": 1.0797054543363027,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 13719,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.10882717399227348,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      }
+    },
+    "lag_5": {
+      "S1_insider_related_buy": {
+        "lag_label": "lag_5",
+        "pooled": {
+          "lift": 1.0049189136172871,
+          "ci_lo": 0.8078898210483321,
+          "ci_hi": 1.13945893153766,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 24199,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.10777304847307739,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 1.0049189136172871,
+            "ci_lo": 0.8078898210483321,
+            "ci_hi": 1.13945893153766,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 24199,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.10777304847307739,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 1.1194100215920442,
+            "ci_lo": 1.0376634500447237,
+            "ci_hi": 1.2868435769523936,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 9199,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.21382758995542994,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.814845408556089,
+            "ci_lo": 0.6570839746915453,
+            "ci_hi": 0.9657707299744638,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 7953,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.06563560920407394,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.3086812770175487,
+            "ci_lo": 0.20755653055528972,
+            "ci_hi": 0.42620364404975464,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7047,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.01688661841918547,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 0.9484004066292949,
+            "ci_lo": 0.7240124204766991,
+            "ci_hi": 1.1178534674348921,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 13764,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.09532112757919209,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 1.0892031556796207,
+            "ci_lo": 0.8306816002842963,
+            "ci_hi": 1.303739842921948,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 10435,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.12419741255390512,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      },
+      "S2_major_shareholder_buy": {
+        "lag_label": "lag_5",
+        "pooled": {
+          "lift": 0.89638546245654,
+          "ci_lo": 0.7572622466780333,
+          "ci_hi": 1.0676815231226324,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 24362,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.09613332238732453,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 0.89638546245654,
+            "ci_lo": 0.7572622466780333,
+            "ci_hi": 1.0676815231226324,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 24362,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.09613332238732453,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 0.9429693384007907,
+            "ci_lo": 0.8072741840431115,
+            "ci_hi": 1.145444746528333,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 8855,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.18012422360248448,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.7373301247335017,
+            "ci_lo": 0.490154605220743,
+            "ci_hi": 0.8732296803418282,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 8385,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.059391771019678,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.6390943470540139,
+            "ci_lo": 0.4995507629892474,
+            "ci_hi": 0.8445355222252288,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7122,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.03496208930075821,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 0.8993451808801991,
+            "ci_lo": 0.7242362191807363,
+            "ci_hi": 1.090829285494494,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 15433,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.09039072118188297,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 0.9301296716494293,
+            "ci_lo": 0.768465648791485,
+            "ci_hi": 1.1228734562409413,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 8929,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.10605890917235973,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      },
+      "S3_insider_related_sell": {
+        "lag_label": "lag_5",
+        "pooled": {
+          "lift": 1.067334672348896,
+          "ci_lo": 0.9559930552201364,
+          "ci_hi": 1.1385059645011903,
+          "n_bootstrap_valid": 1000,
+          "n": 327016,
+          "n_active": 34700,
+          "base_rate": 0.10724551703892164,
+          "active_rate": 0.11446685878962536,
+          "n_events_defined": 35071
+        },
+        "by_period": {
+          "pooled": {
+            "lift": 1.067334672348896,
+            "ci_lo": 0.9559930552201364,
+            "ci_hi": 1.1385059645011903,
+            "n_bootstrap_valid": 1000,
+            "n": 327016,
+            "n_active": 34700,
+            "base_rate": 0.10724551703892164,
+            "active_rate": 0.11446685878962536,
+            "n_events_defined": 35071
+          },
+          "period_1": {
+            "lift": 0.8937152963464973,
+            "ci_lo": 0.8253214725733349,
+            "ci_hi": 0.9676140488093536,
+            "n_bootstrap_valid": 1000,
+            "n": 104566,
+            "n_active": 16876,
+            "base_rate": 0.1910181129621483,
+            "active_rate": 0.17071580943351505,
+            "n_events_defined": 19974
+          },
+          "period_2": {
+            "lift": 0.9355489596646109,
+            "ci_lo": 0.6876078025276653,
+            "ci_hi": 1.0017922637713037,
+            "n_bootstrap_valid": 1000,
+            "n": 113284,
+            "n_active": 9979,
+            "base_rate": 0.08054976872285582,
+            "active_rate": 0.07535825232989278,
+            "n_events_defined": 9125
+          },
+          "period_3": {
+            "lift": 0.7899040647303733,
+            "ci_lo": 0.4603664950054726,
+            "ci_hi": 1.130957718060209,
+            "n_bootstrap_valid": 1000,
+            "n": 109166,
+            "n_active": 7845,
+            "base_rate": 0.054705677591924226,
+            "active_rate": 0.04321223709369025,
+            "n_events_defined": 5972
+          }
+        },
+        "by_liquidity_group": {
+          "high": {
+            "lift": 1.1863101846097461,
+            "ci_lo": 1.03205396076367,
+            "ci_hi": 1.2907213310584347,
+            "n_bootstrap_valid": 1000,
+            "n": 164018,
+            "n_active": 20959,
+            "base_rate": 0.10050726139813923,
+            "active_rate": 0.11923278782384655,
+            "n_events_defined": 16485
+          },
+          "low": {
+            "lift": 0.9401144975689086,
+            "ci_lo": 0.787550310993126,
+            "ci_hi": 1.0635553754459255,
+            "n_bootstrap_valid": 1000,
+            "n": 162998,
+            "n_active": 13741,
+            "base_rate": 0.1140259389685763,
+            "active_rate": 0.10719743832326614,
+            "n_events_defined": 18586
+          }
+        },
+        "verdict": "NEGATIVE"
+      }
+    }
+  },
+  "car_test": {
+    "S1_insider_related_buy": {
+      "n_raw_events": 9958,
+      "n_clustered_events": 2318,
+      "by_horizon": {
+        "car_20d": {
+          "mean_car": 0.007963537569281597,
+          "ci_lo": -6.851014831482733e-05,
+          "ci_hi": 0.021099801316310323,
+          "n": 2092
+        },
+        "car_60d": {
+          "mean_car": 0.03644967472150765,
+          "ci_lo": -0.0008642901684352058,
+          "ci_hi": 0.06080711510277283,
+          "n": 2067
+        },
+        "car_120d": {
+          "mean_car": 0.05340207942088569,
+          "ci_lo": -0.014263769432420886,
+          "ci_hi": 0.09856862298636151,
+          "n": 2001
+        }
+      }
+    },
+    "S2_major_shareholder_buy": {
+      "n_raw_events": 8616,
+      "n_clustered_events": 2360,
+      "by_horizon": {
+        "car_20d": {
+          "mean_car": 0.005634943344670088,
+          "ci_lo": -0.0006585355272590031,
+          "ci_hi": 0.015397655708599507,
+          "n": 2126
+        },
+        "car_60d": {
+          "mean_car": 0.023318029812183814,
+          "ci_lo": -0.00797377564480602,
+          "ci_hi": 0.034203171187520295,
+          "n": 2080
+        },
+        "car_120d": {
+          "mean_car": 0.04139138146981485,
+          "ci_lo": -0.01196157394668487,
+          "ci_hi": 0.07075858833117457,
+          "n": 2033
+        }
+      }
+    },
+    "S3_insider_related_sell": {
+      "n_raw_events": 10691,
+      "n_clustered_events": 2762,
+      "by_horizon": {
+        "car_20d": {
+          "mean_car": 0.00020657427315489687,
+          "ci_lo": -0.00779363217816355,
+          "ci_hi": 0.009749905126760378,
+          "n": 2564
+        },
+        "car_60d": {
+          "mean_car": 0.02633758999391653,
+          "ci_lo": -0.00750867051048374,
+          "ci_hi": 0.04420791094337317,
+          "n": 2536
+        },
+        "car_120d": {
+          "mean_car": 0.046718076286969924,
+          "ci_lo": -0.010240889327748942,
+          "ci_hi": 0.0814955253286071,
+          "n": 2486
+        }
+      }
+    }
+  },
+  "meta": {
+    "eligible_panel_rows": 351183,
+    "eligible_symbols": 391,
+    "liquidity_threshold_vnd": 3000000000.0,
+    "n_bootstrap": 1000,
+    "block_size_trading_days": 60,
+    "random_state": 42
+  },
+  "lineage": {
+    "git_commit_hash": "738118556a49172101cdba5b625faaa7a24cbca0",
+    "generated_at": "2026-07-14T07:52:32.191498+00:00",
+    "prereg_sha256": "03fe8284a4cf5e01b5d9596dd649de72c9cda3b2e9a36aaa2ce41f798d5652d6",
+    "inputs": {
+      "data/disclosure/events.parquet": {
+        "sha256": "6d73b00dc095f861b6c60675ac891eee7d56721e0a4758d80252c0213269b416",
+        "row_count": 57282
+      },
+      "data/processed/stock_features.parquet": {
+        "sha256": "1aa09e0bf33c6e4e751d5363c0242e8669b1490ca840121f43a8027fb7fbc5f1",
+        "row_count": 715674
+      },
+      "data/processed/benchmark_vnindex.parquet": {
+        "sha256": "708f9a01e03291e5901d47ad653498ac99801a02be663a6798d7f8b3ba3f62dc",
+        "row_count": 1627
+      },
+      "data/full_history_v2/trading_status.parquet": {
+        "sha256": "e2ff90b4a81e4c1f8e69fb4613a4c0abb47be81655421cd31915945c8552dfae",
+        "row_count": 501
+      },
+      "data/raw/index_ohlcv/VNINDEX.parquet": {
+        "sha256": "615dd2ed7ed9c50f745e25bd4d3cde94f9d8f23c7abf055c3052bbb664da5a8e",
+        "row_count": 1627
+      }
+    }
+  }
+}
