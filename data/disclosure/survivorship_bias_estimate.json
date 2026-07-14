@@ -1,0 +1,140 @@
+{
+  "placebo_car": {
+    "S1_insider_related_buy": {
+      "car_20d": {
+        "mean_car": 0.007963537569281597,
+        "ci_lo": -6.851014831482733e-05,
+        "ci_hi": 0.021099801316310323,
+        "n": 2092
+      },
+      "car_60d": {
+        "mean_car": 0.03644967472150765,
+        "ci_lo": -0.0008642901684352058,
+        "ci_hi": 0.06080711510277283,
+        "n": 2067
+      },
+      "car_120d": {
+        "mean_car": 0.05340207942088569,
+        "ci_lo": -0.014263769432420886,
+        "ci_hi": 0.09856862298636151,
+        "n": 2001
+      }
+    },
+    "S2_major_shareholder_buy": {
+      "car_20d": {
+        "mean_car": 0.005634943344670088,
+        "ci_lo": -0.0006585355272590031,
+        "ci_hi": 0.015397655708599507,
+        "n": 2126
+      },
+      "car_60d": {
+        "mean_car": 0.023318029812183814,
+        "ci_lo": -0.00797377564480602,
+        "ci_hi": 0.034203171187520295,
+        "n": 2080
+      },
+      "car_120d": {
+        "mean_car": 0.04139138146981485,
+        "ci_lo": -0.01196157394668487,
+        "ci_hi": 0.07075858833117457,
+        "n": 2033
+      }
+    },
+    "S3_insider_related_sell": {
+      "car_20d": {
+        "mean_car": 0.00020657427315489687,
+        "ci_lo": -0.00779363217816355,
+        "ci_hi": 0.009749905126760378,
+        "n": 2564
+      },
+      "car_60d": {
+        "mean_car": 0.02633758999391653,
+        "ci_lo": -0.00750867051048374,
+        "ci_hi": 0.04420791094337317,
+        "n": 2536
+      },
+      "car_120d": {
+        "mean_car": 0.046718076286969924,
+        "ci_lo": -0.010240889327748942,
+        "ci_hi": 0.0814955253286071,
+        "n": 2486
+      }
+    }
+  },
+  "pooled_all_events_car": {
+    "car_20d": {
+      "mean_car": 0.004300982981727347,
+      "ci_lo": -0.002179850906485094,
+      "ci_hi": 0.014129484025874696,
+      "n": 6782
+    },
+    "car_60d": {
+      "mean_car": 0.028525379003931012,
+      "ci_lo": -0.0043449822942755,
+      "ci_hi": 0.0446066623204365,
+      "n": 6683
+    },
+    "car_120d": {
+      "mean_car": 0.04710849342005108,
+      "ci_lo": -0.010524898336395982,
+      "ci_hi": 0.08243575535483655,
+      "n": 6520
+    }
+  },
+  "unconditional_excess_return": {
+    "excess_20d": {
+      "mean_car": 0.0038107741647190017,
+      "ci_lo": -0.0046155851350117,
+      "ci_hi": 0.013763896634567471,
+      "n": 346852
+    },
+    "excess_60d": {
+      "mean_car": 0.012220912528971735,
+      "ci_lo": -0.01094994005275021,
+      "ci_hi": 0.04241258755510038,
+      "n": 338808
+    },
+    "excess_120d": {
+      "mean_car": 0.02852864593073887,
+      "ci_lo": -0.01682370710729126,
+      "ci_hi": 0.08384779649990667,
+      "n": 325679
+    }
+  },
+  "meta": {
+    "n_bootstrap": 1000,
+    "block_size_trading_days": 60,
+    "random_state": 42,
+    "car_cluster_gap_days": 20,
+    "eligible_panel_rows": 351183,
+    "eligible_symbols": 391,
+    "note": "EXPLORATORY estimate, not a confirmatory test -- see SURVIVORSHIP_BIAS_ESTIMATE.md"
+  },
+  "lineage": {
+    "git_commit_hash": "900d9cb6d1a881360420e142775733e8912581ae",
+    "generated_at": "2026-07-14T08:06:00.559216+00:00",
+    "prereg_sha256": "03fe8284a4cf5e01b5d9596dd649de72c9cda3b2e9a36aaa2ce41f798d5652d6",
+    "inputs": {
+      "data/disclosure/events.parquet": {
+        "sha256": "6d73b00dc095f861b6c60675ac891eee7d56721e0a4758d80252c0213269b416",
+        "row_count": 57282
+      },
+      "data/processed/stock_features.parquet": {
+        "sha256": "1aa09e0bf33c6e4e751d5363c0242e8669b1490ca840121f43a8027fb7fbc5f1",
+        "row_count": 715674
+      },
+      "data/processed/benchmark_vnindex.parquet": {
+        "sha256": "708f9a01e03291e5901d47ad653498ac99801a02be663a6798d7f8b3ba3f62dc",
+        "row_count": 1627
+      },
+      "data/full_history_v2/trading_status.parquet": {
+        "sha256": "e2ff90b4a81e4c1f8e69fb4613a4c0abb47be81655421cd31915945c8552dfae",
+        "row_count": 501
+      },
+      "data/raw/index_ohlcv/VNINDEX.parquet": {
+        "sha256": "615dd2ed7ed9c50f745e25bd4d3cde94f9d8f23c7abf055c3052bbb664da5a8e",
+        "row_count": 1627
+      }
+    }
+  }
+}

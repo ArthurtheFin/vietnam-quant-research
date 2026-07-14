@@ -167,6 +167,21 @@ to do more than once a day).
    factor found to predict "explosive move" or similar, since the
    comparison population silently excludes names that had matching
    characteristics but disappeared from today's listing.
+
+   **EXPLORATORY quantification, 2026-07-14** (not a confirmed decomposition —
+   see `SURVIVORSHIP_BIAS_ESTIMATE.md` for full caveats): using
+   `DISCLOSURE_EVENT_STUDY_REPORT.md`'s S3 (sell-registration) placebo finding
+   as a starting point, an independent unconditional cross-check (mean excess
+   return vs. VNINDEX of every `(symbol, day)` in the same eligible universe,
+   not conditioned on any disclosure event, N=325k-347k) estimates a
+   same-order-of-magnitude positive drift floor: **roughly +0.4% / +1.2% /
+   +2.9% at 20/60/120 trading days**, growing with horizon, CI touching 0 at
+   the short end. Proposed as an interpretive correction floor for any
+   long-only backtest's reported excess return, until this is superseded by a
+   real point-in-time universe (Gate #3). Not a validated causal decomposition
+   — alternative explanations (general risk premium of the liquidity-filtered
+   panel, residual beta not fully netted by the VNINDEX subtraction) are not
+   ruled out.
 3. **Zero-volume/no-trade day handling is a real definitional choice, not
    a bug, but changes downstream session counts for illiquid names**: this
    dataset (via `get_daily_ohlc`) reports only sessions with actual matched
