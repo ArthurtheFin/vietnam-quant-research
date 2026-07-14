@@ -2,6 +2,14 @@
 1. Làm việc TẠI THƯ MỤC GỐC, commit thẳng vào main. Không tạo
    branch/worktree mới. Các nhánh claude/* và backup/* cũ: đóng
    băng, không đụng.
+   Lưu ý: công cụ (Claude Code) có thể tự sinh worktree riêng cho
+   mỗi session (vd. .claude/worktrees/<tên>) mà không do người dùng
+   yêu cầu. Việc đó vô hại nếu bỏ trống — nhưng MỌI THAO TÁC ĐỌC/GHI/
+   COMMIT vẫn phải nhắm vào thư mục gốc /Users/jamesb/Desktop/
+   vietnam-quant-research và branch main, bất kể session được sinh
+   ra ở thư mục nào. Nếu shell cwd bị tool tự động kéo về worktree,
+   dùng đường dẫn tuyệt đối hoặc `git -C <path-gốc>` cho mọi lệnh
+   thay vì dựa vào `cd` persist.
 2. KHÔNG BAO GIỜ push — chỉ commit local. Push là quyết định của
    người dùng.
 3. Đầu session: đọc PUSH_REVIEW.md (nhật ký tiến độ) và
