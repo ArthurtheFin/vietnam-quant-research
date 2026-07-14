@@ -14,7 +14,7 @@
     "features_row_count": 715674,
     "config_path": "config/strategy_config.yaml",
     "config_hash": "11236e60e4cf4852651ac471f71bf0ff0990c35ec56ac6e0a2dfa2e020a0f771",
-    "git_commit_hash": "1fe2725d327063dd369a7adc5dcac17404c2ac66",
-    "lineage_generated_at": "2026-07-13T15:47:36+00:00"
+    "git_commit_hash": "2f53cda62c4ce7ec1d158b3de03ea3ad75101f74",
+    "lineage_generated_at": "2026-07-14T02:07:37+00:00"
   }
 }

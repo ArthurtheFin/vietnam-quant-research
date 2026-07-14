@@ -176,7 +176,15 @@ def build_watchlist_tiers(
         except Exception as exc:
             LOGGER.warning("Failed to read watchlist cashflow confirmation (%s).", exc)
 
-    latest = apply_eligibility_gate(latest, cashflow_board, wcc)
+    from src.validation.trading_status import excluded_symbols_by_status
+
+    try:
+        inactive_long_symbols = excluded_symbols_by_status()
+    except Exception as exc:
+        LOGGER.warning("Failed to read trading_status table (%s); no symbols excluded by status.", exc)
+        inactive_long_symbols = set()
+
+    latest = apply_eligibility_gate(latest, cashflow_board, wcc, inactive_long_symbols)
 
     return _redistribute_after_gate(latest, cfg)
 
@@ -904,9 +912,17 @@ def apply_eligibility_gate(
     df: pd.DataFrame,
     cashflow_board: pd.DataFrame | None = None,
     watchlist_cashflow_confirmation: pd.DataFrame | None = None,
+    inactive_long_symbols: set[str] | None = None,
 ) -> pd.DataFrame:
+    """`inactive_long_symbols`: symbols to reject as INACTIVE_LONG, sourced
+    from src.validation.trading_status.excluded_symbols_by_status() by the
+    caller (never hardcoded here) -- audit PATH_TO_100.md Universe/Eligibility
+    item, first step toward a point-in-time universe (Gate #3), not a full
+    solution (still can't see symbols delisted before entering today's
+    listed-symbol universe at all)."""
     if df.empty:
         return df.copy()
+    inactive_long_symbols = inactive_long_symbols or set()
 
     out = df.copy()
 
@@ -989,6 +1005,9 @@ def apply_eligibility_gate(
 
         if cf_state == "DISTRIBUTION_RISK":
             reasons.append("SEVERE_DISTRIBUTION_RISK")
+
+        if sym in inactive_long_symbols:
+            reasons.append("INACTIVE_LONG")
 
         # Fill values in output
         out.at[idx, "latest_volume"] = volume if not pd.isna(volume) else 0.0
@@ -1074,7 +1093,15 @@ def apply_post_cashflow_overlay(base_dir: str | Path = ".") -> None:
         LOGGER.warning("No scored universe available for post-cashflow overlay.")
         return
 
-    gated_universe = apply_eligibility_gate(universe, cf, wcc)
+    from src.validation.trading_status import excluded_symbols_by_status
+
+    try:
+        inactive_long_symbols = excluded_symbols_by_status()
+    except Exception as exc:
+        LOGGER.warning("Failed to read trading_status table (%s); no symbols excluded by status.", exc)
+        inactive_long_symbols = set()
+
+    gated_universe = apply_eligibility_gate(universe, cf, wcc, inactive_long_symbols)
     outputs = _redistribute_after_gate(gated_universe, DEFAULT_FINAL_WATCHLIST_CONFIG)
     save_watchlist_outputs(outputs, config=DEFAULT_FINAL_WATCHLIST_CONFIG, base_dir=base)
 

@@ -52,6 +52,7 @@ def test_update_appends_new_rows_without_touching_old_history(tmp_path) -> None:
     raw_dir = tmp_path / "raw"
     manifest_path = tmp_path / "manifest.json"
     log_path = tmp_path / "log.jsonl"
+    status_path = tmp_path / "trading_status.parquet"
     _seed_raw_file(raw_dir, "VIC", ["2026-07-01", "2026-07-06"], [100.0, 101.0], [1000, 1100])
     _seed_manifest(manifest_path, ["VIC"])
 
@@ -59,7 +60,7 @@ def test_update_appends_new_rows_without_touching_old_history(tmp_path) -> None:
         index_df=_index_df("13/07/2026"),
         ohlc_responses={"VIC": _ohlc_df(["06/07/2026", "07/07/2026", "13/07/2026"], [101.0, 102.0, 103.0], [1100, 1200, 1300])},
     )
-    summary = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    summary = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
 
     assert summary["n_updated"] == 1
     assert summary["latest_trading_date"] == "2026-07-13"
@@ -82,6 +83,7 @@ def test_second_run_is_a_clean_no_op(tmp_path) -> None:
     raw_dir = tmp_path / "raw"
     manifest_path = tmp_path / "manifest.json"
     log_path = tmp_path / "log.jsonl"
+    status_path = tmp_path / "trading_status.parquet"
     _seed_raw_file(raw_dir, "VIC", ["2026-07-06"], [101.0], [1100])
     _seed_manifest(manifest_path, ["VIC"])
 
@@ -89,10 +91,10 @@ def test_second_run_is_a_clean_no_op(tmp_path) -> None:
         index_df=_index_df("13/07/2026"),
         ohlc_responses={"VIC": _ohlc_df(["06/07/2026", "13/07/2026"], [101.0, 103.0], [1100, 1300])},
     )
-    run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
     first_calls = list(client.calls)
 
-    summary2 = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    summary2 = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
 
     assert summary2["n_updated"] == 0
     assert summary2["n_already_current"] == 1
@@ -112,6 +114,7 @@ def test_long_inactive_symbol_reports_no_new_data_not_updated(tmp_path) -> None:
     raw_dir = tmp_path / "raw"
     manifest_path = tmp_path / "manifest.json"
     log_path = tmp_path / "log.jsonl"
+    status_path = tmp_path / "trading_status.parquet"
     _seed_raw_file(raw_dir, "ASA", ["2022-01-21"], [12500.0], [1363305])
     _seed_manifest(manifest_path, ["ASA"])
 
@@ -120,9 +123,9 @@ def test_long_inactive_symbol_reports_no_new_data_not_updated(tmp_path) -> None:
         # Provider echoes back only the existing last session -- no new data.
         ohlc_responses={"ASA": _ohlc_df(["21/01/2022"], [12500.0], [1363305])},
     )
-    summary1 = run_daily_price_update(["ASA"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    summary1 = run_daily_price_update(["ASA"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
     manifest_after_first = json.loads(manifest_path.read_text())
-    summary2 = run_daily_price_update(["ASA"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    summary2 = run_daily_price_update(["ASA"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
 
     assert summary1["n_updated"] == 0
     assert summary1["n_no_new_data"] == 1
@@ -138,6 +141,7 @@ def test_fetch_error_is_logged_and_other_symbols_still_proceed(tmp_path) -> None
     raw_dir = tmp_path / "raw"
     manifest_path = tmp_path / "manifest.json"
     log_path = tmp_path / "log.jsonl"
+    status_path = tmp_path / "trading_status.parquet"
     _seed_raw_file(raw_dir, "HPG", ["2026-07-06"], [23000.0], [1_000_000])
     _seed_raw_file(raw_dir, "MWG", ["2026-07-06"], [78000.0], [500_000])
     _seed_manifest(manifest_path, ["HPG", "MWG"])
@@ -147,7 +151,7 @@ def test_fetch_error_is_logged_and_other_symbols_still_proceed(tmp_path) -> None
         ohlc_responses={"MWG": _ohlc_df(["13/07/2026"], [79000.0], [600_000])},
         raise_on={"HPG": RuntimeError("provider error")},
     )
-    summary = run_daily_price_update(["HPG", "MWG"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    summary = run_daily_price_update(["HPG", "MWG"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
 
     assert summary["n_fetch_errors"] == 1
     assert summary["fetch_error_symbols"] == ["HPG"]
@@ -160,6 +164,7 @@ def test_quality_flag_on_outlier_return(tmp_path) -> None:
     raw_dir = tmp_path / "raw"
     manifest_path = tmp_path / "manifest.json"
     log_path = tmp_path / "log.jsonl"
+    status_path = tmp_path / "trading_status.parquet"
     _seed_raw_file(raw_dir, "VIC", ["2026-07-06"], [100.0], [1000])
     _seed_manifest(manifest_path, ["VIC"])
 
@@ -168,7 +173,7 @@ def test_quality_flag_on_outlier_return(tmp_path) -> None:
         # 100 -> 200 is a +100% jump, well past the 20% outlier threshold
         ohlc_responses={"VIC": _ohlc_df(["06/07/2026", "13/07/2026"], [100.0, 200.0], [1000, 1000])},
     )
-    summary = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    summary = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
 
     assert summary["quality_flagged_symbols"] == ["VIC"]
     manifest = json.loads(manifest_path.read_text())
@@ -182,11 +187,41 @@ def test_aborts_cleanly_when_latest_trading_date_undetectable(tmp_path) -> None:
     raw_dir = tmp_path / "raw"
     manifest_path = tmp_path / "manifest.json"
     log_path = tmp_path / "log.jsonl"
+    status_path = tmp_path / "trading_status.parquet"
     _seed_raw_file(raw_dir, "VIC", ["2026-07-06"], [100.0], [1000])
     _seed_manifest(manifest_path, ["VIC"])
 
     client = _FakeClient(index_df=pd.DataFrame(), ohlc_responses={})
-    summary = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, request_sleep=0)
+    summary = run_daily_price_update(["VIC"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
 
     assert summary["status"] == "ABORTED_NO_LATEST_DATE"
     assert client.calls == []  # never attempted a per-symbol fetch
+    assert not status_path.exists()  # aborted before reaching the trading_status update
+
+
+def test_run_updates_trading_status_table(tmp_path) -> None:
+    """The trading_status table update (audit PATH_TO_100.md Universe/
+    Eligibility item) must be isolated to the given status_path, not the
+    real project data/full_history_v2/trading_status.parquet -- and must
+    cover every symbol's current gap, not just ones fetched this run."""
+    raw_dir = tmp_path / "raw"
+    manifest_path = tmp_path / "manifest.json"
+    log_path = tmp_path / "log.jsonl"
+    status_path = tmp_path / "trading_status.parquet"
+    _seed_raw_file(raw_dir, "VIC", ["2026-07-06"], [100.0], [1000])
+    _seed_raw_file(raw_dir, "ASA", ["2022-01-21"], [12500.0], [1363305])
+    _seed_manifest(manifest_path, ["VIC", "ASA"])
+
+    client = _FakeClient(
+        index_df=_index_df("13/07/2026"),
+        ohlc_responses={
+            "VIC": _ohlc_df(["06/07/2026", "13/07/2026"], [100.0, 103.0], [1000, 1300]),
+            "ASA": _ohlc_df(["21/01/2022"], [12500.0], [1363305]),
+        },
+    )
+    summary = run_daily_price_update(["VIC", "ASA"], client=client, raw_dir=raw_dir, manifest_path=manifest_path, log_path=log_path, status_path=status_path, request_sleep=0)
+
+    assert summary["trading_status_new_rows"] == 2
+    status = pd.read_parquet(status_path).set_index("symbol")
+    assert status.loc["VIC", "status"] == "ACTIVE"
+    assert status.loc["ASA", "status"] == "INACTIVE_LONG"

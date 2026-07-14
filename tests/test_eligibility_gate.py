@@ -176,6 +176,23 @@ def test_eligibility_gate_works_without_cashflow(sample_watchlist) -> None:
     assert "ZERO_VOLUME_OR_MISSING_DATA" in abb["eligibility_reason"]
 
 
+def test_eligibility_gate_rejects_inactive_long_symbols(sample_watchlist) -> None:
+    """audit/PATH_TO_100.md Universe/Eligibility item: symbols the
+    trading_status table classifies INACTIVE_LONG must be excluded via this
+    status-driven mechanism, not a hardcoded symbol list -- CTS would
+    otherwise be ELIGIBLE (see test_eligibility_gate_works_without_cashflow)."""
+    gated = apply_eligibility_gate(sample_watchlist, None, None, inactive_long_symbols={"CTS"})
+
+    cts = gated[gated["symbol"] == "CTS"].iloc[0]
+    assert cts["eligibility_status"] == "REJECTED"
+    assert "INACTIVE_LONG" in cts["eligibility_reason"]
+    assert cts["is_client_ready"] == False
+
+    # A symbol not in the excluded set is unaffected by this parameter.
+    abb = gated[gated["symbol"] == "ABB"].iloc[0]
+    assert "INACTIVE_LONG" not in abb["eligibility_reason"]
+
+
 def test_post_cashflow_overlay_executes_successfully(
     tmp_path, sample_watchlist, sample_cashflow_board, sample_watchlist_cashflow_confirmation
 ) -> None:

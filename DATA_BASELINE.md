@@ -60,6 +60,35 @@ fetch through today (not a stale snapshot):
   pipeline) -- treat as "confirmed inactive in the price feed," not
   "officially delisted."
 
+### Point-in-time trading_status table (first step toward Gate #3, not a full solution)
+
+audit/PATH_TO_100.md Universe/Eligibility item: `src/validation/trading_status.py`
+now maintains an append-only, point-in-time table
+(`data/full_history_v2/trading_status.parquet`) classifying every symbol's
+own gap-to-latest-trading-date into `ACTIVE` (<=2 days), `STALE_SHORT` (3-10
+days, thin/illiquid but real), or `INACTIVE_LONG` (>10 days) -- the exact
+thresholds that fell out naturally from the 2026-07-13 sync above (42
+symbols clustered 3-10 days, the next was 12). Updated by
+`scripts/update_prices_daily.py` on every run; a new row is appended only
+when a symbol's status actually changes, so `status_as_of(date)` can
+reconstruct what was known at any past point without the table growing
+unboundedly. The eligibility gate (`src/screening/final_watchlist.py::apply_eligibility_gate`)
+now rejects `INACTIVE_LONG` symbols with that reason, sourced live from this
+table (`excluded_symbols_by_status()`) -- **not a hardcoded symbol list**.
+Current classification: 441 ACTIVE, 42 STALE_SHORT, 18 INACTIVE_LONG (ASA,
+ART, AMD, KPF, PSH, ATB, TCD, BCG, BBC, SVI, ARM, LGC, APL, SSC, ACS, ATS,
+ADC, TTE — same 18 identified in the sync above). These 18 symbols'
+**historical price data is kept, not deleted** -- only excluded from the
+*current* eligible universe via status, so they remain available for any
+backtest that correctly reconstructs point-in-time eligibility later.
+
+**This is explicitly a first step, not Gate #3's solution.** It only tracks
+symbols that are already in today's listed-symbol universe and have gone
+quiet -- it still cannot see a symbol that was delisted/merged/suspended
+*before* it would have entered `data/full_history_v2`'s symbol list at all
+(the core survivorship-bias gap P0-1 describes). A real point-in-time
+universe still needs an external historical listing/delisting source.
+
 **Market breakdown**: HOSE 394, UPCOM 61 (+3 more resolved via `data/raw/securities/UPCOM.parquet` — AMD, ART, ASA), HNX 41 (+2 more resolved via `data/raw/securities/HOSE.parquet` — KPF, PSH). 5 symbols have no `market` value anywhere in `data/processed/stock_features.parquet`'s history; resolved via the raw securities-listing fallback files.
 
 ## Verification summary (full detail: BACKFILL_DESIGN_REPORT.md Round 4)

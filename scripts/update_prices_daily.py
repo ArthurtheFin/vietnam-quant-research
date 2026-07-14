@@ -57,6 +57,7 @@ import pandas as pd
 from src.data.dataset_config import OFFICIAL_PRICE_RAW_DIR
 from src.data.loaders import read_parquet, save_parquet
 from src.utils.logger import get_logger
+from src.validation.trading_status import TRADING_STATUS_PATH, compute_current_gaps, update_trading_status_table
 
 logger = get_logger(__name__)
 
@@ -171,6 +172,7 @@ def run_daily_price_update(
     manifest_path: Path = MANIFEST_PATH,
     log_path: Path = LOG_PATH,
     request_sleep: float = REQUEST_SLEEP_SECONDS,
+    status_path: Path = TRADING_STATUS_PATH,
 ) -> dict:
     import time as _time
 
@@ -212,6 +214,14 @@ def run_daily_price_update(
         if result["status"] not in ("ALREADY_CURRENT", "MISSING_RAW_FILE"):
             _time.sleep(request_sleep)
 
+    # Recompute every symbol's gap-to-latest and update the point-in-time
+    # trading_status table (audit PATH_TO_100.md Universe/Eligibility item)
+    # -- ALL symbols, not just ones touched this run, since a symbol's
+    # status can change (e.g. ACTIVE -> STALE_SHORT) purely from time
+    # passing without it being individually re-fetched.
+    current_gaps = compute_current_gaps(raw_dir, latest_trading_date)
+    trading_status_result = update_trading_status_table(current_gaps, status_path=status_path)
+
     n_updated = sum(1 for r in results if r["status"] == "UPDATED")
     n_already_current = sum(1 for r in results if r["status"] == "ALREADY_CURRENT")
     n_no_new_data = sum(1 for r in results if r["status"] == "NO_NEW_DATA")
@@ -235,6 +245,7 @@ def run_daily_price_update(
         "total_new_rows": total_new_rows,
         "quality_flagged_symbols": quality_flagged,
         "fetch_error_symbols": [r["symbol"] for r in results if r["status"] == "FETCH_ERROR"],
+        "trading_status_new_rows": trading_status_result["n_new_rows"],
         "elapsed_seconds": round(_time.time() - t0, 1),
     }
     log_path.parent.mkdir(parents=True, exist_ok=True)
