@@ -176,7 +176,7 @@ def build_watchlist_tiers(
         except Exception as exc:
             LOGGER.warning("Failed to read watchlist cashflow confirmation (%s).", exc)
 
-    from src.validation.trading_status import excluded_symbols_by_status
+    from src.validation.trading_status import excluded_symbols_by_status, low_coverage_symbols
 
     try:
         inactive_long_symbols = excluded_symbols_by_status()
@@ -184,7 +184,13 @@ def build_watchlist_tiers(
         LOGGER.warning("Failed to read trading_status table (%s); no symbols excluded by status.", exc)
         inactive_long_symbols = set()
 
-    latest = apply_eligibility_gate(latest, cashflow_board, wcc, inactive_long_symbols)
+    try:
+        low_coverage = low_coverage_symbols()
+    except Exception as exc:
+        LOGGER.warning("Failed to read coverage-ratio snapshot (%s); none flagged.", exc)
+        low_coverage = set()
+
+    latest = apply_eligibility_gate(latest, cashflow_board, wcc, inactive_long_symbols, low_coverage)
 
     return _redistribute_after_gate(latest, cfg)
 
@@ -913,16 +919,26 @@ def apply_eligibility_gate(
     cashflow_board: pd.DataFrame | None = None,
     watchlist_cashflow_confirmation: pd.DataFrame | None = None,
     inactive_long_symbols: set[str] | None = None,
+    low_coverage_symbols: set[str] | None = None,
 ) -> pd.DataFrame:
     """`inactive_long_symbols`: symbols to reject as INACTIVE_LONG, sourced
     from src.validation.trading_status.excluded_symbols_by_status() by the
     caller (never hardcoded here) -- audit PATH_TO_100.md Universe/Eligibility
     item, first step toward a point-in-time universe (Gate #3), not a full
     solution (still can't see symbols delisted before entering today's
-    listed-symbol universe at all)."""
+    listed-symbol universe at all).
+
+    `low_coverage_symbols`: symbols whose rolling trading-day coverage ratio
+    is below threshold, sourced from
+    src.validation.trading_status.low_coverage_symbols() -- folded into the
+    existing LOW_LIQUIDITY reason (not a separate reason/status), per
+    trading_status.py's docstring: coverage ratio alone cannot reliably
+    distinguish "thin but real" from "suspended", so it must not create a
+    second, competing classification."""
     if df.empty:
         return df.copy()
     inactive_long_symbols = inactive_long_symbols or set()
+    low_coverage_symbols = low_coverage_symbols or set()
 
     out = df.copy()
 
@@ -1002,6 +1018,12 @@ def apply_eligibility_gate(
         if not pd.isna(value_ma20) and value_ma20 < 5_000_000_000.0:
             if pd.isna(volume_ma20) or volume_ma20 < 50_000.0:
                 reasons.append("LOW_LIQUIDITY")
+
+        # Rolling coverage-ratio proxy (audit PATH_TO_100.md Universe/Eligibility
+        # item) -- folded into the same LOW_LIQUIDITY reason, not a new one
+        # (see trading_status.py's low_coverage_symbols docstring).
+        if sym in low_coverage_symbols:
+            reasons.append("LOW_LIQUIDITY")
 
         if cf_state == "DISTRIBUTION_RISK":
             reasons.append("SEVERE_DISTRIBUTION_RISK")
@@ -1093,7 +1115,7 @@ def apply_post_cashflow_overlay(base_dir: str | Path = ".") -> None:
         LOGGER.warning("No scored universe available for post-cashflow overlay.")
         return
 
-    from src.validation.trading_status import excluded_symbols_by_status
+    from src.validation.trading_status import excluded_symbols_by_status, low_coverage_symbols
 
     try:
         inactive_long_symbols = excluded_symbols_by_status()
@@ -1101,7 +1123,13 @@ def apply_post_cashflow_overlay(base_dir: str | Path = ".") -> None:
         LOGGER.warning("Failed to read trading_status table (%s); no symbols excluded by status.", exc)
         inactive_long_symbols = set()
 
-    gated_universe = apply_eligibility_gate(universe, cf, wcc, inactive_long_symbols)
+    try:
+        low_coverage = low_coverage_symbols()
+    except Exception as exc:
+        LOGGER.warning("Failed to read coverage-ratio snapshot (%s); none flagged.", exc)
+        low_coverage = set()
+
+    gated_universe = apply_eligibility_gate(universe, cf, wcc, inactive_long_symbols, low_coverage)
     outputs = _redistribute_after_gate(gated_universe, DEFAULT_FINAL_WATCHLIST_CONFIG)
     save_watchlist_outputs(outputs, config=DEFAULT_FINAL_WATCHLIST_CONFIG, base_dir=base)
 

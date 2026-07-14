@@ -57,7 +57,13 @@ import pandas as pd
 from src.data.dataset_config import OFFICIAL_PRICE_RAW_DIR
 from src.data.loaders import read_parquet, save_parquet
 from src.utils.logger import get_logger
-from src.validation.trading_status import TRADING_STATUS_PATH, compute_current_gaps, update_trading_status_table
+from src.validation.trading_status import (
+    COVERAGE_RATIO_PATH,
+    TRADING_STATUS_PATH,
+    compute_current_gaps,
+    refresh_coverage_ratios,
+    update_trading_status_table,
+)
 
 logger = get_logger(__name__)
 
@@ -175,6 +181,7 @@ def run_daily_price_update(
     log_path: Path = LOG_PATH,
     request_sleep: float = REQUEST_SLEEP_SECONDS,
     status_path: Path = TRADING_STATUS_PATH,
+    coverage_ratio_path: Path = COVERAGE_RATIO_PATH,
 ) -> dict:
     import time as _time
 
@@ -223,6 +230,11 @@ def run_daily_price_update(
     # passing without it being individually re-fetched.
     current_gaps = compute_current_gaps(raw_dir, latest_trading_date)
     trading_status_result = update_trading_status_table(current_gaps, status_path=status_path)
+
+    # Coverage-ratio proxy (audit PATH_TO_100.md Universe/Eligibility item):
+    # expensive (scans every symbol's full raw history), so refreshed once
+    # here per run rather than computed inside the eligibility gate.
+    refresh_coverage_ratios(raw_dir, latest_trading_date, path=coverage_ratio_path)
 
     n_updated = sum(1 for r in results if r["status"] == "UPDATED")
     n_already_current = sum(1 for r in results if r["status"] == "ALREADY_CURRENT")

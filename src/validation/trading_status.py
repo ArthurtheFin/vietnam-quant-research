@@ -4,11 +4,18 @@ Gate #3, NOT a full solution: it tracks each symbol's own last-observed
 trading date and a coarse status, but still can't see symbols that were
 delisted/merged away before appearing in today's listed-symbol universe.
 
-Status classification is shared with the coverage-ratio suspension proxy
-(src/screening/eligibility.py's zero-volume gate, audit PATH_TO_100.md
-item 2) -- ACTIVE_MAX_GAP_DAYS/STALE_SHORT_MAX_GAP_DAYS are the ONE set of
-thresholds both use, so a symbol can't be "STALE_SHORT" in one gate and
-something else in the other.
+Status classification (ACTIVE/STALE_SHORT/INACTIVE_LONG, by gap-to-latest)
+is the ONE source of truth the eligibility gate uses to decide "is this
+symbol currently tradeable" -- audit PATH_TO_100.md's separate
+zero-volume/coverage-ratio item (a rolling-window coverage proxy, see
+compute_coverage_ratio/low_coverage_symbols below) is deliberately folded
+into the SAME "LOW_LIQUIDITY" eligibility reason the value/volume-based
+check already uses, not a second competing classification: an empirical
+check against the real 2026-07-13 data found STALE_SHORT (real thin
+trading) and INACTIVE_LONG symbols' 60-session coverage ratios overlap
+(STALE_SHORT ranges 0.12-0.95, INACTIVE_LONG 0.0-0.40) -- coverage ratio
+alone cannot reliably distinguish "thin but real" from "suspended" the way
+gap_days can, so it must not drive a separate suspension verdict.
 
 Table is append-only (SCD Type 2 style): a new row is written only when a
 symbol's status actually changes (or it's seen for the first time), not on
@@ -139,6 +146,95 @@ def status_as_of(as_of_date: pd.Timestamp, status_path: str | Path = TRADING_STA
     if df.empty:
         return df
     return df.sort_values("updated_at").groupby("symbol", as_index=False).tail(1).reset_index(drop=True)
+
+
+DEFAULT_COVERAGE_WINDOW_SESSIONS = 60
+# Calibrated against the real 2026-07-13 sync: catches most INACTIVE_LONG
+# symbols (17/18 are <=0.40, most are 0.0) while only flagging the
+# sparsest tail of STALE_SHORT (real, accepted thin trading per the v2
+# zero-volume convention -- a low ratio here is NOT an error, it folds into
+# the existing LOW_LIQUIDITY reason, same as a low value_ma20/volume_ma20).
+DEFAULT_MIN_COVERAGE_RATIO = 0.30
+
+# Precomputed snapshot, overwritten each scripts/update_prices_daily.py run
+# (NOT append-only like trading_status.parquet -- coverage ratio is a
+# continuously-drifting number, not a discrete point-in-time fact worth
+# preserving history for). Reading this small file is what the eligibility
+# gate does on every run; computing it fresh requires scanning every
+# symbol's full raw price history and is too expensive to do per gate call
+# (measured: ~500 file reads, seconds per call -- refresh_coverage_ratios
+# is the only place that should pay that cost).
+COVERAGE_RATIO_PATH = Path("data/full_history_v2/coverage_ratios.parquet")
+
+
+def compute_coverage_ratio(
+    raw_dir: str | Path,
+    latest_trading_date: pd.Timestamp,
+    window_sessions: int = DEFAULT_COVERAGE_WINDOW_SESSIONS,
+) -> pd.DataFrame:
+    """Per-symbol ratio of observed trading days to expected trading
+    sessions (config/vn_market_holidays.csv-aware, so Tet and other real
+    closures are never counted against a symbol) over the last
+    `window_sessions` sessions ending at latest_trading_date. A day with no
+    row is a day with no matched trade -- valid for a genuinely
+    low-liquidity name per the v2 fetch convention (DATA_BASELINE.md caveat
+    #3), so this is a liquidity signal, not by itself a suspension one.
+
+    Expensive (scans every symbol's full raw price history) -- call this
+    from refresh_coverage_ratios (once per daily update run), not per
+    eligibility-gate invocation."""
+    from src.validation.freshness_check import load_market_holidays
+
+    raw_dir = Path(raw_dir)
+    holidays = load_market_holidays()
+    latest_trading_date = pd.Timestamp(latest_trading_date).normalize()
+    calendar = pd.bdate_range(latest_trading_date - pd.Timedelta(days=window_sessions * 3), latest_trading_date)
+    expected_sessions = [d for d in calendar if d.date() not in holidays][-window_sessions:]
+    expected_set = set(expected_sessions)
+
+    rows = []
+    for path in sorted(raw_dir.glob("*.parquet")):
+        symbol = path.stem.upper()
+        df = read_parquet(path)
+        if df.empty or "date" not in df.columns:
+            rows.append({"symbol": symbol, "coverage_ratio": 0.0})
+            continue
+        observed = set(pd.to_datetime(df["date"]).dt.normalize())
+        n_observed = sum(1 for d in expected_sessions if d in observed)
+        rows.append({"symbol": symbol, "coverage_ratio": n_observed / len(expected_set) if expected_set else 0.0})
+    return pd.DataFrame(rows, columns=["symbol", "coverage_ratio"])
+
+
+def refresh_coverage_ratios(
+    raw_dir: str | Path,
+    latest_trading_date: pd.Timestamp,
+    path: str | Path = COVERAGE_RATIO_PATH,
+    window_sessions: int = DEFAULT_COVERAGE_WINDOW_SESSIONS,
+) -> pd.DataFrame:
+    """Recompute every symbol's coverage ratio and overwrite the snapshot
+    file. Called once per scripts/update_prices_daily.py run."""
+    coverage = compute_coverage_ratio(raw_dir, latest_trading_date, window_sessions=window_sessions)
+    path = Path(path)
+    save_parquet(coverage, path)
+    return coverage
+
+
+def low_coverage_symbols(
+    path: str | Path = COVERAGE_RATIO_PATH,
+    min_coverage_ratio: float = DEFAULT_MIN_COVERAGE_RATIO,
+) -> set[str]:
+    """Symbols whose rolling coverage ratio (from the precomputed snapshot
+    at `path`) falls below the threshold -- fed into the eligibility gate's
+    existing LOW_LIQUIDITY reason (not a new/competing status), per this
+    module's docstring. Returns an empty set if the snapshot doesn't exist
+    yet (never blocks the gate)."""
+    path = Path(path)
+    if not path.exists():
+        return set()
+    coverage = read_parquet(path)
+    if coverage.empty:
+        return set()
+    return set(coverage.loc[coverage["coverage_ratio"] < min_coverage_ratio, "symbol"])
 
 
 def excluded_symbols_by_status(

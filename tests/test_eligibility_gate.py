@@ -193,6 +193,19 @@ def test_eligibility_gate_rejects_inactive_long_symbols(sample_watchlist) -> Non
     assert "INACTIVE_LONG" not in abb["eligibility_reason"]
 
 
+def test_eligibility_gate_folds_low_coverage_into_low_liquidity(sample_watchlist) -> None:
+    """audit/PATH_TO_100.md Universe/Eligibility item (NV6): the
+    coverage-ratio suspension proxy must fold into the existing
+    LOW_LIQUIDITY reason, not create a second/competing reason -- CTS would
+    otherwise be ELIGIBLE (see test_eligibility_gate_works_without_cashflow)."""
+    gated = apply_eligibility_gate(sample_watchlist, None, None, low_coverage_symbols={"CTS"})
+
+    cts = gated[gated["symbol"] == "CTS"].iloc[0]
+    assert cts["eligibility_status"] == "REJECTED"
+    assert "LOW_LIQUIDITY" in cts["eligibility_reason"]
+    assert "INACTIVE_LONG" not in cts["eligibility_reason"]  # not conflated with the other status
+
+
 def test_post_cashflow_overlay_executes_successfully(
     tmp_path, sample_watchlist, sample_cashflow_board, sample_watchlist_cashflow_confirmation
 ) -> None:

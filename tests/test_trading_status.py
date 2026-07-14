@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from src.validation.trading_status import (
     classify_trading_status,
+    compute_coverage_ratio,
     compute_current_gaps,
     excluded_symbols_by_status,
     latest_trading_status,
+    low_coverage_symbols,
+    refresh_coverage_ratios,
     status_as_of,
     update_trading_status_table,
 )
@@ -104,3 +108,53 @@ def test_missing_status_file_returns_empty_no_error(tmp_path):
     status_path = tmp_path / "does_not_exist.parquet"
     assert latest_trading_status(status_path).empty
     assert excluded_symbols_by_status(status_path) == set()
+
+
+def test_compute_coverage_ratio_full_and_zero_coverage(tmp_path):
+    raw_dir = tmp_path / "raw"
+    latest = pd.Timestamp("2026-07-13")
+    # AAA trades every weekday over a wider raw range (a superset of the 60
+    # *expected* holiday-filtered sessions, since holidays reach further
+    # back than 60 raw business days) -> ratio should be 1.0.
+    full_dates = pd.bdate_range(end=latest, periods=90)
+    _write_symbol(raw_dir, "AAA", [d.strftime("%Y-%m-%d") for d in full_dates])
+    # BBB hasn't traded in years -> ratio should be 0.0.
+    _write_symbol(raw_dir, "BBB", ["2022-01-21"])
+
+    coverage = compute_coverage_ratio(raw_dir, latest, window_sessions=60).set_index("symbol")
+    assert coverage.loc["AAA", "coverage_ratio"] == pytest.approx(1.0)
+    assert coverage.loc["BBB", "coverage_ratio"] == 0.0
+
+
+def test_compute_coverage_ratio_respects_tet_holiday(tmp_path):
+    """v2 convention: a no-row day is a no-trade day, but Tet closures must
+    not count against a symbol at all (config/vn_market_holidays.csv is
+    already Tet-aware from this session's earlier calendar work)."""
+    raw_dir = tmp_path / "raw"
+    # A symbol that trades every session except the real 2026 Tet week
+    # (2026-02-16..20) should show full coverage over a window spanning it.
+    dates = [d for d in pd.bdate_range("2026-01-01", "2026-03-01") if not (pd.Timestamp("2026-02-16") <= d <= pd.Timestamp("2026-02-20"))]
+    _write_symbol(raw_dir, "AAA", [d.strftime("%Y-%m-%d") for d in dates])
+
+    latest = pd.Timestamp("2026-03-01")
+    coverage = compute_coverage_ratio(raw_dir, latest, window_sessions=30).set_index("symbol")
+    assert coverage.loc["AAA", "coverage_ratio"] == pytest.approx(1.0)
+
+
+def test_refresh_and_low_coverage_symbols_roundtrip(tmp_path):
+    raw_dir = tmp_path / "raw"
+    coverage_path = tmp_path / "coverage_ratios.parquet"
+    latest = pd.Timestamp("2026-07-13")
+    full_dates = pd.bdate_range(end=latest, periods=90)
+    _write_symbol(raw_dir, "AAA", [d.strftime("%Y-%m-%d") for d in full_dates])
+    _write_symbol(raw_dir, "BBB", ["2022-01-21"])
+
+    refresh_coverage_ratios(raw_dir, latest, path=coverage_path, window_sessions=60)
+
+    assert coverage_path.exists()
+    low = low_coverage_symbols(path=coverage_path, min_coverage_ratio=0.30)
+    assert low == {"BBB"}
+
+
+def test_low_coverage_symbols_missing_snapshot_returns_empty(tmp_path):
+    assert low_coverage_symbols(path=tmp_path / "does_not_exist.parquet") == set()

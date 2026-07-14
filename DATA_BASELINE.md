@@ -89,6 +89,33 @@ quiet -- it still cannot see a symbol that was delisted/merged/suspended
 (the core survivorship-bias gap P0-1 describes). A real point-in-time
 universe still needs an external historical listing/delisting source.
 
+### Coverage-ratio suspension proxy (audit PATH_TO_100.md Universe/Eligibility item)
+
+`src/validation/trading_status.py::compute_coverage_ratio` adds a second,
+complementary signal to the gap-based status above: the ratio of observed
+trading days to expected trading sessions (holiday-aware, same
+`config/vn_market_holidays.csv`) over the last 60 sessions. A day with no
+row is a day with no matched trade -- valid for a genuinely low-liquidity
+name (DATA_BASELINE.md caveat #3), so this is a liquidity signal, not by
+itself a suspension one.
+
+**Empirically checked before wiring this in**: STALE_SHORT (real thin
+trading) and INACTIVE_LONG symbols' 60-session coverage ratios *overlap*
+(STALE_SHORT ranges 0.12-0.95, INACTIVE_LONG 0.0-0.40) -- coverage ratio
+alone cannot reliably separate "thin but real" from "suspended" the way
+gap_days can. Per the task's explicit consistency requirement, this is
+**folded into the existing `LOW_LIQUIDITY` eligibility reason**, not a
+third competing status -- `min_coverage_ratio=0.30` catches 38 symbols
+(the 18 INACTIVE_LONG plus 20 additional real-but-chronically-thin names:
+ACM, ADC, AGF, AGM, AME, APT, ATA, ATG, BTT, CMV, COM, DCF, DTT, GTA, HU1,
+LM8, PNC, POM, SFC, TIX). Precomputed once per `scripts/update_prices_daily.py`
+run into `data/full_history_v2/coverage_ratios.parquet` (overwritten each
+run, not append-only like `trading_status.parquet` -- coverage ratio is a
+continuously-drifting number, not a discrete point-in-time fact) since
+computing it live inside the eligibility gate means scanning all ~500
+symbols' full raw price history (measured: ~20s per gate call -- too slow
+to do more than once a day).
+
 **Market breakdown**: HOSE 394, UPCOM 61 (+3 more resolved via `data/raw/securities/UPCOM.parquet` — AMD, ART, ASA), HNX 41 (+2 more resolved via `data/raw/securities/HOSE.parquet` — KPF, PSH). 5 symbols have no `market` value anywhere in `data/processed/stock_features.parquet`'s history; resolved via the raw securities-listing fallback files.
 
 ## Verification summary (full detail: BACKFILL_DESIGN_REPORT.md Round 4)
