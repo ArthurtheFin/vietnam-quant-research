@@ -33,16 +33,13 @@ EXCLUDED_SYMBOLS_PATH = Path("config/excluded_symbols.csv")
 
 
 def get_universe_symbols(universe_dir: Path = UNIVERSE_DIR, excluded_path: Path = EXCLUDED_SYMBOLS_PATH) -> list[str]:
-    """Current tracked universe (data/full_history_v2/raw/*.parquet -- the
-    same 501-symbol set disclosure_ingest.py already validates symbols
-    against), minus config/excluded_symbols.csv."""
-    import pandas as pd
+    """Delegates to src.data.universe.tracked_universe_symbols -- the single
+    source of truth shared with disclosure_ingest.py's load_universe_symbols
+    and scripts/update_prices_daily.py's get_universe_symbols (audit
+    PATH_TO_100.md Data Quality item)."""
+    from src.data.universe import tracked_universe_symbols
 
-    symbols = {p.stem.upper() for p in universe_dir.glob("*.parquet")}
-    if excluded_path.exists():
-        excluded = set(pd.read_csv(excluded_path)["symbol"].astype(str).str.upper())
-        symbols -= excluded
-    return sorted(symbols)
+    return tracked_universe_symbols(raw_dir=universe_dir, excluded_path=excluded_path)
 
 
 def main(argv: list[str] | None = None) -> int:

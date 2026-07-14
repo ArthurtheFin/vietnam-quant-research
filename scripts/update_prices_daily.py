@@ -67,13 +67,15 @@ LOG_PATH = Path("data/full_history_v2/daily_price_update_log.jsonl")
 REQUEST_SLEEP_SECONDS = 1.2
 
 
-def get_universe_symbols(manifest_path: Path = MANIFEST_PATH) -> list[str]:
-    """The tracked full_history_v2 universe -- same 501 symbols the original
-    backfill (scratch/full_backfill_v2.py) established, read from the
-    manifest rather than re-deriving so this script has no independent
-    notion of "the universe" to drift out of sync with."""
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    return sorted(manifest.keys())
+def get_universe_symbols(raw_dir: Path = RAW_DIR) -> list[str]:
+    """Delegates to src.data.universe.tracked_universe_symbols -- the single
+    source of truth shared with disclosure_ingest.py's load_universe_symbols
+    and scripts/crawl_disclosure.py's get_universe_symbols (audit
+    PATH_TO_100.md Data Quality item). Previously read manifest.json's keys
+    directly, which did not apply config/excluded_symbols.csv."""
+    from src.data.universe import tracked_universe_symbols
+
+    return tracked_universe_symbols(raw_dir=raw_dir)
 
 
 def detect_latest_trading_date(client) -> pd.Timestamp | None:

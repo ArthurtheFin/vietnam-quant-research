@@ -41,9 +41,14 @@ def _assign_dedup_seq(df: pd.DataFrame) -> pd.Series:
 
 
 def load_universe_symbols(universe_dir: Path = UNIVERSE_DIR) -> set[str]:
-    if not universe_dir.exists():
-        return set()
-    return {p.stem.upper() for p in universe_dir.glob("*.parquet")}
+    """Delegates to src.data.universe.tracked_universe_symbols (audit
+    PATH_TO_100.md Data Quality item) -- previously defined its own symbol
+    list here without applying config/excluded_symbols.csv, so an excluded
+    symbol (e.g. GEE) would validate as "known" here even though it's
+    excluded from the eligible universe everywhere else."""
+    from src.data.universe import tracked_universe_symbols
+
+    return set(tracked_universe_symbols(raw_dir=universe_dir))
 
 
 def _compute_available_at(df: pd.DataFrame) -> pd.Series:
