@@ -182,6 +182,45 @@ ROUND 4 five-symbol pilot, just at full-universe scale.
    `tests/test_disclosure_ingest.py::test_widened_key_keeps_two_distinct_same_day_disclosures`,
    `::test_dedup_seq_keeps_two_identical_looking_registrations_same_day`,
    `::test_reingest_of_identical_batch_still_dedupes_with_dedup_seq`.
+
+   **NV0a manual audit, 2026-07-14 (GĐ3 pre-check).** Re-verified against the
+   *current* `events.parquet` (57,282 rows) which groups now still rely on
+   `dedup_seq` as the sole tiebreaker (i.e., two rows sharing symbol,
+   event_type, person_name, disclosure_date, direction, AND
+   shares_registered_or_changed): **98 groups, 196 rows** — matching the
+   number already documented above exactly (196), not the "417 rows still
+   merged" figure this round's task brief assumed. That 417 figure
+   (829 total collisions − 412 net rows recovered) was simple pre-fix
+   arithmetic; it does not correspond to any post-fix count in the code or
+   data — the actual fix (widened key + `dedup_seq`) already resolves *all*
+   829 to 0 collisions, as this same caveat entry states above. There is no
+   residual "417" state to audit; the population actually still dependent on
+   `dedup_seq`'s row-order tiebreak (i.e., the only rows where the key still
+   can't intrinsically distinguish two disclosures) is the 196 rows /
+   98 groups above.
+
+   Sampled 20 of these 196 rows (10 groups, `random.seed(20260714)`,
+   `random.sample` over the 98 groups) and inspected each pair's full
+   `raw_payload` (the immutable source JSON, not the parsed columns) side by
+   side. **Result: 20/20 (10/10 groups) are genuinely distinct real
+   transactions, 0/20 are true duplicate parses.** Every pair differs in
+   `PlanBeginDate`/`PlanEndDate` (the actual registration window — the field
+   the parsed key does not include) and, in the large majority of pairs,
+   also differs in `RealBuyVolume`/`RealSellVolume`/`VolumeBeforeTransaction`/
+   `VolumeAfterTransaction`/`TransactionNote` — i.e. two sequential real
+   registration events by the same person, same direction, same registered
+   share count, disclosed on the same calendar day, but against different
+   windows (e.g. ASM/Nguyễn Thị Diệu Hiền: two separate 40,000-share sell
+   registrations, windows 2011-01-26..03-26 and 2011-02-23..02-28; DTL/Nguyễn
+   Thanh Nghĩa: two separate 500,000-share buy registrations a month apart,
+   both disclosed 2013-11-11). No case among the 20 had byte-identical
+   `raw_payload` (which would indicate a true duplicate parse). **Conclusion:
+   the key is not missing a dimension — `dedup_seq` is correctly preserving
+   real distinct events, not manufacturing false splits or silently
+   collapsing true duplicates.** No further schema fix needed; caveat #1
+   stays RESOLVED. Sample script (not committed, reproducible from the seed
+   above): grouped `events.parquet` by `NATURAL_KEY_BASE`, sampled 10 of the
+   98 size-2 groups, printed both rows' parsed columns + `raw_payload`.
 2. **Panel is skewed toward large/long-listed symbols, same caveat as
    `DATA_BASELINE.md`'s survivorship-bias note, compounded here.** The 500
    symbols are "listed today"; disclosure history depth correlates with how
