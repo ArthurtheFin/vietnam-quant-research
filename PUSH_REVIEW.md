@@ -613,3 +613,52 @@ sản xuất nào bị đổi — `scratch/disclosure_event_study.py` là script
 một lần, không nối vào pipeline; thay đổi duy nhất chạm production code là
 `config/vn_market_holidays.csv`, đã xác nhận 41/41 test phụ thuộc lịch nghỉ pass
 ở NV0b). Commit riêng từng nhiệm vụ vào `main`, không push.
+
+## GĐ3.5 — Khám nghiệm có ranh giới: định lượng bias + đóng hồ sơ nhánh (3 nhiệm vụ)
+
+Vòng theo dõi trực tiếp GĐ3, xuất phát từ phát hiện phụ "CAR(S3, bán) ≈ CAR(S1,
+mua)" ở `DISCLOSURE_EVENT_STUDY_REPORT.md`. Toàn bộ EXPLORATORY — không kiểm
+định lại H1/H2 đã khóa, không mở prereg mới, không chạy test xác nhận nào.
+
+1. **NV1 (commit `7445ca9`)** — `SURVIVORSHIP_BIAS_ESTIMATE.md`: dùng S3 làm
+   placebo, đối chiếu chéo bằng excess return không điều kiện sự kiện của TOÀN
+   BỘ `(mã, ngày)` trong rổ đủ điều kiện (N=325k–347k, độc lập hoàn toàn với
+   việc chọn sự kiện disclosure). Ba ước lượng (placebo S3, gộp tất cả sự kiện,
+   không điều kiện) cùng dấu dương, cùng dạng tăng theo cửa sổ, CI chồng lấn
+   nhau — nhất quán với giả thuyết survivorship bias nhưng KHÔNG phải bằng
+   chứng phân tách nguyên nhân (ghi rõ trong tài liệu). Đề xuất mức sàn hiệu
+   chỉnh ~+0.4%/+1.2%/+2.9% ở cửa sổ 20/60/120 ngày cho mọi backtest long-only
+   diễn giải excess return, hiệu lực đến khi có point-in-time universe thật
+   (Gate #3). Trích dẫn vào `DATA_BASELINE.md` caveat #2.
+2. **NV2 (commit `a140633`)** — mục "Exploratory addendum" cuối
+   `DISCLOSURE_EVENT_STUDY_REPORT.md`: autopsy mô tả thuần (không CI, không kết
+   luận) CAR(S1) theo 4 lát cắt — quy mô đăng ký/ADV (không có dữ liệu free-float
+   nên dùng `volume_ma20` theo đúng nhánh dự phòng đã nêu), vai trò người đăng
+   ký, cụm nhiều người nội bộ cùng đăng ký trong 20 ngày, nhóm thanh khoản/quy
+   mô (`value_ma20` tam phân vị, proxy vốn hóa vì không có dữ liệu vốn hóa
+   thật). Hai lát cắt đáng chú ý nhất để sinh giả thuyết cho prereg tương lai:
+   "người liên quan gia đình" có CAR cao hơn chính người có chức vụ; cụm ≥2
+   người nội bộ cùng đăng ký có median CAR dương ở +60/+120 ngày trong khi đăng
+   ký đơn lẻ thì âm. Lát cắt theo quy mô/thanh khoản (mã nhỏ CAR cao hơn mã lớn)
+   được gắn cờ là khả năng trùng chính confound survivorship bias đã định lượng
+   ở NV1, không phải phát hiện riêng.
+3. **NV3 (đóng hồ sơ, commit này)** — xem mục bên dưới.
+
+**Đóng hồ sơ nhánh "disclosure như tín hiệu bùng nổ"**: kết luận âm tính (test
+chính NEGATIVE cả 3 tín hiệu × 3 lag ở GĐ3, H2 bị thách thức bởi test phụ CAR ở
+cùng round, và phần lớn "excess return" đo được nhiều khả năng là survivorship
+bias của chính universe theo GĐ3.5/NV1) — không có tín hiệu disclosure nào đạt
+PASS/ỨNG VIÊN trong thiết kế đã pre-register. Nhánh này đóng lại ở đây; không mở
+tiếp mà không có yêu cầu/prereg mới từ người dùng.
+
+**Pipeline disclosure GIỮ NGUYÊN chạy live, không tắt** — kết luận âm tính của
+nhánh event-study KHÔNG có nghĩa dữ liệu disclosure vô giá trị:
+`scripts/update_disclosure_daily.py` vẫn là một phần quy trình vận hành đã ghi ở
+vòng 3 (chạy trước khi sinh watchlist/report, cùng `update_prices_daily.py`).
+Hai lý do dữ liệu này vẫn quý: (a) tin hủy niêm yết/sáp nhập/đình chỉ thường đi
+kèm hoạt động giao dịch nội bộ bất thường trước đó — một nguồn tín hiệu tiềm
+năng cho point-in-time universe (Gate #3, `audit/PATH_TO_100.md`) khi nào có
+nguồn dữ liệu hủy niêm yết chính thức để đối chiếu; (b) hai lát cắt sinh giả
+thuyết ở NV2 trên (người liên quan gia đình, cụm nhiều người nội bộ) vẫn cần dữ
+liệu sống để kiểm định trong một prereg tương lai nếu người dùng quyết định theo
+đuổi tiếp.
