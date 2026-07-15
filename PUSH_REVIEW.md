@@ -708,3 +708,78 @@ khóa: không mở thêm biến thể nào sau kết quả này. **Pipeline
 — lý do giữ lại không đổi so với GĐ3.5 (tiềm năng point-in-time universe qua
 tin hủy niêm yết, Gate #3; dữ liệu vẫn sẵn sàng nếu có hướng nghiên cứu khác
 không liên quan "dự báo bùng nổ/vượt trội giá" trong tương lai).
+
+## GĐ4 — Kiểm định composite `final_watchlist` lần đầu (kết quả: Nhánh C, chuyển sang không xếp hạng alpha)
+
+`audit/PATH_TO_100.md` mục 3: 75/100 điểm trọng số composite (trend 25 +
+momentum 20 + relative_strength 20 + liquidity 10 + volume 5 + risk 10 +
+signal 10) chưa từng được kiểm định ở cấp độ tổng thể. Round này: thiết kế +
+cây quyết định A/B/C commit trước, chạy một lần, thi hành đúng nhánh trúng.
+
+1. **NV1 (commit `eb765e6`)** — `WATCHLIST_VALIDATION_PREREG.md`. Composite =
+   `base_final_score` (trước `warning_penalty` — đúng khung "75/100 điểm trọng
+   số" của `PATH_TO_100.md`, không phải `final_score`). Universe =
+   `trading_status ACTIVE`. Tái dùng nguyên máy móc IC Newey-West + null test
+   đã kiểm chứng ở `SCORE_V2_DESIGN.md`/`score_v2_ic_test.py`/`score_v2_null_test.py`
+   — không viết công thức mới. Cây quyết định A/B/C khóa nguyên văn, kèm quy
+   tắc "vùng xám → chọn nhánh thận trọng hơn". Hai quyết định khóa sẵn không
+   phụ thuộc nhánh: gỡ `liquidity_score` khỏi ranking ở mọi nhánh (bằng chứng
+   sẵn có nhiễm survivorship bias); sector mapping không bắt buộc eligibility
+   nhưng bắt buộc cho sector-cap (mã thiếu mapping → bucket `UNKNOWN`, cap như
+   một ngành thật).
+2. **NV2 (commit `36bba52`, script tại `eb765e6`..)** — chạy đúng prereg.
+   **Bug thật tìm thấy và sửa giữa chừng**: lần chạy null test đầu cho
+   percentile=0.0 tuyệt đối ở MỌI fold, phương sai null=0 — vết tích của một
+   lỗi trùng tên cột (`meta_score`) giữa panel và tham số truyền vào
+   `run_portfolio_backtest`, khiến bước sắp xếp theo điểm bị bỏ qua hoàn toàn
+   (real và random chọn đúng cùng danh mục). Sửa, chạy lại. Kết quả cuối:
+   composite IC gần như phẳng (t_NW full/residualized=−0.40, không cùng dấu 3
+   giai đoạn); null test trung bình 63.8 nhưng fold 2026 sụp xuống percentile
+   0.15 (<<10) — thất bại rõ ràng cả hai vế tiêu chí. Phát hiện phụ: 4/7 thành
+   phần yếu/không ý nghĩa; `liquidity_score` đảo chiều có ý nghĩa (t_NW=−4.19,
+   xác nhận trực tiếp quyết định gỡ đã khóa sẵn); `risk_score` là thành phần
+   duy nhất có bằng chứng mạnh đứng riêng (t_NW=+4.72, đồng dấu dương 3 giai
+   đoạn); `signal_score` không tính được (`meta_ranking.parquet` hóa ra là
+   snapshot hiện tại, không phải chuỗi lịch sử như prereg mô tả nhầm ban đầu);
+   `momentum_score`≡`relative_strength_score` về mặt toán học (trừ hằng số
+   theo ngày không đổi thứ hạng cross-sectional) — dư thừa thật trong công
+   thức, ghi nhận không sửa.
+3. **NV3 (commit `c0a4d82`, `a76b69c`, `450b166`)** — mốc so sánh "watchlist
+   tối giản" (v2 + gate hiện hành) chạy mới: null avg 52.8 (<60, không đạt dù
+   không fold nào <10) và IC giai đoạn 1 = 2.90 (thiếu 0.10 so ngưỡng 3.0) —
+   SÁT nhưng không đạt theo đúng chữ tiêu chí đã khóa. → **Nhánh C** (đúng quy
+   tắc "vùng xám → chọn nhánh thận trọng hơn", không tự nới lỏng để "cứu"
+   Nhánh B dù trực giác watchlist tối giản có vẻ là tín hiệu thật và
+   `alpha_score` v2 của chính nó đã được xác nhận riêng ở một bài test khác
+   với ngưỡng lỏng hơn). Thi hành: `final_watchlist.py` thêm
+   `ranking_mode="no_alpha_liquidity_sort"` — xếp hạng theo `value_ma20`, bỏ
+   ngưỡng `final_score`, dán nhãn rõ trong `reason`; `liquidity_score` gỡ khỏi
+   `base_final_score` (10 điểm phân bổ lại tỷ lệ thuận 6 thành phần còn lại);
+   thêm sector-cap thật đầu tiên vào `client_ready_watchlist`/`trading_watchlist`
+   (trước đây hoàn toàn không có); mở rộng `assert_no_forward_columns` vào
+   `src/alpha/scoring.py`/`run_alpha_scoring.py`.
+4. **NV4 (commit `776ae6a`, `f27fe0d`, `36bba52`)** — chạy
+   `update_prices_daily.py` + `update_disclosure_daily.py` + `update_index_data.py`
+   + `run_daily_pipeline.py --offline` theo đúng quy trình chuẩn. 2 bug thật
+   tìm thấy khi regenerate thật (không phải lúc test đơn vị): `value_ma20` bị
+   cắt khỏi output vì chưa có trong `FINAL_WATCHLIST_COLUMNS`, làm
+   `apply_post_cashflow_overlay`'s lần gọi thứ hai trong cùng pipeline
+   `KeyError` — thêm cột vào schema cố định; nhãn "không xếp hạng alpha" bị
+   chèn lặp đôi vì hàm chạy 2 lần/pipeline — sửa idempotent. So sánh top-10
+   `client_ready` (chỉ `data/signals/final_watchlist.csv` có bản "trước" trong
+   git — `data/output/*.csv` bị gitignore, không có bản nền): trùng 1/10
+   (VIC) — đúng dự kiến khi đổi hẳn tiêu chí xếp hạng, không phải lỗi. Ghi rõ
+   giới hạn: dữ liệu cũng mới hơn 2 ngày, không tách bạch được hiệu ứng code
+   vs hiệu ứng data trong phép so sánh này.
+5. **NV5 (commit `b0ca2fb`)** — `WATCHLIST_VALIDATION_REPORT.md` đầy đủ; cập
+   nhật `audit/PATH_TO_100.md` mục 3 (đóng khoảng trống kiểm định — kết quả âm
+   tính, không phải điểm số học đạt được; `liquidity_score`/`assert_no_forward_columns`/
+   trích dẫn bằng chứng trong config đều XONG; `tail_ratio_60d` trong
+   `risk_score` vẫn mở, ngoài phạm vi round này). Full test suite: 295 passed
+   sau mọi thay đổi. Commit riêng từng nhiệm vụ vào `main`, không push.
+
+**Không có nhân tố alpha nào trong `final_watchlist.py` được coi là đã kiểm
+định sau round này** — pipeline tiếp tục dùng `alpha_score` v2 nguyên trạng ở
+các nơi khác (không bị round này rút lại, vì v2 đã qua bài test riêng của
+chính nó). Ứng viên rõ nhất cho một prereg đơn-nhân-tố tương lai:
+`risk_score` (t_NW=+4.72, đồng dấu dương 3 giai đoạn).
