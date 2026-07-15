@@ -102,14 +102,32 @@ việc này xong, vì chúng override toàn bộ:
 
 ### 3. Signal and Alpha Quality — hiện 4/12, cần +8 (mục cần cải thiện nhiều nhất)
 
-| Việc cần làm | Điểm ước tính |
-|---|---|
-| Sửa Gate #17 (gỡ `alpha_rs_score`) — xem trên | phần của critical gate |
-| Kiểm định IC/backtest riêng cho TOÀN BỘ composite `final_watchlist` (không chỉ 2 nhân tố của `alpha_score` v2) — hiện 75/100 điểm trọng số của composite này (trend 25 + momentum 20 + relative_strength 20 + liquidity 10) chưa từng được kiểm định ở cấp độ composite | +3 |
-| Sửa chiều xếp hạng sai: `liquidity_score` (value_ma20, đang ngược với bằng chứng IC đã có) và `tail_ratio_60d` trong `risk_score` | +1 |
-| Bổ sung trích dẫn bằng chứng cho mọi trọng số/ngưỡng trong `DEFAULT_FINAL_WATCHLIST_CONFIG` (hiện không có báo cáo nào giải thích tại sao là 25/20/20/10/5/10/10) | +1 |
-| Mở rộng `assert_no_forward_columns` sang `src/alpha/scoring.py` và `scripts/run_alpha_scoring.py` (hiện chỉ có ở 2 điểm output, không có ở nơi tính điểm) | +2 |
-| Còn lại (~1 điểm): tuỳ mức độ kiểm định đạt được ở composite | +1 |
+**CẬP NHẬT 2026-07-15 (GĐ4) — `WATCHLIST_VALIDATION_PREREG.md`/`WATCHLIST_VALIDATION_REPORT.md`,
+commit range `eb765e6`..`36bba52`:** kiểm định IC/null-test đầu tiên cho toàn
+bộ composite `final_watchlist` đã chạy. Kết quả: composite KHÔNG đạt tiêu chí
+đã khóa (IC t_NW gần 0, không cùng dấu 3 giai đoạn; null test có 1/5 fold sụp
+xuống percentile 0.15). Mốc so sánh "watchlist tối giản" (v2 + gate hiện hành)
+cũng không đạt, sát ngưỡng nhưng không đạt theo đúng chữ tiêu chí đã khóa. Theo
+cây quyết định đã pre-register: **Nhánh C — `final_watchlist.py` chuyển sang
+"không xếp hạng alpha", sắp theo thanh khoản (`value_ma20`), dán nhãn rõ**
+(`ranking_mode="no_alpha_liquidity_sort"`, `src/screening/final_watchlist.py`).
+Đây không phải điểm số học đạt được theo bảng dưới — là một phát hiện thật cần
+sửa vận hành, đã sửa.
+
+| Việc cần làm | Điểm ước tính | Trạng thái |
+|---|---|---|
+| Sửa Gate #17 (gỡ `alpha_rs_score`) — xem trên | phần của critical gate | Đã xong (GĐ trước) |
+| Kiểm định IC/backtest riêng cho TOÀN BỘ composite `final_watchlist` (không chỉ 2 nhân tố của `alpha_score` v2) — hiện 75/100 điểm trọng số của composite này (trend 25 + momentum 20 + relative_strength 20 + liquidity 10) chưa từng được kiểm định ở cấp độ composite | +3 | **XONG — kết quả âm tính, xem trên. Không cộng điểm theo nghĩa "đạt", nhưng khoảng trống kiểm định đã đóng.** |
+| Sửa chiều xếp hạng sai: `liquidity_score` (value_ma20, đang ngược với bằng chứng IC đã có) và `tail_ratio_60d` trong `risk_score` | +1 | `liquidity_score`: XONG (gỡ khỏi ranking hoàn toàn, không chỉ đổi chiều — `WATCHLIST_VALIDATION_REPORT.md` mục 2 xác nhận chiều hiện tại sai, t_NW=−4.19). `tail_ratio_60d` trong `risk_score`: CHƯA — ngoài phạm vi round này, vẫn mở. |
+| Bổ sung trích dẫn bằng chứng cho mọi trọng số/ngưỡng trong `DEFAULT_FINAL_WATCHLIST_CONFIG` (hiện không có báo cáo nào giải thích tại sao là 25/20/20/10/5/10/10) | +1 | **XONG** — docstring `DEFAULT_FINAL_WATCHLIST_CONFIG`'s `weights` (`src/screening/final_watchlist.py`) ghi đầy đủ bằng chứng IC từng thành phần + lý do "unvalidated, giữ vì hiển thị". |
+| Mở rộng `assert_no_forward_columns` sang `src/alpha/scoring.py` và `scripts/run_alpha_scoring.py` (hiện chỉ có ở 2 điểm output, không có ở nơi tính điểm) | +2 | **XONG** — commit `c0a4d82`. |
+| Còn lại (~1 điểm): tuỳ mức độ kiểm định đạt được ở composite | +1 | Chưa cộng — composite không đạt kiểm định; điểm này chờ một nhân tố mới qua đúng quy trình (ứng viên: `risk_score`, t_NW=+4.72, xem `WATCHLIST_VALIDATION_REPORT.md` mục 2). |
+
+**Phát hiện phụ, ngoài bảng điểm gốc**: `momentum_score` và
+`relative_strength_score` cho IC giống hệt nhau về mặt toán học (trừ đi lợi
+nhuận benchmark — hằng số theo ngày — không đổi thứ hạng cross-sectional) —
+một dư thừa thật trong công thức, ghi nhận cho thiết kế lại tương lai, không
+sửa trong round này.
 
 ### 4. Expected Return Model — hiện 1/8, cần +7
 
