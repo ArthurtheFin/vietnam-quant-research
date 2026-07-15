@@ -24,6 +24,7 @@ FINAL_WATCHLIST_COLUMNS = [
     "analysis_as_of",
     "data_age_days",
     "close",
+    "value_ma20",
     "final_score",
     "base_final_score",
     "warning_penalty",
@@ -782,7 +783,7 @@ def _ensure_watchlist_output_columns(frame: pd.DataFrame) -> pd.DataFrame:
                 "rank", "data_age_days", "base_final_score", "warning_penalty",
                 "trend_score", "momentum_score", "relative_strength_score",
                 "volume_score", "liquidity_score", "risk_score", "signal_score",
-                "latest_volume", "rank_universe_size",
+                "latest_volume", "rank_universe_size", "value_ma20",
             ]:
                 out[col] = np.nan
             elif col in ["is_research_candidate", "is_trading_candidate", "is_client_ready"]:
