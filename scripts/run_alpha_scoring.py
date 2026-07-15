@@ -13,6 +13,7 @@ from src.data.dataset_config import OFFICIAL_FEATURES_PATH
 from src.data.loaders import read_parquet, save_parquet, append_parquet
 from src.alpha.scoring import calculate_alpha_scores
 from src.utils.pipeline_io import build_lineage_metadata, validate_lineage_metadata, write_json
+from src.validation.guards import assert_no_forward_columns
 
 def main():
     print("=== Running Alpha Scoring System ===")
@@ -34,7 +35,14 @@ def main():
     # 2. Run Scoring
     print("Calculating alpha scores cross-sectionally...")
     scored = calculate_alpha_scores(stock_df, benchmark_df)
-    
+
+    # audit/PATH_TO_100.md Signal/Alpha item: belt-and-suspenders guard at the
+    # artifact-write site too (same pattern as final_watchlist.py's
+    # save_watchlist_outputs) -- calculate_alpha_scores already drops forward
+    # columns internally, this catches anything reintroduced between the call
+    # and the save (e.g. a future edit that merges another frame back in).
+    scored = assert_no_forward_columns(scored, context="scripts.run_alpha_scoring", mode="drop")
+
     # 3. Save full history
     out_path = "data/signals/alpha_scores.parquet"
     save_parquet(scored, out_path)

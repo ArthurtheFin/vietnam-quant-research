@@ -6,6 +6,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from src.validation.guards import assert_no_forward_columns
+
 
 def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -35,7 +37,15 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
     """
     if stock_df.empty:
         return stock_df.copy()
-        
+
+    # audit/PATH_TO_100.md Signal/Alpha item: assert_no_forward_columns previously
+    # only guarded the two output write sites (final_watchlist.py); the scoring
+    # step itself had no guard. mode="drop" (not "raise") -- research callers
+    # routinely pass stock_features.parquet/stealth_accumulation_history.parquet
+    # with forward_return_Nd columns already present for their OWN downstream
+    # backtest/IC use; this function just must never let those columns influence
+    # or ride through its own scoring math.
+    stock_df = assert_no_forward_columns(stock_df, context="src.alpha.scoring.calculate_alpha_scores", mode="drop")
     stocks = stock_df.sort_values(["symbol", "date"]).copy()
     
     # Calculate volume ratio
