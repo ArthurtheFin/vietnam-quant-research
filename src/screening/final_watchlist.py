@@ -883,8 +883,13 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         # one free-text column every output row already carries, since
         # FINAL_WATCHLIST_COLUMNS is a fixed schema (adding a new column
         # would just get stripped by _ensure_watchlist_output_columns).
+        # Idempotent: _redistribute_after_gate can run twice on the same rows
+        # in one pipeline invocation (build_watchlist_tiers, then
+        # apply_post_cashflow_overlay re-reading the saved output) -- guard
+        # against double-prepending.
         disclaimer = "[Không xếp hạng alpha, chỉ sắp theo thanh khoản -- xem WATCHLIST_VALIDATION_REPORT.md] "
-        out["reason"] = disclaimer + out["reason"].fillna("").astype(str)
+        reason_col = out["reason"].fillna("").astype(str)
+        out["reason"] = np.where(reason_col.str.startswith(disclaimer), reason_col, disclaimer + reason_col)
 
     for column, default in defaults.items():
         if column not in out.columns:
