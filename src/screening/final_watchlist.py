@@ -12,6 +12,8 @@ from src.data.validators import filter_primary_equity_symbols
 from src.utils.scoring import deep_merge
 from src.utils.logger import get_logger
 
+SECTOR_MAP_PATH = Path("config/sector_map.csv")
+
 LOGGER = get_logger("final_watchlist")
 
 
@@ -71,14 +73,27 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     "max_drawdown_60d": -0.30,
     "client_ready_threshold": 60.0,
     "trading_threshold": 55.0,
+    # WATCHLIST_VALIDATION_PREREG.md / WATCHLIST_VALIDATION_REPORT.md (GD4):
+    # first-ever IC/null-test of this composite. `liquidity` is removed from
+    # `base_final_score`'s sum in _score() (see below) at every branch of the
+    # pre-registered decision tree -- WATCHLIST_VALIDATION_REPORT.md's own IC
+    # run found its current direction (reward HIGH value_ma20) has t_NW=-4.19
+    # (full, residualized, actively wrong-signed), and the opposite direction
+    # (v2/alpha_score's reward-LOW-liquidity evidence) is itself contaminated
+    # by survivorship bias (SURVIVORSHIP_BIAS_ESTIMATE.md) -- neither direction
+    # has clean evidence, so liquidity keeps only its existing eligibility-gate
+    # role (min_value_ma20 + trading_status), not a ranking weight. The 10
+    # points are redistributed proportionally (x10/9) across the other 6
+    # weights below so they still sum to 100 -- not a tuned reallocation to
+    # any specific component.
     "weights": {
-        "trend": 25,
-        "momentum": 20,
-        "relative_strength": 20,
-        "liquidity": 10,
-        "volume": 5,
-        "risk": 10,
-        "signal": 10,
+        "trend": 27.78,
+        "momentum": 22.22,
+        "relative_strength": 22.22,
+        "liquidity": 10,  # informational display column only -- excluded from base_final_score, see _score()
+        "volume": 5.56,
+        "risk": 11.11,
+        "signal": 11.11,
     },
     "paths": {
         "features": OFFICIAL_FEATURES_PATH,
@@ -525,7 +540,11 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
         axis=1,
     ).mean(axis=1)
     out["signal_score"] = (signal_raw * weights["signal"]).round(2)
-    out["base_final_score"] = out[["trend_score", "momentum_score", "relative_strength_score", "liquidity_score", "volume_score", "risk_score", "signal_score"]].sum(axis=1).clip(0, 100).round(2)
+    # liquidity_score excluded from the ranking sum (WATCHLIST_VALIDATION_PREREG.md /
+    # _REPORT.md, GD4) -- computed above for informational display only, no
+    # validated direction. The other 6 weights are pre-scaled (see `weights`
+    # above) so this still sums to 100.
+    out["base_final_score"] = out[["trend_score", "momentum_score", "relative_strength_score", "volume_score", "risk_score", "signal_score"]].sum(axis=1).clip(0, 100).round(2)
     out["risk_reward_estimate"] = _safe_divide(out["return_60d"], out["atr_pct_14"].abs())
     out["warning"] = out.apply(lambda row: "; ".join(_warnings(row, cfg)), axis=1)
     out["warning_penalty"] = out["warning"].map(_warning_penalty).astype(float)
@@ -747,6 +766,51 @@ def _ensure_watchlist_output_columns(frame: pd.DataFrame) -> pd.DataFrame:
     return out[FINAL_WATCHLIST_COLUMNS]
 
 
+_SECTOR_MAP_CACHE: dict[str, str] | None = None
+
+
+def _load_sector_map(path: Path = SECTOR_MAP_PATH) -> dict[str, str]:
+    """WATCHLIST_VALIDATION_PREREG.md (GD4): sector mapping is NOT mandatory
+    for eligibility (96.4% coverage, current impact only 4 research-tier
+    symbols per audit/SECTOR_MAPPING_COVERAGE_REPORT.md NV7) but IS mandatory
+    for the sector cap below -- unmapped symbols fall into their own "UNKNOWN"
+    bucket, capped identically to a real sector (same convention already
+    default in src/backtest/portfolio_backtest.py's max_per_sector, confirmed
+    correct there, extended here to final_watchlist's own tier output which
+    previously had no sector-cap logic at all)."""
+    global _SECTOR_MAP_CACHE
+    if _SECTOR_MAP_CACHE is not None:
+        return _SECTOR_MAP_CACHE
+    if not path.exists():
+        _SECTOR_MAP_CACHE = {}
+        return _SECTOR_MAP_CACHE
+    df = read_parquet(path) if path.suffix == ".parquet" else pd.read_csv(path)
+    _SECTOR_MAP_CACHE = dict(zip(df["symbol"], df["sector"]))
+    return _SECTOR_MAP_CACHE
+
+
+def _select_with_sector_cap(ranked_pool: pd.DataFrame, limit: int, max_per_sector: int = 2) -> pd.DataFrame:
+    """Greedy top-N-by-existing-rank-order selection capped at `max_per_sector`
+    names per sector (symbols missing from config/sector_map.csv count as
+    sector "UNKNOWN", capped the same as any real sector). `ranked_pool` must
+    already be sorted in the desired priority order -- this only filters, it
+    never re-sorts."""
+    if ranked_pool.empty or limit <= 0:
+        return ranked_pool.head(0)
+    sector_map = _load_sector_map()
+    sector_counts: dict[str, int] = {}
+    keep_idx = []
+    for idx, row in ranked_pool.iterrows():
+        sector = sector_map.get(str(row["symbol"]), "UNKNOWN")
+        if sector_counts.get(sector, 0) >= max_per_sector:
+            continue
+        sector_counts[sector] = sector_counts.get(sector, 0) + 1
+        keep_idx.append(idx)
+        if len(keep_idx) >= limit:
+            break
+    return ranked_pool.loc[keep_idx]
+
+
 def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any]) -> dict[str, pd.DataFrame]:
     out = scored_universe.copy()
     if out.empty:
@@ -819,7 +883,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         & (~client_warning_block)
         & ranking["final_score"].ge(client_threshold)
     ].copy()
-    client_ready = client_pool.head(client_limit).copy()
+    client_ready = _select_with_sector_cap(client_pool, client_limit).copy()
     client_syms = set(client_ready["symbol"].astype(str))
 
     trading_pool = ranking[
@@ -829,7 +893,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         & ranking["final_score"].ge(trading_threshold)
         & (~ranking["symbol"].isin(client_syms))
     ].copy()
-    trading = trading_pool.head(trading_limit).copy()
+    trading = _select_with_sector_cap(trading_pool, trading_limit).copy()
     trading_syms = set(trading["symbol"].astype(str))
 
     data_review = ranking[hard_reject_mask].copy()
