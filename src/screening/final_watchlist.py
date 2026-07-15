@@ -74,18 +74,48 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     "client_ready_threshold": 60.0,
     "trading_threshold": 55.0,
     # WATCHLIST_VALIDATION_PREREG.md / WATCHLIST_VALIDATION_REPORT.md (GD4):
-    # first-ever IC/null-test of this composite. `liquidity` is removed from
-    # `base_final_score`'s sum in _score() (see below) at every branch of the
-    # pre-registered decision tree -- WATCHLIST_VALIDATION_REPORT.md's own IC
-    # run found its current direction (reward HIGH value_ma20) has t_NW=-4.19
-    # (full, residualized, actively wrong-signed), and the opposite direction
-    # (v2/alpha_score's reward-LOW-liquidity evidence) is itself contaminated
-    # by survivorship bias (SURVIVORSHIP_BIAS_ESTIMATE.md) -- neither direction
-    # has clean evidence, so liquidity keeps only its existing eligibility-gate
-    # role (min_value_ma20 + trading_status), not a ranking weight. The 10
-    # points are redistributed proportionally (x10/9) across the other 6
-    # weights below so they still sum to 100 -- not a tuned reallocation to
-    # any specific component.
+    # first-ever IC/null-test of this composite. RESULT: Nhanh C ("ca hai
+    # khong dat") -- neither base_final_score (composite, null-test fold
+    # 2026 percentile=0.15 vs the required >=10 floor; IC full/residualized
+    # t_NW=-0.40, not even same-signed across the 3 periods) nor the
+    # "watchlist toi gian" alternative (v2_score + final_watchlist's own
+    # strict_pass/fallback_eligible gate; null avg percentile=52.8 vs the
+    # required >60; IC period 1 t_NW=+2.90, just under the 3.0 bar though
+    # periods 2/3 cleared it at +3.03/+8.94) cleared the pre-registered bar.
+    # `ranking_mode` below is set to "no_alpha_liquidity_sort" as a result --
+    # see that key for what this changes. All 7 component scores below are
+    # STILL COMPUTED (informational/diagnostic display only, `reason` text,
+    # research use) but NONE of them drive `client_ready_watchlist`/
+    # `trading_watchlist` selection or order anymore.
+    #
+    # Per-component evidence on record (WATCHLIST_VALIDATION_REPORT.md IC
+    # table, full universe/residualized target unless noted):
+    # - liquidity: t_NW=-4.19, ACTIVELY WRONG-SIGNED (current direction
+    #   rewards high value_ma20; also contaminated either direction by
+    #   survivorship bias per SURVIVORSHIP_BIAS_ESTIMATE.md) -- excluded
+    #   from base_final_score's sum unconditionally (see _score()), the one
+    #   component removal not contingent on the Nhanh C outcome above.
+    # - risk: t_NW=+4.72, same-signed positive in all 3 periods (though
+    #   period 1 alone is weak at +1.49) -- unvalidated for RANKING purposes
+    #   under Nhanh C's blanket no-alpha-ranking rule, but this is the one
+    #   component with a genuinely promising standalone signal; flagged as a
+    #   good candidate for a dedicated future single-factor prereg (same
+    #   playbook as SCORE_V2_DESIGN.md), not acted on here (would be adding
+    #   a new ranking factor mid-round, against this round's own constraint).
+    # - trend/momentum/relative_strength/volume/signal: all |t_NW|<2.2 or
+    #   undefined (signal_score: data/signals/meta_ranking.parquet turned out
+    #   to be a current-state snapshot with no real historical depth, not a
+    #   time series -- IC undefined by construction, n=0). "unvalidated,
+    #   giữ vì hiển thị tham khảo/nghiên cứu, không dùng để xếp hạng."
+    # Note: momentum_score and relative_strength_score are numerically
+    # IDENTICAL under _rank() (subtracting the same-day benchmark return is a
+    # per-day constant, which does not change cross-sectional rank order) --
+    # a real redundancy in the deployed formula, confirmed by their IC
+    # numbers matching exactly in every row of the test; noted for any future
+    # redesign, not changed here (not part of this round's locked scope).
+    "ranking_mode": "no_alpha_liquidity_sort",  # WATCHLIST_VALIDATION_REPORT.md Nhanh C.
+    # "score" (final_score-driven ranking) is the pre-GD4 behavior, kept as a
+    # code path for tests/rollback, not used in production as of this round.
     "weights": {
         "trend": 27.78,
         "momentum": 22.22,
@@ -829,6 +859,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
     trading_threshold = float(cfg.get("trading_threshold", 55.0))
     client_limit = int(cfg.get("watchlist_size", 10))
     trading_limit = int(cfg.get("trading_watchlist_size", 20))
+    no_alpha_mode = str(cfg.get("ranking_mode", "score")) == "no_alpha_liquidity_sort"
 
     defaults: dict[str, Any] = {
         "final_score": 0.0,
@@ -846,6 +877,14 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         "is_low_liquidity_warning": False,
         "is_weak_market_regime": False,
     }
+    if no_alpha_mode and "reason" in out.columns:
+        # WATCHLIST_VALIDATION_REPORT.md Nhanh C: label this plainly in the
+        # one free-text column every output row already carries, since
+        # FINAL_WATCHLIST_COLUMNS is a fixed schema (adding a new column
+        # would just get stripped by _ensure_watchlist_output_columns).
+        disclaimer = "[Không xếp hạng alpha, chỉ sắp theo thanh khoản -- xem WATCHLIST_VALIDATION_REPORT.md] "
+        out["reason"] = disclaimer + out["reason"].fillna("").astype(str)
+
     for column, default in defaults.items():
         if column not in out.columns:
             out[column] = default
@@ -859,11 +898,23 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
     out["eligibility_reason"] = out["eligibility_reason"].fillna("None").astype(str)
     out["warning"] = out["warning"].fillna("").astype(str)
 
-    ranking = out.sort_values(
-        ["final_score", "trade_edge_score", "setup_quality_score", "symbol"],
-        ascending=[False, False, False, True],
-        na_position="last",
-    ).reset_index(drop=True)
+    if no_alpha_mode:
+        # WATCHLIST_VALIDATION_REPORT.md (GD4), Nhanh C: neither base_final_score
+        # nor the v2-ranked "watchlist toi gian" cleared the pre-registered bar
+        # (composite: null-test fold 2026 percentile=0.15 < the 10 floor; minimal
+        # watchlist: null avg 52.8 < 60, IC period 1 t_NW=2.90 just under the 3.0
+        # bar) -- final_watchlist has no validated alpha-ranking factor as of this
+        # round. Rank by value_ma20 (liquidity, an operational measure, not a
+        # tested alpha factor) instead of final_score.
+        ranking = out.sort_values(
+            ["value_ma20", "symbol"], ascending=[False, True], na_position="last",
+        ).reset_index(drop=True)
+    else:
+        ranking = out.sort_values(
+            ["final_score", "trade_edge_score", "setup_quality_score", "symbol"],
+            ascending=[False, False, False, True],
+            na_position="last",
+        ).reset_index(drop=True)
 
     eligible_mask = ranking["eligibility_status"].isin(["ELIGIBLE", "WATCH_ONLY"])
     hard_reject_mask = ranking["eligibility_status"].eq("REJECTED")
@@ -876,12 +927,15 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         | ranking["is_weak_market_regime"].astype(bool)
     )
 
+    client_score_ok = pd.Series(True, index=ranking.index) if no_alpha_mode else ranking["final_score"].ge(client_threshold)
+    trading_score_ok = pd.Series(True, index=ranking.index) if no_alpha_mode else ranking["final_score"].ge(trading_threshold)
+
     client_pool = ranking[
         eligible_mask
         & cashflow_ok_mask
         & client_confirm_allowed
         & (~client_warning_block)
-        & ranking["final_score"].ge(client_threshold)
+        & client_score_ok
     ].copy()
     client_ready = _select_with_sector_cap(client_pool, client_limit).copy()
     client_syms = set(client_ready["symbol"].astype(str))
@@ -890,7 +944,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         eligible_mask
         & cashflow_ok_mask
         & trading_confirm_allowed
-        & ranking["final_score"].ge(trading_threshold)
+        & trading_score_ok
         & (~ranking["symbol"].isin(client_syms))
     ].copy()
     trading = _select_with_sector_cap(trading_pool, trading_limit).copy()
@@ -925,6 +979,8 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
     def _reason_for_research(row: pd.Series) -> str:
         if str(row.get("eligibility_status", "")) == "REJECTED":
             return str(row.get("eligibility_reason", "REJECTED"))
+        if no_alpha_mode:
+            return "Outside liquidity rank cutoff (no validated alpha ranking -- see WATCHLIST_VALIDATION_REPORT.md)"
         if pd.to_numeric(row.get("final_score"), errors="coerce") < trading_threshold:
             return "Below trading threshold"
         if str(row.get("cashflow_data_status", "OK")) != "OK":
@@ -952,10 +1008,13 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
     out.loc[out["candidate_tier"] == "Research Candidate", "confidence_label"] = "Low"
     out.loc[out["candidate_tier"] == "Data Review", "confidence_label"] = "REVIEW_REQUIRED"
 
+    display_sort_cols = ["value_ma20", "symbol"] if no_alpha_mode else ["final_score", "symbol"]
+    display_sort_ascending = [False, True]
+
     outputs = {
         "scored_universe": out.sort_values(
-            ["is_client_ready", "is_trading_candidate", "is_research_candidate", "final_score", "symbol"],
-            ascending=[False, False, False, False, True],
+            ["is_client_ready", "is_trading_candidate", "is_research_candidate"] + display_sort_cols,
+            ascending=[False, False, False] + display_sort_ascending,
         ).reset_index(drop=True),
         "research_candidates": out[out["symbol"].isin(research["symbol"])].copy(),
         "trading_watchlist": out[out["symbol"].isin(trading_syms)].copy(),
@@ -969,7 +1028,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         if key == "scored_universe":
             continue
         if not frame.empty:
-            frame = frame.sort_values(["final_score", "symbol"], ascending=[False, True]).reset_index(drop=True)
+            frame = frame.sort_values(display_sort_cols, ascending=display_sort_ascending).reset_index(drop=True)
             frame["rank"] = np.arange(1, len(frame) + 1)
             outputs[key] = _ensure_watchlist_output_columns(frame) if key != "data_review_watchlist" else frame.copy()
         else:
