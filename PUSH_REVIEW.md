@@ -946,3 +946,69 @@ Dự án dừng ở đây cho đến phiên tiếp theo. Tóm tắt 3 dòng (chi
 
 Không có gì đang chờ quyết định gấp — mọi nhánh đang mở đều đã có tài liệu
 đầy đủ để một phiên mới tiếp tục mà không cần dựng lại ngữ cảnh từ đầu.
+
+## GĐ7 — Tự động hóa nhịp ngày — hoàn tất trạng thái nghỉ
+
+Việc cuối trước khi dừng hẳn: biến quy trình vận hành thủ công (mục 4,
+`PROJECT_STATE.md`) thành tự động, để trạng thái nghỉ không lặng lẽ trở
+thành "shadow log ngừng cập nhật" sau vài tuần không ai chạy tay.
+
+1. **NV1 (commit `a01e418`)** — `scripts/daily_run.sh`, script điều phối
+   duy nhất: `update_prices_daily` → `update_disclosure_daily` →
+   `update_index_data` → `run_daily_pipeline --offline` (bước này tự chứa
+   `run_alpha_scoring` + xây lại `final_watchlist`). Best-effort, KHÔNG
+   `set -e` — mỗi bước chạy bất kể bước trước fail hay không (các script
+   con đã tự soft-fail theo từng mã, luôn exit 0), log riêng từng bước
+   (START/OK/FAIL kèm thời gian) vào `logs/daily_run.log`, dòng FAIL bọc
+   trong `######` để dễ tìm. Tự kiểm thử logic (không phải chạy thật) bằng
+   một bước giả lập fail giữa chừng — xác nhận: script tiếp tục các bước
+   sau, dòng FAIL hiện đúng, mã thoát cuối = số bước fail.
+2. **NV2 (commit `b18e68d`)** — LaunchAgent
+   (`~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist`,
+   bản gốc `scripts/com.vietnam-quant-research.dailyrun.plist`): lịch
+   `StartCalendarInterval` 19:00 các ngày trong tuần + `RunAtLoad=true` cho
+   cơ chế chạy bù (máy tắt/ngủ lúc 19:00 → lần đăng nhập/khởi động kế tiếp
+   tự chạy bù); `daily_run.sh` tự kiểm tra dòng SUMMARY mới nhất trong log
+   để không chạy trùng 2 lần/ngày (không cần file trạng thái riêng), thêm
+   `--force` để chạy tay bỏ qua kiểm tra này.
+
+   **Phát hiện quan trọng, xác nhận bằng thử nghiệm thật (không chỉ đọc
+   code)**: `launchctl load` thành công, agent đăng ký được, nhưng khi
+   launchd thực sự sinh tiến trình chạy script thì báo
+   `Operation not permitted` ngay khi vào thư mục dự án. Đối chứng bằng
+   một job thử trỏ vào `/tmp` (chạy trơn tru) so với job giống hệt trỏ vào
+   `~/Desktop/...` (lỗi giống hệt) xác định nguyên nhân: **macOS TCC (Privacy
+   & Security) bảo vệ thư mục `~/Desktop`, tiến trình do launchd sinh ra
+   không tự thừa hưởng quyền Full Disk Access mà phiên Terminal tương tác
+   đang có.** Không thể tự sửa bằng code — cần người dùng vào System
+   Settings → Privacy & Security → Full Disk Access → thêm `/bin/bash` thủ
+   công (hướng dẫn đầy đủ + 3 dòng kiểm tra/tắt agent: `PROJECT_STATE.md`
+   mục 4). Đến khi đó, agent vẫn nạp đúng nhưng mỗi lần trigger chỉ ghi lỗi
+   vào `logs/launchd_stderr.log`, không có tác dụng — chạy tay
+   `bash scripts/daily_run.sh` không bị ảnh hưởng (không qua launchd).
+3. **NV3 (commit `59a9d57`)** — ghi chú trung thực: KHÔNG dựng lại điểm số
+   cho khoảng trống 07-09→07-16 (sẽ là look-ahead ngụy tạo vào một bản ghi
+   out-of-sample). Xác nhận trong `SCORE_V2_REPORT.md`: chuỗi liên tục thật
+   bắt đầu từ **2026-07-16** (ngày tự động hóa có hiệu lực), không phải
+   2026-07-09. Dời mốc "đủ 6 tháng" của điều kiện xem lại #1 (và do đó điều
+   kiện #4) từ hạn danh nghĩa cũ 2027-01-09 sang **2027-01-16** trong
+   `SCORE_V2_REPORT.md` + `PROJECT_STATE.md`. 3 mốc thưa cũ giữ nguyên
+   trong file (dữ liệu thật, không xóa), chỉ không tính vào "6 tháng liên
+   tục".
+4. **NV4 (commit `9db5586`, `6f5d506`, `d80434a`)** — chạy thật (không qua
+   launchd, tay trực tiếp do TCC) một chu kỳ `daily_run.sh` đầy đủ: 4/4
+   bước OK (`update_prices_daily` 748s, `update_disclosure_daily` 1334s,
+   `update_index_data` 7s, `run_daily_pipeline` 116s, tổng ~37 phút). Xác
+   nhận `alpha_score_shadow_log.parquet` có mốc **2026-07-16** mới (431 mã)
+   — đúng ngày chuỗi liên tục bắt đầu theo NV3; `pipeline_metadata.json`
+   lineage mới toàn bộ (stock/feature/benchmark date = 2026-07-16);
+   `final_watchlist.csv` regenerate, xếp hạng đúng theo `value_ma20` giảm
+   dần (Nhánh C). Full test suite: 295 passed.
+
+**Tổng kết trạng thái nghỉ, cập nhật**: tự động hóa ĐÃ triển khai đúng như
+yêu cầu (script + LaunchAgent + chạy bù + backfill trung thực), nhưng
+**chưa THỰC SỰ tự động cho đến khi người dùng cấp Full Disk Access cho
+`/bin/bash`** (việc 2 phút, hướng dẫn ở `PROJECT_STATE.md` mục 4) — cho
+đến lúc đó, nhịp ngày vẫn cần chạy tay (`bash scripts/daily_run.sh`) như
+trước, không tệ hơn trạng thái trước round này. Không có gì khác thay đổi
+so với "Trạng thái nghỉ đạt ngày 2026-07-16" ở trên.
