@@ -837,3 +837,46 @@ prereg**: (a) DSR của v2 rất thấp — cân nhắc lại mức tin cậy đ
 quyết định vận hành, dù nó vẫn là nhân tố có bằng chứng độc lập tốt nhất đã
 test; (b) 71.0 không còn hợp lệ trích dẫn cho v2-trong-final_watchlist; (c)
 `risk_score` không đáng theo đuổi thêm làm nhân tố độc lập.
+
+## GĐ5.5 — Vòng quyết định sau GĐ5: thi hành 3 kết luận + dọn trích dẫn
+
+Không đo thêm, không tune — chỉ thi hành 3 quyết định đã treo từ GĐ5.
+
+1. **NV1 (commit `1b87bae`)** — `SCORE_V2_REPORT.md` mục "Trạng thái sau GĐ5":
+   **giữ shadow, không dùng vốn thật.** Lý do: IC ổn định + sống sót FDR
+   (bằng chứng nhân tố thật) nhưng DSR=0.0083 (M=560) + bootstrap CI chứa 0
+   cho cả CAGR/Sharpe (chưa có bằng chứng chiến lược đáng cược), cả hai số
+   CHƯA trừ sàn survivorship. Giữ nguyên 3 điều kiện xem lại cũ (6 tháng
+   live / drawdown>25% / lệch shadow v1 >10đ%/60 phiên), bổ sung điều kiện
+   thứ 4: khi shadow đủ 6 tháng, tính Sharpe out-of-sample thuần so với CI
+   bootstrap đã có — nằm trong/dưới nửa CI thì xác nhận quyết định hiện tại,
+   vượt hẳn CI thì mở round xem lại (không tự động nâng cấp). Khuyến nghị
+   bằng văn bản: nếu có vốn thật đang theo watchlist/score, đưa về 0 hoặc mức
+   "học phí" tối thiểu — không tìm thấy bằng chứng vốn thật trong hồ sơ repo,
+   khuyến nghị viết sẵn phòng trường hợp có.
+2. **NV2 (commit `21ac52b`)** — grep toàn bộ `src/`/`scratch/`/`*.md` cho mọi
+   trích dẫn t_NW/percentile/DSR, lập bảng kiểm: `src/alpha/scoring.py`'s
+   docstring trích "71.0" không kèm ngữ cảnh — **SỬA**, bổ sung t_NW tái
+   xác nhận GĐ5 + cảnh báo rõ "71.0 chỉ đúng cho v2 kiểm tra độc lập, dùng
+   52.8 cho ngữ cảnh trong `final_watchlist.py`". `final_watchlist.py` tự nó
+   đã đúng từ GĐ4 (52.8), không cần sửa. `WATCHLIST_VALIDATION_REPORT.md`
+   mục 3a: thêm ghi chú trỏ sang `V2_STABILITY_NOTE.md`, không sửa số gốc
+   (đúng số đã đo tại thời điểm đó). `WATCHLIST_VALIDATION_PREREG.md` +
+   comment trong `scratch/v2_stability_toggle.py`: giữ nguyên — prereg là hồ
+   sơ lịch sử khóa cứng, sửa lại sẽ phá vỡ audit trail. Rà thêm
+   `META_RANKING_VALIDATION_REPORT.md`/`src/backtest/portfolio_backtest.py`/
+   `REMEDIATION_REPORT.md`: không liên quan đến cặp số 71.0/52.8 của v2,
+   không sửa.
+3. **NV3 (commit `040ef10`)** — đóng hồ sơ `risk_score` trong
+   `WATCHLIST_VALIDATION_REPORT.md` (cả mục phát hiện #3 lẫn "Kết luận & bước
+   tiếp theo" — trước đó vẫn còn nêu nó là ứng viên mở): bằng chứng trùng cụm
+   vol (corr +0.822 với `v2_score`), không còn ứng viên nào mở cho prereg
+   đơn-nhân-tố. `src/screening/final_watchlist.py`'s `_score()`: thêm comment
+   tại khối `risk_raw` ghi rõ kết luận đóng hồ sơ + đánh dấu `tail_ratio_60d`
+   (t=+0.98, không ý nghĩa) và `risk_penalty_score` (luôn trung lập) là
+   "unvalidated, giữ vì hiển thị tham khảo" đúng quy ước GĐ4; sửa nốt đoạn
+   docstring trọng số cũ ở GĐ4 từng gọi `risk_score` là "ứng viên tốt" —
+   trỏ sang kết luận đóng hồ sơ, không để lại khuyến nghị mở trong code sản
+   xuất.
+4. **NV4 (commit này)** — full test suite: 295 passed sau mọi thay đổi.
+   Commit riêng từng nhiệm vụ vào `main`, không push.
