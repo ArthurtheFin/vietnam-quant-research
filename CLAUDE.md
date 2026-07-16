@@ -12,8 +12,9 @@
    thay vì dựa vào `cd` persist.
 2. KHÔNG BAO GIỜ push — chỉ commit local. Push là quyết định của
    người dùng.
-3. Đầu session: đọc PUSH_REVIEW.md (nhật ký tiến độ) và
-   audit/PATH_TO_100.md (lộ trình) trước khi làm gì.
+3. Đầu session: đọc PROJECT_STATE.md (cửa ngõ — trạng thái hiện tại,
+   quy trình vận hành, bản đồ hồ sơ) TRƯỚC, rồi PUSH_REVIEW.md (nhật
+   ký tiến độ) và audit/PATH_TO_100.md (lộ trình) trước khi làm gì.
 4. Commit theo từng nhiệm vụ, message rõ ràng. Xong việc lớn: cập
    nhật PUSH_REVIEW.md.
 5. FIREWALL: không join dữ liệu disclosure với dữ liệu giá/return
