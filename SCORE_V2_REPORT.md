@@ -127,6 +127,23 @@ alpha_score_shadow_v1]` for the latest date to
 track record starts; everything in this report and `SCORE_V2_DESIGN.md`
 is in-sample/backtested by comparison.
 
+**Cập nhật 2026-07-16 — chuỗi thưa trước tự động hóa, không phải lỗ hổng
+cần vá bằng cách dựng lại quá khứ.** Từ 2026-07-09 đến 2026-07-16, log chỉ
+có 3 mốc ngày (07-09, 07-13, 07-15) — pipeline chỉ chạy khi có phiên làm
+việc thủ công, không có lịch chạy tự động. `scripts/daily_run.sh` +
+LaunchAgent (`PROJECT_STATE.md` mục 4) được thiết lập đúng ngày 2026-07-16
+để từ nay chạy đều. **Không dựng lại điểm số cho các ngày đã bỏ lỡ** —
+tính lại `alpha_score`/`alpha_score_shadow_v1` cho một ngày trong quá khứ
+bằng dữ liệu đã biết hôm nay sẽ mang thông tin nhìn-về-sau (look-ahead)
+vào một "bản ghi out-of-sample" mà bản chất phải được ghi tại đúng thời
+điểm nó xảy ra để có giá trị — ngụy tạo lại sẽ phá vỡ chính mục đích của
+shadow log. **Chuỗi liên tục, đáng tin để tính out-of-sample thật bắt đầu
+từ 2026-07-16** (ngày tự động hóa có hiệu lực), không phải 2026-07-09. Mốc
+"6 tháng" ở điều kiện #1 dưới đây dời tương ứng sang **2027-01-16**. 3 mốc
+thưa 07-09/07-13/07-15 vẫn giữ nguyên trong file (không xóa — dữ liệu thật
+đã ghi nhận), chỉ không tính vào "6 tháng liên tục" vì không đại diện cho
+một chuỗi đều đặn.
+
 **Known side effect, disclosed and not fixed this round**:
 `src/screening/final_watchlist.py`'s own `_score()` function averages
 `rank(alpha_score)` as one of several inputs to *its own*, differently-
@@ -146,9 +163,12 @@ happens on a schedule or a threshold, not on vibes:
 
 1. **Time-based**: review after **6 months of live shadow tracking**
    (i.e. once `alpha_score_shadow_log.parquet` covers roughly
-   2026-07-09 → 2027-01-09), regardless of how it's performing, simply
-   because that's enough live data to say something about v2 vs. v1
-   out-of-sample that the backtest can't.
+   **2026-07-16 → 2027-01-16**, updated 2026-07-16 to anchor on the day
+   `scripts/daily_run.sh`'s automation took effect rather than 2026-07-09's
+   first sparse entry — see the "Cập nhật 2026-07-16" note above),
+   regardless of how it's performing, simply because that's enough live
+   data to say something about v2 vs. v1 out-of-sample that the backtest
+   can't.
 2. **Drawdown-based**: review immediately if live tracking shows a
    drawdown **worse than −25%** on a v2-scored portfolio (a margin above
    the worst backtested fold, −19.7% in 2022, so this triggers on a

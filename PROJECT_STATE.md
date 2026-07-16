@@ -11,7 +11,7 @@ sửa lại file này.
 |---|---|
 | `alpha_score` v2 (`realized_vol_20d` 70% + `value_ma20` 30%) | **Shadow only, KHÔNG vốn thật** — `SCORE_V2_REPORT.md` mục "Trạng thái sau GĐ5". IC ổn định + sống sót FDR, nhưng DSR=0.0083, bootstrap CI chứa 0. |
 | `alpha_score_shadow_v1` (composite cũ) | Chạy song song, chỉ để so sánh, không consumer nào dùng. |
-| `data/signals/alpha_score_shadow_log.parquet` | Bắt đầu **2026-07-09**. Tính đến 2026-07-16 mới có 3 mốc ngày (07-09, 07-13, 07-15) — **KHÔNG chạy đều mỗi ngày**, chỉ append khi có phiên chạy `scripts/run_alpha_scoring.py` (không có cron/launchd, xem mục 3). Mốc "6 tháng live" chỉ đến đúng hạn nếu pipeline thực sự chạy đều — nếu thưa, dời hạn tương ứng, không tính máy móc theo lịch. |
+| `data/signals/alpha_score_shadow_log.parquet` | 3 mốc thưa trước tự động hóa (07-09, 07-13, 07-15) + **chuỗi liên tục thật từ 2026-07-16** (ngày `scripts/daily_run.sh`/LaunchAgent có hiệu lực — mục 4). Không dựng lại điểm số cho các ngày đã bỏ lỡ (sẽ là look-ahead ngụy tạo) — xem `SCORE_V2_REPORT.md` mục "Cập nhật 2026-07-16". |
 | `final_watchlist.py` (`client_ready_watchlist`, `trading_watchlist`, ...) | **Không xếp hạng alpha** — sắp theo `value_ma20` (thanh khoản), dán nhãn rõ trong cột `reason`. Quyết định Nhánh C, `WATCHLIST_VALIDATION_REPORT.md`. |
 | Cập nhật giá hằng ngày | `scripts/update_prices_daily.py --universe` — 500 mã, incremental từ `max(date)` mỗi mã. |
 | Cập nhật disclosure hằng ngày | `scripts/update_disclosure_daily.py --universe` — 500 mã, anti-join theo `NATURAL_KEY`. |
@@ -35,9 +35,11 @@ khác trong tương lai.
 ## 3. Đang chờ / còn mở
 
 **4 điều kiện xem lại trạng thái shadow-only của v2** (`SCORE_V2_REPORT.md`):
-1. **Mốc thời gian**: 6 tháng live shadow — **hạn danh nghĩa 2027-01-09**
-   (tính từ 2026-07-09), NHƯNG xem cảnh báo ở mục 1: shadow log hiện không
-   chạy đều, hạn thật có thể trễ hơn nếu pipeline không chạy thường xuyên hơn.
+1. **Mốc thời gian**: 6 tháng live shadow — **hạn 2027-01-16** (tính từ
+   2026-07-16, ngày tự động hóa hằng ngày có hiệu lực — mục 4 dưới; dời từ
+   hạn danh nghĩa cũ 2027-01-09 vì chuỗi 07-09→07-15 quá thưa để tính là "6
+   tháng liên tục", xem `SCORE_V2_REPORT.md`). Nếu agent tự động lại ngừng
+   chạy đều (mục 4), dời hạn tương ứng, không tính máy móc theo lịch.
 2. **Drawdown**: xem lại ngay nếu danh mục v2-scored drawdown tệ hơn −25%.
 3. **Lệch shadow v1**: xem lại nếu v2 kém hơn shadow v1 >10 điểm % tích lũy
    trong bất kỳ cửa sổ 60 phiên nào.
@@ -65,20 +67,56 @@ chưa làm, `audit/PATH_TO_100.md` mục 9.
 
 ## 4. Quy trình vận hành định kỳ
 
-**Hằng ngày (thủ công — KHÔNG có cron/launchd nào cài, xác nhận GĐ2):**
+**Tự động hóa từ 2026-07-16**: `scripts/daily_run.sh` gộp cả 4 bước dưới đây
+thành một lệnh (`update_prices_daily` → `update_disclosure_daily` →
+`update_index_data` → `run_daily_pipeline --offline`), log vào
+`logs/daily_run.log` (mỗi bước có dòng START/OK/FAIL riêng, FAIL bọc trong
+`######` để dễ tìm). Chạy tay: `bash scripts/daily_run.sh` (thêm `--force`
+để chạy lại dù hôm nay đã chạy rồi).
+
+**LaunchAgent** (`~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist`,
+bản gốc versioned tại `scripts/com.vietnam-quant-research.dailyrun.plist`):
+lên lịch chạy `daily_run.sh` 19:00 các ngày trong tuần (`StartCalendarInterval`)
++ chạy bù khi máy khởi động/đăng nhập lại nếu lỡ mốc (`RunAtLoad=true`,
+`daily_run.sh` tự kiểm tra mốc SUMMARY cuối trong log để không chạy trùng 2
+lần/ngày).
+
+**⚠️ ĐANG BỊ CHẶN bởi macOS TCC (Privacy & Security), cần người dùng thao
+tác thủ công**: đã xác nhận bằng thử nghiệm thật — `launchctl load` thành
+công, agent đăng ký được, nhưng khi launchd thực sự chạy `/bin/bash` vào
+script, nó báo `Operation not permitted` ngay khi vào thư mục dự án. Nguyên
+nhân xác định qua thử nghiệm đối chứng (một job launchd trỏ vào `/tmp`
+chạy trơn tru; job giống hệt trỏ vào `~/Desktop/...` thì lỗi): macOS bảo vệ
+thư mục `~/Desktop` (và `~/Documents`, `~/Downloads`) bằng TCC — tiến trình
+launchd sinh ra không tự động thừa hưởng quyền Full Disk Access mà phiên
+Terminal tương tác đang có. **Cách sửa (chỉ người dùng làm được, cần giao
+diện, không thể làm qua script)**: System Settings → Privacy & Security →
+Full Disk Access → bấm "+" → thêm `/bin/bash` (Cmd+Shift+G, gõ `/bin/bash`)
+→ bật toggle. Sau đó không cần làm gì thêm — lần chạy theo lịch/đăng nhập
+kế tiếp sẽ tự hoạt động. Cho đến khi đó: agent vẫn cài/nạp đúng nhưng mỗi
+lần trigger chỉ ghi lỗi vào `logs/launchd_stderr.log`, không có tác dụng —
+chạy tay `bash scripts/daily_run.sh` vẫn hoạt động bình thường (không qua
+launchd nên không dính TCC).
+
+**Kiểm tra/tắt agent (3 dòng)**:
 ```
-python scripts/update_prices_daily.py --universe
-python scripts/update_disclosure_daily.py --universe
-python scripts/update_index_data.py          # trước generate_features, tránh benchmark lệch mốc
-python scripts/run_daily_pipeline.py --offline   # hoặc bỏ --offline nếu muốn fetch online trong bước features
+launchctl list | grep vietnam-quant-research   # có dòng kết quả = đang nạp; cột đầu là PID nếu đang chạy, "-" nếu không
+launchctl unload ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist   # tắt (đến lần đăng nhập sau vẫn tắt, trừ khi load lại)
+launchctl load ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist     # nạp lại
 ```
-`run_daily_pipeline.py` tự chạy: `generate_features` → `generate_signals` →
-`run_alpha_scoring` (đây là bước append `alpha_score_shadow_log.parquet`) →
-`generate_trade_cards` → `run_stealth_accumulation_screen` →
-`build_cashflow_board_symbols` → `run_meta_ranking` (xây `final_watchlist`) →
-`build_cashflow_board` (áp `apply_post_cashflow_overlay`, chốt `client_ready`).
+
+`run_daily_pipeline.py` (bên trong `daily_run.sh`) tự chạy: `generate_features`
+→ `generate_signals` → `run_alpha_scoring` (đây là bước append
+`alpha_score_shadow_log.parquet`) → `generate_trade_cards` →
+`run_stealth_accumulation_screen` → `build_cashflow_board_symbols` →
+`run_meta_ranking` (xây `final_watchlist`) → `build_cashflow_board` (áp
+`apply_post_cashflow_overlay`, chốt `client_ready`).
 
 **Dấu hiệu bất thường cần chú ý ngay:**
+- **`logs/daily_run.log` không có dòng SUMMARY mới trong 2-3 ngày** → agent
+  không chạy (nhiều khả năng vẫn là TCC chưa được cấp quyền, xem
+  `logs/launchd_stderr.log`) — chạy tay `bash scripts/daily_run.sh` trong
+  lúc chờ, và mốc "6 tháng" ở mục 3 sẽ dời tương ứng nếu gián đoạn kéo dài.
 - **Shadow log ngắt quãng**: `alpha_score_shadow_log.parquet`'s ngày mới nhất
   cách ngày hôm nay >2-3 phiên giao dịch → pipeline không chạy đều, mốc "6
   tháng" ở mục 3 sẽ sai nếu tính máy móc theo lịch.
