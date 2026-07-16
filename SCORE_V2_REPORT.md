@@ -163,3 +163,64 @@ happens on a schedule or a threshold, not on vibes:
 Whichever triggers first should prompt a review, not an automatic
 reversion — the review itself would need its own evidence, same as this
 round did.
+
+## Trạng thái sau GĐ5 (2026-07-15) — GIỮ SHADOW, KHÔNG DÙNG VỐN THẬT
+
+**Quyết định, đúng nguyên tắc "đo rồi mới quyết, không tune giữa chừng"**:
+`alpha_score` v2 tiếp tục chạy shadow (`data/signals/alpha_score_shadow_log.parquet`),
+**KHÔNG được dùng làm căn cứ phân bổ vốn thật** cho đến khi qua một trong các
+điều kiện xem lại dưới đây với kết quả thuận lợi.
+
+**Lý do, tổng hợp từ `ROBUSTNESS_REPORT.md` (GĐ5)**:
+- v2 có **hiệu ứng xếp hạng thật** — IC ổn định qua thời gian (t_NW
+  `realized_vol_20d`/`value_ma20` = −5.48/−3.37 trên dữ liệu hiện hành, gần
+  như y hệt −5.41/−3.33 lúc thiết kế, không suy giảm), và cả hai đều **sống
+  sót qua hiệu chỉnh Benjamini-Hochberg FDR** (q=0.05) trên 214 test gộp toàn
+  dự án — không phải may mắn thống kê đơn lẻ.
+- Nhưng **chiến lược (không phải nhân tố) chưa có bằng chứng lợi nhuận đứng
+  vững qua kiểm định đa kiểm định trung thực**: Deflated Sharpe Ratio =
+  **0.0083** khi khai báo M=560 "thử nghiệm" đã thực hiện trong lịch sử dự
+  án (cách đếm đầy đủ: `ROBUSTNESS_REPORT.md` mục 5) — tức xác suất còn lại
+  cho "đây là kỹ năng thật, không phải may mắn trong 560 lần thử" chỉ
+  **0.83%**. Bootstrap CI (block=20 ngày, N=1000, seed=42) cho cả CAGR
+  ([−9.6%, +19.3%]) lẫn Sharpe ([−0.59, +1.32]) đều **chứa 0** — không bác bỏ
+  được giả thuyết "hiệu suất thật bằng 0" ở mức 95%.
+- Cả hai con số DSR/bootstrap trên **CHƯA trừ mức sàn hiệu chỉnh survivorship
+  bias** (`SURVIVORSHIP_BIAS_ESTIMATE.md`: +0.4%/+1.2%/+2.9% ở cửa sổ
+  20/60/120 ngày) — nếu trừ thêm, phần "hiệu suất thật" còn lại chỉ càng nhỏ
+  hơn, không lớn hơn.
+
+**Kết luận thực tế**: một nhân tố xếp hạng có bằng chứng thống kê tốt không
+tự động là một chiến lược đáng cược vốn thật — khoảng cách giữa "IC ổn định"
+và "Sharpe đáng tin sau khấu trừ đa kiểm định" chính là lý do có shadow log
+thay vì triển khai thẳng. Kết luận này không rút lại việc v2 vẫn là composite
+**có bằng chứng độc lập tốt nhất** trong toàn bộ danh mục nhân tố đã test của
+dự án (so với `trend_score`/`momentum_score`/... đều yếu hơn nhiều, xem
+`WATCHLIST_VALIDATION_REPORT.md`) — chỉ là "tốt nhất trong số đã test" không
+đồng nghĩa "đủ tốt để dùng vốn thật".
+
+**Nếu có bất kỳ vốn thật nào hiện đang theo `client_ready_watchlist`/`alpha_score`
+(trực tiếp hoặc gián tiếp qua theo dõi thủ công)**: khuyến nghị bằng văn bản ở
+đây — **đưa về 0, hoặc nếu không thể ngừng ngay, giới hạn ở mức "học phí" tối
+thiểu** (số vốn mà việc mất trắng không gây tổn hại tài chính thực sự, chỉ
+nhằm mục đích thu thập thêm dữ liệu out-of-sample thật ngoài shadow log thuần
+giấy). Không tìm thấy bằng chứng vốn thật nào đang chạy theo watchlist trong
+hồ sơ repo tại thời điểm viết (không có tài liệu nào trong dự án ghi nhận
+AUM/vốn thật gắn với `final_watchlist`/`alpha_score`) — khuyến nghị này viết
+sẵn để phòng trường hợp có, vì đây là quyết định vận hành ngoài phạm vi hiển
+thị của riêng repo.
+
+**Điều kiện xem lại — giữ nguyên 3 điều kiện đã đặt ở trên, bổ sung điều kiện
+thứ 4**:
+
+4. **Out-of-sample Sharpe vs. bootstrap CI**: khi `alpha_score_shadow_log.parquet`
+   đủ 6 tháng dữ liệu live (trùng mốc điều kiện #1), tính Sharpe ratio **thuần
+   out-of-sample** (chỉ dùng return thật ghi nhận trong shadow log, không
+   backtest) của danh mục v2-scored, rồi so với khoảng tin cậy bootstrap đã
+   tính ở `ROBUSTNESS_REPORT.md` ([−0.59, +1.32], năm hoá) — nếu Sharpe
+   out-of-sample nằm trong hoặc dưới nửa dưới của CI này, đó là xác nhận
+   thêm cho quyết định "chưa đủ bằng chứng dùng vốn thật" ở trên, không phải
+   một điều kiện độc lập mới đòi hỏi bằng chứng khác; nếu Sharpe out-of-sample
+   vượt hẳn lên trên CI (đặc biệt gần/vượt cận trên +1.32), đó là tín hiệu
+   đáng để mở một round xem xét lại quyết định này — vẫn cần review có prereg
+   riêng, không tự động nâng cấp lên vốn thật chỉ vì một mốc số liệu.
