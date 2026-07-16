@@ -259,6 +259,10 @@ for uname, (elig_col, raw_target_col, resid_target_col) in UNIVERSES.items():
 result = pd.DataFrame(rows)
 result["abs_t_NW"] = result["t_NW"].abs()
 result = result.sort_values("abs_t_NW", ascending=False)
+# GD5 NV2/NV4 (ROBUSTNESS_REPORT.md): save the raw table for FDR analysis and
+# for re-checking realized_vol_20d/value_ma20's t_NW on current data -- output
+# capture only, no change to the methodology above.
+result.to_csv("data/output/factor_retest_v2_rerun_gd5.csv", index=False)
 
 pd.set_option("display.width", 160)
 pd.set_option("display.max_rows", 250)

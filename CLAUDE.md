@@ -25,3 +25,12 @@
    update_disclosure_daily.py.
 8. Không tune tham số theo kết quả backtest. Thiết kế test chốt
    trước khi chạy.
+9. Mọi bảng test đa nhân tố (nhiều tổ hợp factor × universe × target
+   trong một lần chạy) phải báo kèm q-value FDR (Benjamini-Hochberg)
+   bên cạnh t-stat/p-value thô, không chỉ ngưỡng thủ công (vd. |t|>3).
+   Lý do: `ROBUSTNESS_REPORT.md` (GĐ5/NV4) — đã xảy ra trường hợp
+   BH-FDR (q=0.05) trên 214 test gộp từ `FACTOR_RETEST_V2` +
+   `WATCHLIST_VALIDATION` cho ra ngưỡng LỎNG HƠN |t|>3 thủ công (38
+   sống sót qua FDR so với 27 qua |t|>3) — quy ước cũ không tự động
+   là "thận trọng hơn", cần cả hai con số để không tự đánh lừa mình
+   theo hướng nào.
