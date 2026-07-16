@@ -98,11 +98,11 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     #   component removal not contingent on the Nhanh C outcome above.
     # - risk: t_NW=+4.72, same-signed positive in all 3 periods (though
     #   period 1 alone is weak at +1.49) -- unvalidated for RANKING purposes
-    #   under Nhanh C's blanket no-alpha-ranking rule, but this is the one
-    #   component with a genuinely promising standalone signal; flagged as a
-    #   good candidate for a dedicated future single-factor prereg (same
-    #   playbook as SCORE_V2_DESIGN.md), not acted on here (would be adding
-    #   a new ranking factor mid-round, against this round's own constraint).
+    #   under Nhanh C's blanket no-alpha-ranking rule. CLOSED (ROBUSTNESS_REPORT.md
+    #   GD5 mục 3, decision round GD5.5): NOT an independent factor -- corr
+    #   +0.822 with v2_score, its 3 real contributors are all volatility
+    #   variants duplicating evidence v2 already uses. No standalone prereg;
+    #   see _score()'s risk_raw block for the component-level breakdown.
     # - trend/momentum/relative_strength/volume/signal: all |t_NW|<2.2 or
     #   undefined (signal_score: data/signals/meta_ranking.parquet turned out
     #   to be a current-state snapshot with no real historical depth, not a
@@ -550,6 +550,18 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     ).mean(axis=1)
     out["volume_score"] = (volume_raw * weights["volume"]).round(2)
 
+    # ROBUSTNESS_REPORT.md (GD5) mục 3 / WATCHLIST_VALIDATION_REPORT.md mục 2:
+    # risk_score's 3 real contributors (atr_pct_14 t_NW=-5.70, realized_vol_20d
+    # -5.48, volatility_percentile -3.16) are all volatility variants -- corr
+    # +0.822 with v2_score, i.e. duplicate evidence of the same underlying
+    # signal v2 already uses, not an independent factor (closed, no standalone
+    # prereg). tail_ratio_60d: unvalidated, giữ vì hiển thị tham khảo -- t_NW=+0.98
+    # (full, residualized), không có ý nghĩa thống kê, không đóng góp thật vào
+    # bằng chứng của risk_score. risk_penalty_score: unvalidated, giữ vì hiển
+    # thị tham khảo -- luôn NaN->0.5 trung lập trong lịch sử (data/signals/
+    # meta_ranking.parquet là snapshot hiện tại, không phải chuỗi lịch sử, xem
+    # WATCHLIST_VALIDATION_REPORT.md mục 2 phát hiện #4), không đóng góp biến
+    # thiên cross-sectional nào.
     risk_raw = pd.concat(
         [
             _rank(out["atr_pct_14"], higher_is_better=False),

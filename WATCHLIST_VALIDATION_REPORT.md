@@ -107,9 +107,21 @@ bộ. Bảng trên là kết quả SAU khi sửa.
    t_NW=+4.72 (full, residualized), đồng dấu dương cả 3 giai đoạn (dù Giai đoạn
    1 yếu, +1.49), mạnh dần theo thời gian. Không được dùng cho ranking ở Nhánh C
    (quy tắc "không xếp hạng alpha" áp dụng đồng loạt, không có ngoại lệ cho
-   từng thành phần) — nhưng đây là ứng viên tốt nhất cho một prereg đơn-nhân-tố
-   trong tương lai (đúng lộ trình `SCORE_V2_DESIGN.md` đã dùng cho
-   `realized_vol_20d`), không làm ở đây vì sẽ là thêm nhân tố mới giữa round.
+   từng thành phần).
+
+   **ĐÓNG HỒ SƠ (GĐ5/GĐ5.5, `ROBUSTNESS_REPORT.md` mục 3)** — round này từng
+   ghi "ứng viên tốt nhất cho một prereg đơn-nhân-tố tương lai"; khám nghiệm
+   sau đó (correlation matrix + phân rã thành phần) cho kết quả ngược lại:
+   **`risk_score` tương quan Spearman trung bình ngày +0.822 với `v2_score`**
+   (rất cao) và −0.870 với `realized_vol_20d` — cả ba thành phần con đóng góp
+   thật của nó (`atr_pct_14` t=−5.70, `realized_vol_20d` t=−5.48,
+   `volatility_percentile` t=−3.16) đều là biến thể đo biến động, cùng cụm
+   với chính `realized_vol_20d` mà v2 đã dùng. `tail_ratio_60d` — thành phần
+   duy nhất khác về khái niệm — đóng góp t=+0.98, **không có ý nghĩa thống
+   kê**. **Kết luận: `risk_score` = bằng chứng trùng cụm vol, không phải
+   nguồn thông tin độc lập — KHÔNG theo đuổi prereg đơn-nhân-tố riêng.**
+   `tail_ratio_60d` đánh dấu "unvalidated" trong config
+   (`src/screening/final_watchlist.py`, đúng quy ước dán nhãn đã dùng từ GĐ4).
 4. **`signal_score` không tính được (N=0)**: `data/signals/meta_ranking.parquet`
    hóa ra là một **snapshot hiện tại** (mỗi mã 1 dòng, ngày riêng của từng mã —
    phần lớn 2026-07-13, một số ít là ngày giao dịch cuối cùng của các mã
@@ -258,8 +270,13 @@ Kết quả cuối: `client_ready=10, trading=20, research=180, data_review=290`
 
 `final_watchlist.py` từ nay **không xếp hạng theo alpha score đã kiểm định**
 — sắp theo thanh khoản, dán nhãn rõ, cho đến khi có một nhân tố mới qua đúng
-quy trình pre-register + kiểm định (ứng viên rõ nhất: `risk_score` đứng riêng,
-xem mục 2). Đây là kết quả trung thực của round kiểm định đầu tiên cho composite
-này kể từ khi triển khai — không phải một thất bại cần "sửa cho ra kết quả
-đẹp", mà là đúng mục đích của việc kiểm định: phát hiện một cơ chế xếp hạng
-chưa từng có bằng chứng, trước khi nó tiếp tục được trình bày như đã kiểm định.
+quy trình pre-register + kiểm định. Đây là kết quả trung thực của round kiểm
+định đầu tiên cho composite này kể từ khi triển khai — không phải một thất
+bại cần "sửa cho ra kết quả đẹp", mà là đúng mục đích của việc kiểm định:
+phát hiện một cơ chế xếp hạng chưa từng có bằng chứng, trước khi nó tiếp tục
+được trình bày như đã kiểm định.
+
+**Cập nhật (GĐ5.5)**: `risk_score` — ứng viên từng nêu ở đây — đã đóng hồ sơ
+(xem mục 2, phát hiện #3): bằng chứng của nó trùng với `v2_score`/`realized_vol_20d`
+đã có, không phải nguồn độc lập. Không còn ứng viên nào đang mở cho một prereg
+đơn-nhân-tố tương lai tại thời điểm này.
