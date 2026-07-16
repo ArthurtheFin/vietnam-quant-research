@@ -10,7 +10,7 @@ os.chdir(PROJECT_ROOT)
 
 import pandas as pd
 from src.data.dataset_config import OFFICIAL_FEATURES_PATH
-from src.data.loaders import read_parquet, save_parquet, append_parquet
+from src.data.loaders import read_parquet, save_parquet, append_parquet, save_csv_atomic
 from src.alpha.scoring import calculate_alpha_scores
 from src.utils.pipeline_io import build_lineage_metadata, validate_lineage_metadata, write_json
 from src.validation.guards import assert_no_forward_columns
@@ -65,12 +65,12 @@ def main():
 
     # Report 1: daily alpha ranking
     ranking = latest_subset[available_cols].sort_values("alpha_score", ascending=False)
-    ranking.to_csv(reports_dir / "daily_alpha_ranking.csv", index=False)
+    save_csv_atomic(ranking, reports_dir / "daily_alpha_ranking.csv")
     print(f"Exported daily alpha ranking to {reports_dir / 'daily_alpha_ranking.csv'} ({len(ranking)} symbols)")
 
     # Report 2: top 20 watchlist (alpha_score >= 75 or top 20)
     top_watchlist = ranking.head(20).copy()
-    top_watchlist.to_csv(reports_dir / "top_watchlist.csv", index=False)
+    save_csv_atomic(top_watchlist, reports_dir / "top_watchlist.csv")
     print(f"Exported top 20 watchlist to {reports_dir / 'top_watchlist.csv'}")
 
     # Lineage (audit gate #12): daily_alpha_ranking.csv/top_watchlist.csv are

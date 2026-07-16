@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from src.data.dataset_config import OFFICIAL_FEATURES_PATH
-from src.data.loaders import read_parquet, save_parquet
+from src.data.loaders import read_parquet, save_parquet, save_csv_atomic
 from src.data.validators import filter_primary_equity_symbols
 from src.utils.scoring import deep_merge
 from src.utils.logger import get_logger
@@ -270,7 +270,7 @@ def save_final_watchlist(watchlist: pd.DataFrame, config: dict[str, Any], base_d
     excel_path = base / paths["output_excel"]
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     excel_path.parent.mkdir(parents=True, exist_ok=True)
-    watchlist.to_csv(csv_path, index=False)
+    save_csv_atomic(watchlist, csv_path)
     save_parquet(watchlist, parquet_path)
     try:
         watchlist.to_excel(excel_path, index=False)
@@ -313,7 +313,7 @@ def save_watchlist_outputs(
         frame = outputs.get(name, pd.DataFrame())
         csv_path = stem.with_suffix(".csv")
         parquet_path = stem.with_suffix(".parquet")
-        frame.to_csv(csv_path, index=False)
+        save_csv_atomic(frame, csv_path)
         save_parquet(frame, parquet_path)
         saved_paths[f"{name}_csv"] = csv_path
         saved_paths[f"{name}_parquet"] = parquet_path
@@ -1274,7 +1274,7 @@ def apply_post_cashflow_overlay(base_dir: str | Path = ".") -> None:
     outputs = _redistribute_after_gate(gated_universe, DEFAULT_FINAL_WATCHLIST_CONFIG)
     save_watchlist_outputs(outputs, config=DEFAULT_FINAL_WATCHLIST_CONFIG, base_dir=base)
 
-    outputs["client_ready_watchlist"].to_csv(fw_path.with_suffix(".csv"), index=False)
+    save_csv_atomic(outputs["client_ready_watchlist"], fw_path.with_suffix(".csv"))
     save_parquet(outputs["client_ready_watchlist"], fw_path)
     LOGGER.info(
         "Applied post-cashflow overlay. client_ready=%s trading=%s research=%s data_review=%s",
