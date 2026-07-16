@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+# Orchestrates the daily update -> regenerate cycle:
+#   update_prices_daily -> update_disclosure_daily -> update_index_data
+#   -> run_daily_pipeline (which itself runs generate_features ->
+#      generate_signals -> run_alpha_scoring [appends alpha_score_shadow_log.parquet,
+#      v2 + shadow v1] -> ... -> run_meta_ranking -> build_cashflow_board,
+#      regenerating the watchlist end to end).
+#
+# Best-effort, NOT fail-fast (no `set -e`): each step's own scripts are
+# designed to be safe to run on stale/partial upstream data (soft-fail per
+# symbol internally, see update_prices_daily.py/update_disclosure_daily.py),
+# so a later step still has something useful to do even if an earlier one
+# had problems -- this runner logs every step's outcome clearly instead of
+# silently stopping, so a human reviewing logs/daily_run.log can see exactly
+# what happened rather than an incomplete run with no explanation.
+#
+# Intended to run under a LaunchAgent (see PROJECT_STATE.md) or manually:
+#   bash scripts/daily_run.sh
+
+set -uo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+mkdir -p logs
+LOG_FILE="logs/daily_run.log"
+
+STEP_NAMES=()
+STEP_STATUSES=()
+
+_ts() { date '+%Y-%m-%d %H:%M:%S'; }
+
+run_step() {
+  local name="$1"
+  shift
+  local start_ts end_ts dur exit_code out
+
+  start_ts=$(date +%s)
+  echo "[$(_ts)] START $name" | tee -a "$LOG_FILE"
+
+  out="$("$@" 2>&1)"
+  exit_code=$?
+
+  end_ts=$(date +%s)
+  dur=$((end_ts - start_ts))
+  {
+    echo "$out"
+  } >> "$LOG_FILE"
+
+  if [[ $exit_code -eq 0 ]]; then
+    echo "[$(_ts)] OK   $name (${dur}s)" | tee -a "$LOG_FILE"
+  else
+    echo "[$(_ts)] ###### FAIL ###### $name (${dur}s, exit=$exit_code) -- see logs/daily_run.log for step output" | tee -a "$LOG_FILE"
+  fi
+
+  STEP_NAMES+=("$name")
+  STEP_STATUSES+=("$exit_code")
+}
+
+{
+  echo ""
+  echo "======================================================================"
+  echo "[$(_ts)] daily_run.sh starting"
+} >> "$LOG_FILE"
+echo "[$(_ts)] daily_run.sh starting (logs/daily_run.log)"
+
+# Each step runs regardless of prior step outcomes -- see header comment.
+run_step "update_prices_daily" "$PYTHON_BIN" scripts/update_prices_daily.py --universe
+run_step "update_disclosure_daily" "$PYTHON_BIN" scripts/update_disclosure_daily.py --universe
+run_step "update_index_data" "$PYTHON_BIN" scripts/update_index_data.py
+run_step "run_daily_pipeline" "$PYTHON_BIN" scripts/run_daily_pipeline.py --offline
+
+N_FAIL=0
+FAILED_NAMES=()
+for i in "${!STEP_NAMES[@]}"; do
+  if [[ "${STEP_STATUSES[$i]}" -ne 0 ]]; then
+    N_FAIL=$((N_FAIL + 1))
+    FAILED_NAMES+=("${STEP_NAMES[$i]}")
+  fi
+done
+
+if [[ $N_FAIL -eq 0 ]]; then
+  echo "[$(_ts)] SUMMARY: ${#STEP_NAMES[@]}/${#STEP_NAMES[@]} steps OK" | tee -a "$LOG_FILE"
+else
+  echo "[$(_ts)] ###### SUMMARY: $N_FAIL/${#STEP_NAMES[@]} step(s) FAILED: ${FAILED_NAMES[*]} ######" | tee -a "$LOG_FILE"
+fi
+
+exit $N_FAIL
