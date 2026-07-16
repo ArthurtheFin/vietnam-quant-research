@@ -131,6 +131,12 @@ launchctl load ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist 
 
 ## 5. Bản đồ hồ sơ — 10 report nên đọc theo thứ tự này
 
+**Không phải dev, chỉ muốn vận hành hằng ngày?** Đọc
+`docs/DAILY_OPERATING_GUIDE.md` trước — cẩm nang một trang cho chủ dự án
+(checklist buổi sáng, đọc hiểu watchlist, khung ra quyết định đầu tư, xử lý
+sự cố, điều kiện xem lại v2), viết để không cần đọc code. 10 report dưới
+đây dành cho việc hiểu SÂU một kết luận cụ thể.
+
 1. **`PROJECT_STATE.md`** (file này) — điều hướng.
 2. **`PUSH_REVIEW.md`** — nhật ký đầy đủ mọi round, mọi commit.
 3. **`audit/PATH_TO_100.md`** — lộ trình điểm số + 4 critical gate.
