@@ -178,12 +178,20 @@ xây mô hình mới.)*
 
 ### 9. Robustness, Overfitting, Statistical Validity — hiện 4/8, cần +4
 
-| Việc cần làm | Điểm ước tính |
-|---|---|
-| Tính Deflated Sharpe Ratio cho điểm số sản xuất (`alpha_score` v2) | +1 |
-| Áp dụng hiệu chỉnh đa kiểm định chính thức (Benjamini-Hochberg FDR hoặc Bonferroni) cho 192 tổ hợp nhân tố đã test trong `FACTOR_RETEST_V2_REPORT.md` — hiện chỉ có ngưỡng `\|t\|>3` không chính thức | +1 |
-| Dùng `src/simulation/bootstrap.py` (đã có, đã seed đúng) để tính khoảng tin cậy bootstrap cho CAGR/Sharpe chính, không chỉ để vẽ biểu đồ khách hàng | +1 |
-| Tách riêng dữ liệu holdout cho việc chọn tham số portfolio construction (size/sector cap), không dùng chung 5 fold với fold dùng để báo cáo hiệu suất | +1 |
+**CẬP NHẬT 2026-07-15 (GĐ5) — `ROBUSTNESS_REPORT.md`, commit range `fcafd05`..:**
+3/4 việc dưới đây đã làm (đo, không tune). Kết quả không phải toàn "đẹp" —
+DSR cho `alpha_score` v2 rất thấp (0.0083, xem `ROBUSTNESS_REPORT.md` mục 5),
+và một nghịch lý null-test percentile (71.0 vs 52.8) được giải: nguyên nhân là
+gate `minimal_eligible` của `final_watchlist.py`, không phải dữ liệu hay
+universe (`V2_STABILITY_NOTE.md`). Không sửa trọng số/tham số nào trong round
+này — đúng ràng buộc.
+
+| Việc cần làm | Điểm ước tính | Trạng thái |
+|---|---|---|
+| Tính Deflated Sharpe Ratio cho điểm số sản xuất (`alpha_score` v2) | +1 | **XONG** — DSR=0.0083 (M=560 trials, ước lượng công khai cách đếm), tức hầu như không còn bằng chứng "kỹ năng thật" sau khi khấu trừ đa kiểm định. Báo cáo, không tự sửa. |
+| Áp dụng hiệu chỉnh đa kiểm định chính thức (Benjamini-Hochberg FDR hoặc Bonferroni) cho 192 tổ hợp nhân tố đã test trong `FACTOR_RETEST_V2_REPORT.md` — hiện chỉ có ngưỡng `\|t\|>3` không chính thức | +1 | **XONG** — BH-FDR (q=0.05) trên 214 test gộp (192 + 38 từ GĐ4 còn 34 hợp lệ): 38 sống sót, LỎNG HƠN ngưỡng `\|t\|>3` thủ công (27 sống sót) — không phải luôn chặt hơn như trực giác thường nghĩ. `CLAUDE.md` mục 9 mới: mọi bảng test đa nhân tố từ nay báo kèm q-value. |
+| Dùng `src/simulation/bootstrap.py` (đã có, đã seed đúng) để tính khoảng tin cậy bootstrap cho CAGR/Sharpe chính, không chỉ để vẽ biểu đồ khách hàng | +1 | **XONG** — block bootstrap (block=20 ngày, N=1000, seed=42) cho cấu hình v2 chuẩn: CAGR CI=[−9.6%,+19.3%], Sharpe CI=[−0.59,+1.32] — cả hai khoảng đều chứa 0. |
+| Tách riêng dữ liệu holdout cho việc chọn tham số portfolio construction (size/sector cap), không dùng chung 5 fold với fold dùng để báo cáo hiệu suất | +1 | Chưa làm — ngoài phạm vi round này. |
 
 ### 10. Engineering, Reproducibility, Production Readiness — hiện 4/5, cần +1
 
