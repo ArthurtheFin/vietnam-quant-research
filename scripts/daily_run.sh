@@ -27,10 +27,31 @@ PYTHON_BIN="${PYTHON_BIN:-python3}"
 mkdir -p logs
 LOG_FILE="logs/daily_run.log"
 
+_ts() { date '+%Y-%m-%d %H:%M:%S'; }
+
+# Catch-up guard (NV2, LaunchAgent): the LaunchAgent plist sets both
+# StartCalendarInterval (scheduled 19:00 weekdays) AND RunAtLoad=true (fires
+# once whenever the agent loads, e.g. on login/boot). If the Mac was off/
+# asleep through the scheduled time, RunAtLoad on the next login is what
+# actually runs the catch-up -- but RunAtLoad also fires on every ordinary
+# login even when today's scheduled run already completed fine, which would
+# otherwise mean running twice a day. Guard: skip if today's date already
+# has a "SUMMARY" line in the log (i.e. a run already finished today,
+# success or fail) -- checking "the last mark in the log", not a separate
+# state file, so the log stays the single source of truth. `--force`
+# bypasses this for manual reruns/testing.
+FORCE_RERUN=0
+if [[ "${1:-}" == "--force" ]]; then
+  FORCE_RERUN=1
+fi
+TODAY="$(date '+%Y-%m-%d')"
+if [[ $FORCE_RERUN -eq 0 ]] && [[ -f "$LOG_FILE" ]] && grep -q "^\[$TODAY .*SUMMARY" "$LOG_FILE"; then
+  echo "[$(_ts)] SKIP: a run already completed today ($TODAY) -- see logs/daily_run.log. Use --force to rerun anyway." | tee -a "$LOG_FILE"
+  exit 0
+fi
+
 STEP_NAMES=()
 STEP_STATUSES=()
-
-_ts() { date '+%Y-%m-%d %H:%M:%S'; }
 
 run_step() {
   local name="$1"

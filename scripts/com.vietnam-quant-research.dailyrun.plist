@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.vietnam-quant-research.dailyrun</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/jamesb/Desktop/vietnam-quant-research/scripts/daily_run.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/jamesb/Desktop/vietnam-quant-research</string>
+
+    <!-- Scheduled: weekdays (Mon-Fri) at 19:00 local time, after the trading
+         session. Each dict is one calendar slot; launchd unions them. -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>19</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>19</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>19</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>19</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>19</integer><key>Minute</key><integer>0</integer></dict>
+    </array>
+
+    <!-- Catch-up: if the Mac was off/asleep at 19:00, launchd runs this once
+         the agent next loads (e.g. next login/boot) instead of silently
+         skipping the missed slot. daily_run.sh's own "already ran today"
+         guard (checks logs/daily_run.log for today's date) makes this safe
+         to also fire on ordinary logins where today's run already happened
+         -- it's a no-op skip in that case, not a second real run. -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/jamesb/Desktop/vietnam-quant-research/logs/launchd_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/jamesb/Desktop/vietnam-quant-research/logs/launchd_stderr.log</string>
+</dict>
+</plist>
