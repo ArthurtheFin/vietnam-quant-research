@@ -129,6 +129,12 @@ bộ. Bảng trên là kết quả SAU khi sửa.
 Null avg percentile **71.0** (không fold <5); IC t_NW **+6.09** (full) /
 **+5.67** (top150), residualized, đồng dấu dương cả 3 giai đoạn.
 
+**Cập nhật (GĐ5, `V2_STABILITY_NOTE.md`)**: 71.0 này đo v2 kiểm tra ĐỘC LẬP
+(chỉ qua gate thô `min_value_ma20`/`above_ma200`), không phải v2 hoạt động
+bên trong gate đầy đủ của `final_watchlist.py` — mục 3b bên dưới (52.8) mới
+là con số đúng cho ngữ cảnh đó. Đã xác nhận bằng loại trừ: nguyên nhân chênh
+lệch là gate `minimal_eligible`, không phải dữ liệu hay universe.
+
 ### 3b. "Watchlist tối giản" = v2_score + gate hiện hành của `final_watchlist.py`
 (`strict_pass` HOẶC `fallback_eligible`, tính lại trên lịch sử, universe
 `trading_status==ACTIVE`) — **chạy mới cho round này:**

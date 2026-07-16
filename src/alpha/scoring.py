@@ -18,13 +18,27 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
     walk-forward disaster fold via a momentum/relative-strength reversal
     (SCORE_FORENSIC_REPORT.md NV2):
     - v2: 70% realized_vol_20d rank (lower vol = higher score; the one
-      component with independently validated IC, t_NW=-5.41 both universes,
-      SCORE_FORENSIC_REPORT.md) + 30% value_ma20 rank (lower/less-liquid =
-      higher score, matching its own validated but narrower IC evidence,
-      t_NW=-3.33 full universe only, with a disclosed survivorship-bias
-      caveat -- DATA_BASELINE.md). Confirmation run: null-test avg
-      percentile 71.0/2000 across 5 folds (no fold <5th), IC t_NW=+6.09
-      (full) / +5.67 (top150) residualized, same-signed all 3 periods.
+      component with independently validated IC, t_NW=-5.41 both universes
+      at design time, recalibrated -5.48 on 2026-07-15 data -- ROBUSTNESS_REPORT.md
+      NV2, stable) + 30% value_ma20 rank (lower/less-liquid = higher score,
+      matching its own validated but narrower IC evidence, t_NW=-3.33 full
+      universe only at design time, recalibrated -3.37, with a disclosed
+      survivorship-bias caveat -- DATA_BASELINE.md). Confirmation run:
+      null-test avg percentile 71.0/2000 across 5 folds (no fold <5th), IC
+      t_NW=+6.09 (full) / +5.67 (top150) residualized, same-signed all 3
+      periods -- **this 71.0 is valid for v2 tested standalone only** (the
+      confirmation run's own gate: min_value_ma20/above_ma200 inside
+      run_portfolio_backtest, nothing more). When v2 runs inside
+      final_watchlist.py's full eligibility gate (strict_pass/fallback_eligible,
+      not just liquidity/trend), the same null test gives 52.8, not 71.0 --
+      V2_STABILITY_NOTE.md traced the entire gap to that extra gate, not to
+      data or universe. Do not cite 71.0 for v2-inside-final_watchlist
+      contexts. As of ROBUSTNESS_REPORT.md (GD5): v2 has a real, FDR-
+      surviving ranking effect but no surviving profitability evidence once
+      honestly deflated for the project's full multiple-testing history
+      (DSR=0.0083 at M=560 trials, bootstrap CI crosses 0 for both CAGR and
+      Sharpe) -- SCORE_V2_REPORT.md's "Trạng thái sau GĐ5" section locks the
+      operational decision: shadow log only, no real-capital allocation.
 
     The v1 composite is retained as `alpha_score_shadow_v1` for live,
     ongoing out-of-sample comparison (not used by any downstream
