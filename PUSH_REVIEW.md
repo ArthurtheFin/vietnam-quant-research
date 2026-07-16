@@ -783,3 +783,57 @@ cây quyết định A/B/C commit trước, chạy một lần, thi hành đúng
 các nơi khác (không bị round này rút lại, vì v2 đã qua bài test riêng của
 chính nó). Ứng viên rõ nhất cho một prereg đơn-nhân-tố tương lai:
 `risk_score` (t_NW=+4.72, đồng dấu dương 3 giai đoạn).
+
+## GĐ5 — Robustness thống kê (PATH_TO_100 mục 9) + giải 2 căng thẳng từ GĐ4
+
+Toàn bộ round: KIỂM ĐỊNH LẠI, không nhân tố mới, không tune — đo và kết luận.
+Không đổi tham số/trọng số nào của v2 hay `final_watchlist.py` bất kể kết quả
+(đúng ràng buộc gốc).
+
+1. **NV1 (commit `fcafd05`)** — `V2_STABILITY_NOTE.md` giải nghịch lý
+   percentile 71.0 (`SCORE_V2_REPORT.md`) vs 52.8 (`WATCHLIST_VALIDATION_REPORT.md`
+   GĐ4). 3 nghi phạm liệt kê trước: khác cỗ máy (loại ngay), dữ liệu mới, 2
+   gate GĐ4 thêm (`trading_status==ACTIVE`, `minimal_eligible`). Chạy lại
+   nguyên văn script gốc trên dữ liệu hiện hành: vẫn 71.0 → loại trừ dữ liệu.
+   Chạy thêm 1 cấu hình (ACTIVE-only, không `minimal_eligible`): 70.5 → gần
+   như không đổi. **Kết luận bằng loại trừ: gate `minimal_eligible` của
+   `final_watchlist.py` (ATR/distance_ma20/drawdown/giá sàn, không chỉ thanh
+   khoản) là nguyên nhân gần như toàn bộ chênh lệch.** Khuyến nghị: 71.0
+   không còn hợp lệ để trích dẫn cho v2 hoạt động bên trong pipeline đầy đủ
+   của `final_watchlist.py`, cần kiểm định lại nếu có quyết định dùng lại v2
+   làm cơ sở xếp hạng.
+2. **NV2 (đã hoàn thành trước NV1 do chạy song song)** — t_NW của
+   `realized_vol_20d`/`value_ma20` trên dữ liệu hiện hành: **−5.48/−3.37**, so
+   với **−5.41/−3.33** gốc — cùng dấu, cùng bậc, nhích mạnh hơn nhẹ. Xác nhận,
+   không đổi gì.
+3. **NV3** — khám nghiệm `risk_score`: corr trung bình ngày với `v2_score`
+   = **+0.822** (rất cao), với `realized_vol_20d` = −0.870. Phân rã t=+4.72:
+   `atr_pct_14` (t=−5.70) và `realized_vol_20d` (−5.48) mang gần hết bằng
+   chứng; `tail_ratio_60d` (t=+0.98) không có ý nghĩa; `risk_penalty_score`
+   luôn trung lập (dữ liệu snapshot, không phải lịch sử — phát hiện từ GĐ4).
+   **Kết luận (i): risk_score ≈ cụm vol, bằng chứng trùng với v2 — KHÔNG soạn
+   prereg đơn-nhân-tố riêng.**
+4. **NV4 (commit `9b6edc2`)** — BH-FDR (q=0.05) trên 214 test gộp (192
+   `FACTOR_RETEST_V2` rerun trên dữ liệu hiện hành + 34 `WATCHLIST_VALIDATION`
+   hợp lệ): **38 sống sót**, so với **27** qua ngưỡng thủ công `|t|>3` —
+   **BH-FDR lỏng hơn**, ngược trực giác thường gặp (0 trường hợp đạt `|t|>3`
+   mà rớt FDR; 11 trường hợp sống sót FDR mà không đạt `|t|>3`). Bổ sung
+   `CLAUDE.md` mục 9: mọi bảng test đa nhân tố từ nay báo kèm q-value FDR.
+5. **NV5 (commit `e8a9d7a`)** — Deflated Sharpe Ratio cho v2 (backtest chuẩn
+   hiện hành, M=560 "thử nghiệm" ước lượng công khai cách đếm từ 8 nguồn báo
+   cáo đã có): **DSR=0.0083** — sau khấu trừ đa kiểm định trung thực, gần như
+   không còn bằng chứng kỹ năng thật. Bootstrap CI (block=20 ngày, N=1000,
+   seed=42, `src/simulation/bootstrap.py` không sửa): CAGR CI=[−9.6%,+19.3%],
+   Sharpe CI=[−0.59,+1.32] — cả hai chứa 0. Chú thích cố định: mọi số
+   long-only đọc kèm sàn survivorship (+0.4/+1.2/+2.9%).
+6. **NV6 (commit `d4a0c9c`)** — `ROBUSTNESS_REPORT.md` tổng hợp NV1-5; cập
+   nhật `audit/PATH_TO_100.md` mục 9 (3/4 việc xong: DSR, FDR, bootstrap CI —
+   tách holdout cho tham số portfolio construction vẫn mở, ngoài phạm vi).
+   Full test suite: 295 passed. Commit riêng từng nhiệm vụ vào `main`, không
+   push.
+
+**3 phát hiện đáng chú ý dành cho quyết định người dùng ở round riêng có
+prereg**: (a) DSR của v2 rất thấp — cân nhắc lại mức tin cậy đặt vào v2 cho
+quyết định vận hành, dù nó vẫn là nhân tố có bằng chứng độc lập tốt nhất đã
+test; (b) 71.0 không còn hợp lệ trích dẫn cho v2-trong-final_watchlist; (c)
+`risk_score` không đáng theo đuổi thêm làm nhân tố độc lập.
