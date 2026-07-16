@@ -880,3 +880,69 @@ Không đo thêm, không tune — chỉ thi hành 3 quyết định đã treo t�
    xuất.
 4. **NV4 (commit này)** — full test suite: 295 passed sau mọi thay đổi.
    Commit riêng từng nhiệm vụ vào `main`, không push.
+
+## GĐ6 — Polish tối thiểu + đóng gói hồ sơ trước trạng thái nghỉ
+
+Vòng cuối: không đo, không tune, không nhân tố mới — chỉ hoàn thiện kỹ thuật
+chọn lọc (`audit/PATH_TO_100.md` mục 10) và đóng gói hồ sơ cho phiên tương lai.
+
+1. **NV1a (commit `4a46e28`)** — `requirements.txt` pin chính xác phiên bản
+   (đối chiếu `pip freeze`/`importlib.metadata` với môi trường thật, kể cả
+   các gói cài qua conda không hiện version sạch qua `pip freeze`). Giữ
+   comment cảnh báo statsmodels 0.14.2 vẫn xung đột import với scipy>=1.17
+   (`ImportError: cannot import name '_lazywhere'`) — tái xác minh lỗi còn
+   tái hiện trước khi ghi, không copy nguyên comment cũ chưa kiểm tra lại.
+2. **NV1b (commit `dd21971`)** — atomic write (temp file + `os.replace`) cho
+   `save_parquet` (trung tâm, phủ toàn bộ artifact parquet qua
+   `append_parquet`) + `save_csv_atomic` mới, áp có chọn lọc vào các điểm ghi
+   watchlist/report CSV cập nhật hằng ngày
+   (`final_watchlist.py`'s `save_final_watchlist`/`save_watchlist_outputs`/
+   `apply_post_cashflow_overlay`, `run_alpha_scoring.py`'s report CSV) — không
+   áp tràn lan cho ~20 điểm `to_csv` khác (audit/diagnostic một lần).
+3. **NV1c (commit `70b0726`)** — xác minh THẬT (không chỉ đọc code) nghi vấn
+   J1: tạo notebook cố tình lỗi, chạy qua `run_all_notebooks.sh`, xác nhận
+   script dừng đúng (exit code 1, không in dòng "Executed N notebook(s)
+   successfully") — J1 không tái hiện, không cần sửa. Rà 16 notebook đang hoạt
+   động (loại `00_archive`), gắn ô cảnh báo "outdated" đầu 3 notebook có logic
+   lệch code hiện tại (`12_meta_ranking_optimization.ipynb` coi `alpha_score`
+   như bị dẫn dắt bởi momentum/trend — thực ra v2 chỉ dựa vol/thanh khoản;
+   `19_validation_and_stress_test.ipynb`/`20_portfolio_backtester.ipynb` đọc
+   `meta_ranking.parquet` như chuỗi lịch sử — thực ra là snapshot hiện tại) —
+   không sửa nội dung, chỉ cảnh báo, đúng yêu cầu.
+4. **NV2 (commit `0eaf25f`)** — `PROJECT_STATE.md`, cửa ngõ một trang cho mọi
+   phiên tương lai: đang live (v2 shadow — kèm phát hiện quan trọng là shadow
+   log KHÔNG chạy đều, mới 3 mốc ngày từ 2026-07-09 vì không có cron/launchd;
+   watchlist không xếp hạng alpha), đã đóng (nhánh disclosure, kiểm định
+   composite, risk_score, nghịch lý 71.0/52.8 — kèm link report), đang chờ (4
+   điều kiện xem lại v2 với hạn danh nghĩa 2027-01-09 kèm cảnh báo có thể trễ
+   nếu pipeline không chạy đều; Gate #3 survivorship). Quy trình vận hành
+   hằng ngày + dấu hiệu bất thường cần chú ý. Bản đồ 10 report nên đọc theo
+   thứ tự. `CLAUDE.md` mục 3 cập nhật trỏ tới file này đọc TRƯỚC
+   `PUSH_REVIEW.md`/`PATH_TO_100.md`.
+5. **NV3 (commit `1934870`)** — `audit/audit_summary.json` thêm
+   `path_to_100_progress`: đánh dấu resolved/open/closed-negative cho mọi
+   mục `PATH_TO_100.md` đã chạm từ GĐ2 đến GĐ5.5 — không chấm lại điểm
+   (`overall_score`/`category_scores` giữ nguyên snapshot gốc 2026-07-12),
+   đúng quy ước sẵn có của `remediation_log`.
+6. **NV4 (commit này)** — full test suite: 295 passed. Commit riêng từng
+   nhiệm vụ vào `main`, không push.
+
+---
+
+## Trạng thái nghỉ đạt ngày 2026-07-16
+
+Dự án dừng ở đây cho đến phiên tiếp theo. Tóm tắt 3 dòng (chi tiết đầy đủ:
+`PROJECT_STATE.md`):
+- **Đang chạy**: cập nhật giá + disclosure hằng ngày (thủ công, không cron),
+  `alpha_score` v2 shadow-only (không vốn thật), `final_watchlist` sắp theo
+  thanh khoản (không xếp hạng alpha).
+- **Đã đóng dứt điểm**: nhánh disclosure-làm-tín-hiệu (âm tính, 3 round
+  pre-register), kiểm định composite `final_watchlist` (Nhánh C), `risk_score`
+  (bằng chứng trùng), nghịch lý null-test 71.0/52.8.
+- **Còn mở cho phiên sau**: Gate #3 survivorship/point-in-time universe (việc
+  lớn nhất còn lại), 4 điều kiện xem lại v2 (hạn danh nghĩa gần nhất
+  2027-01-09), `tail_ratio_60d` direction, holdout split cho portfolio
+  construction params.
+
+Không có gì đang chờ quyết định gấp — mọi nhánh đang mở đều đã có tài liệu
+đầy đủ để một phiên mới tiếp tục mà không cần dựng lại ngữ cảnh từ đầu.
