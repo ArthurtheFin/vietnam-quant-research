@@ -67,12 +67,127 @@
     "note": "Scores/category_scores/p0_count above are the original 2026-07-12 audit snapshot and were NOT recomputed here (out of scope for this remediation round -- no re-scoring, no other PATH_TO_100 item touched). This log only records which P0 findings have since been closed and their commit hashes. See audit/critical_findings.md's per-finding STATUS lines for full detail.",
     "round_date": "2026-07-13",
     "findings": {
-      "P0-1": {"gate": 3, "status": "OPEN", "reason": "explicitly out of scope this round (survivorship bias / point-in-time universe)"},
-      "P0-2": {"gate": 6, "status": "RESOLVED", "commit": "28b9f60"},
-      "P0-3": {"gate": 12, "status": "RESOLVED", "commit": "72be363"},
-      "P0-4": {"gate": 17, "status": "RESOLVED", "commit": "b966aa2"}
+      "P0-1": {
+        "gate": 3,
+        "status": "OPEN",
+        "reason": "explicitly out of scope this round (survivorship bias / point-in-time universe)"
+      },
+      "P0-2": {
+        "gate": 6,
+        "status": "RESOLVED",
+        "commit": "28b9f60"
+      },
+      "P0-3": {
+        "gate": 12,
+        "status": "RESOLVED",
+        "commit": "72be363"
+      },
+      "P0-4": {
+        "gate": 17,
+        "status": "RESOLVED",
+        "commit": "b966aa2"
+      }
     },
     "consumer_artifacts_regenerated_commit": "ccad49f",
     "artifact_comparison_report": "audit/NV4_ARTIFACT_REGENERATION_COMPARISON.md"
+  },
+  "path_to_100_progress": {
+    "note": "Tracks status of audit/PATH_TO_100.md's numbered items (muc 1/3/9/10) touched across GD2-GD5.5 (2026-07-14..2026-07-16) -- a DIFFERENT taxonomy than remediation_log's P0-1..P0-4 gates above (P0-1=Gate#3 survivorship stays OPEN, untouched by any of this). Resolved/open marking only, NOT a re-score of overall_score/category_scores -- those stay the original 2026-07-12 snapshot per remediation_log's own note.",
+    "round_dates": "2026-07-14 (GD2 tail) .. 2026-07-16 (GD5.5 + polish)",
+    "items": {
+      "muc1_data_quality_natural_key_disclosure": {
+        "status": "RESOLVED",
+        "detail": "NATURAL_KEY widened, 0 collisions",
+        "report": "DISCLOSURE_BASELINE.md caveat #1"
+      },
+      "muc1_data_quality_gee_exclusion_sync": {
+        "status": "RESOLVED",
+        "detail": "tracked_universe_symbols() unified",
+        "commit": "c318df0"
+      },
+      "muc1_data_quality_validate_ohlcv_expanded": {
+        "status": "RESOLVED",
+        "commit": "3c66f36"
+      },
+      "muc1_data_quality_lineage_metadata": {
+        "status": "RESOLVED",
+        "detail": "embedded in every metadata writer",
+        "commit": "3c66f36"
+      },
+      "muc2_universe_zero_volume_coverage_gate": {
+        "status": "RESOLVED",
+        "detail": "coverage-ratio proxy folded into LOW_LIQUIDITY",
+        "commit": "f46b2cc"
+      },
+      "muc2_universe_sector_mapping_decision": {
+        "status": "RESOLVED",
+        "detail": "not required for eligibility, required for sector-cap; UNKNOWN bucket capped like a real sector",
+        "report": "audit/SECTOR_MAPPING_COVERAGE_REPORT.md"
+      },
+      "muc3_signal_composite_IC_backtest": {
+        "status": "CLOSED_NEGATIVE",
+        "detail": "first-ever IC/null-test of full composite; neither composite nor minimal-watchlist baseline cleared the pre-registered bar -- Nhanh C, final_watchlist has no validated alpha ranking",
+        "report": "WATCHLIST_VALIDATION_REPORT.md"
+      },
+      "muc3_signal_liquidity_score_direction": {
+        "status": "RESOLVED",
+        "detail": "removed from ranking entirely (not just flipped), t_NW=-4.19 confirmed wrong-signed",
+        "report": "WATCHLIST_VALIDATION_REPORT.md"
+      },
+      "muc3_signal_tail_ratio_60d_direction": {
+        "status": "OPEN",
+        "detail": "direction not independently re-verified; component itself found not statistically significant (t=+0.98) so lower priority"
+      },
+      "muc3_signal_weight_citations": {
+        "status": "RESOLVED",
+        "detail": "DEFAULT_FINAL_WATCHLIST_CONFIG weights docstring now cites per-component IC evidence",
+        "file": "src/screening/final_watchlist.py"
+      },
+      "muc3_signal_assert_no_forward_columns_extension": {
+        "status": "RESOLVED",
+        "commit": "c0a4d82"
+      },
+      "muc9_robustness_DSR": {
+        "status": "RESOLVED",
+        "detail": "DSR=0.0083 at M=560 trials for alpha_score v2",
+        "report": "ROBUSTNESS_REPORT.md"
+      },
+      "muc9_robustness_FDR": {
+        "status": "RESOLVED",
+        "detail": "BH-FDR q=0.05 on 214 combined factor tests; CLAUDE.md rule 9 added",
+        "report": "ROBUSTNESS_REPORT.md"
+      },
+      "muc9_robustness_bootstrap_CI": {
+        "status": "RESOLVED",
+        "detail": "block bootstrap CI for v2's CAGR/Sharpe",
+        "report": "ROBUSTNESS_REPORT.md"
+      },
+      "muc9_robustness_holdout_split": {
+        "status": "OPEN",
+        "detail": "portfolio-construction parameter selection (size/sector cap) still uses the same 5 folds as performance reporting"
+      },
+      "muc10_engineering_dependency_pin": {
+        "status": "RESOLVED",
+        "file": "requirements.txt"
+      },
+      "muc10_engineering_atomic_write": {
+        "status": "RESOLVED",
+        "detail": "save_parquet + new save_csv_atomic in src/data/loaders.py, applied to daily-refreshed watchlist/report writers"
+      },
+      "muc10_engineering_run_all_notebooks_error_handling": {
+        "status": "VERIFIED_OK",
+        "detail": "re-tested with a deliberately-failing notebook; J1 suspicion did not reproduce, no fix needed"
+      },
+      "gate3_survivorship_point_in_time_universe": {
+        "status": "OPEN",
+        "detail": "trading_status.py is a first step (ACTIVE/STALE_SHORT/INACTIVE_LONG classification), explicitly NOT a full point-in-time universe solution -- no historical delisting/suspension data source found or integrated",
+        "report": "PROJECT_STATE.md mục 3"
+      },
+      "disclosure_as_signal_branch": {
+        "status": "CLOSED_PERMANENTLY_NEGATIVE",
+        "detail": "3 pre-registered rounds (main test, survivorship-bias-corrected exploratory finding, matched-control confirmatory test), no factor reached candidate status",
+        "report": "DISCLOSURE_PREREG_2_REPORT.md"
+      }
+    }
   }
 }
