@@ -1,22 +1,22 @@
 # FACTOR_RETEST_V2_REPORT — first clean-data re-test after the full backfill
 
 **Required citation**: this report's IC and event-detection results are
-computed on `data/full_history_v2` (see `docs/reports/data/docs/reports/data/DATA_BASELINE.md` for dataset
+computed on `data/full_history_v2` (see `docs/reports/data/DATA_BASELINE.md` for dataset
 identity, coverage, and caveats), rebuilt through `scripts/generate_features.py`
 at commit `1566f29` (+ this round's changes: raw-source swap, GEE exclusion,
-3B VND eligibility threshold — see `docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md` Round 5).
+3B VND eligibility threshold — see `docs/reports/data/BACKFILL_DESIGN_REPORT.md` Round 5).
 **This is the first time any factor test in this repo has run on a real,
 uncorrupted 2020+ cross-section** — every prior IC/event-detection report
-(`docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`, `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`) drew almost all
+(`docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`, `docs/reports/scoring/EVENT_DETECTION_REPORT.md`) drew almost all
 of its usable days from 2023+ only, because 495/501 symbols had no
-pre-2023 data at all (per `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`) and, separately, the
+pre-2023 data at all (per `docs/reports/data/DATA_AUDIT_REPORT.md`) and, separately, the
 10B VND eligibility filter was "too strict for 2020-2022" even where data
-existed (`docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` addendum, `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`
+existed (`docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` addendum, `docs/reports/scoring/EVENT_DETECTION_REPORT.md`
 open question #1).
 
 **What changed vs. those prior runs, mechanically**:
 1. Raw price source: `data/full_history_v2/raw/` (bug-immune fetch method,
-   verified in `docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md` Rounds 3-4) instead of the
+   verified in `docs/reports/data/BACKFILL_DESIGN_REPORT.md` Rounds 3-4) instead of the
    pre-fix `data/raw/daily_ohlcv/` (now in `data/quarantine_existing_v1/`).
 2. Eligibility threshold lowered 10B → **3B VND** (`MIN_VALUE_MA20` in both
    `scratch/diagnose_factor_ic_robust.py` and `scratch/diagnose_event_detection.py`)
@@ -24,7 +24,7 @@ open question #1).
    coverage is clean and complete. The event definition's own liquidity
    condition (1B VND/day, part of what defines a "hit") is unchanged.
 3. GEE excluded (`config/excluded_symbols.csv`) — unresolved 9-day gap, see
-   `docs/reports/data/docs/reports/data/DATA_BASELINE.md`.
+   `docs/reports/data/DATA_BASELINE.md`.
 4. No other change: same 44+3 candidate list, same Newey-West maxlags=20,
    same market-residual + sector-demean target construction, same
    event definition, same 3-period split, same `|t_NW|>3` and
@@ -112,7 +112,7 @@ exact same computation, not a re-tuned or differently-scoped test).
 ### IC Newey-West (`scratch/diagnose_factor_ic_robust.py`, full output: `scratch/logs/diagnose_factor_ic_robust_v2.log`)
 
 **21 of 192 factor×universe×target combinations clear |t_NW|>3** (vs. 0
-in the pre-backfill `docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` run). Top combinations:
+in the pre-backfill `docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` run). Top combinations:
 
 | Factor | Universe | Target | mean IC | t_NW |
 |---|---|---|---|---|
@@ -147,7 +147,7 @@ the [1%,15%] gate, proceeds to Task 2.
 
 **0 of 94 factor-direction combinations pass** (`CI_lo>1.5` AND
 `lift>1` in all 3 periods) — same comprehensively-negative conclusion as
-the pre-backfill `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`, now confirmed on a real,
+the pre-backfill `docs/reports/scoring/EVENT_DETECTION_REPORT.md`, now confirmed on a real,
 clean, full 2020+ cross-section rather than a mostly-2023+ one. The
 ranking of near-misses is topped by static price-location factors
 (`distance_ma50` high: lift=1.37, `distance_ma20` high: lift=1.35,

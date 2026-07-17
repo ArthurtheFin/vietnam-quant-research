@@ -1,4 +1,4 @@
-"""docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md evidence. Diagnosis-only round -- no scoring
+"""docs/reports/scoring/FOLD_AUTOPSY_REPORT.md evidence. Diagnosis-only round -- no scoring
 changes, no tuning, no new factor tests. Uses the CURRENT (already-applied)
 deployed alpha_score (src/alpha/scoring.py) and the same 5 walk-forward
 folds as scratch/rolling_walk_forward.py / scratch/scoring_before_after.py.

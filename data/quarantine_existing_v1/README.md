@@ -3,12 +3,12 @@
 **Do not use these files for any calculation, factor test, or research
 report.** They are known to be corrupted for a large, uncatalogued
 fraction of the actively-traded universe by the raw/adjusted-close
-mixing bug fixed in commit `d12a6ac` (see `docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md`
-Rounds 2-4 and `docs/reports/data/docs/reports/data/DATA_BASELINE.md` for full detail).
+mixing bug fixed in commit `d12a6ac` (see `docs/reports/data/BACKFILL_DESIGN_REPORT.md`
+Rounds 2-4 and `docs/reports/data/DATA_BASELINE.md` for full detail).
 
 **Kept only for forensic comparison** — e.g. quantifying how much a
 specific symbol's `close`/derived indicators were distorted before vs.
-after the fix (see `docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md` Round 4 / NV3 sanity check
+after the fix (see `docs/reports/data/BACKFILL_DESIGN_REPORT.md` Round 4 / NV3 sanity check
 for an example using HPG, TCB, VCB).
 
 ## Contents
@@ -18,7 +18,7 @@ for an example using HPG, TCB, VCB).
 - `clean_daily_ohlcv.parquet` — old `data/processed/clean_daily_ohlcv.parquet`
   (standardized OHLCV built from the directory above).
 - `stock_features.parquet` — old `data/processed/stock_features.parquet`,
-  the "existing" dataset referenced throughout `docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md`.
+  the "existing" dataset referenced throughout `docs/reports/data/BACKFILL_DESIGN_REPORT.md`.
   Confirmed to carry the ~29-day piecewise raw/adjusted-close corruption
   on at least 75/501 symbols (broad pattern) plus 165/501 with a narrower
   recent-tail version, per the Task 4b quality suite.
@@ -29,7 +29,7 @@ for an example using HPG, TCB, VCB).
 ## What replaced these
 
 `scripts/generate_features.py` now reads from `data/full_history_v2/raw/`
-(the verified, bug-immune-method backfill — see `docs/reports/data/docs/reports/data/DATA_BASELINE.md`) and
+(the verified, bug-immune-method backfill — see `docs/reports/data/DATA_BASELINE.md`) and
 writes to the same canonical paths (`data/processed/stock_features.parquet`,
 `data/processed/clean_daily_ohlcv.parquet`, `data/processed/market_features.parquet`)
 these files used to occupy. Every downstream consumer
@@ -45,7 +45,7 @@ pre-backfill files despite this README — a background daily-update process
 kept writing into the legacy `data/raw/daily_ohlcv/` directory, and
 `generate_features.py`, though already reading from `full_history_v2/raw`
 in code, had not been re-run since the final backfill (see
-`docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` / `critical_findings.md` P0-2 for the forensic
+`docs/reports/scoring/SCORE_FORENSIC_REPORT.md` / `critical_findings.md` P0-2 for the forensic
 trail). On 2026-07-13 the following were physically moved into this
 directory for the first time:
 

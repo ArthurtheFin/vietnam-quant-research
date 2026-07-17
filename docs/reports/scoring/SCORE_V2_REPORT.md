@@ -1,10 +1,10 @@
 # SCORE_V2_REPORT — v2 confirmed against the pre-registered bar, installed with shadow logging
 
-**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/docs/reports/data/DATA_BASELINE.md`), design
-pre-registered in `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md` (commit `6cf15a0`, before any
-comparison was run), evidence chain from `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`.
+**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/DATA_BASELINE.md`), design
+pre-registered in `docs/reports/scoring/SCORE_V2_DESIGN.md` (commit `6cf15a0`, before any
+comparison was run), evidence chain from `docs/reports/scoring/SCORE_FORENSIC_REPORT.md`.
 This report covers the confirmation run and the installation decision
-only — the design itself, with full reasoning, is in `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`
+only — the design itself, with full reasoning, is in `docs/reports/scoring/SCORE_V2_DESIGN.md`
 and is not repeated here.
 
 ---
@@ -52,7 +52,7 @@ minimal's +10.1%).
 
 **Average percentile: 71.0.** No fold below the 5th percentile (worst:
 2025 at 20.2). For direct comparison, the old composite's equivalent
-null test (`docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`, measured under the
+null test (`docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`, measured under the
 previous size=5/no-cap config) averaged 41.2, with one fold at 0.4 —
 v2 clears the bar the old composite failed by a wide margin, though the
 configs aren't perfectly identical (noted for transparency, not
@@ -80,12 +80,12 @@ anywhere). 3-period split, full/residualized:
 v2 is same-signed across all 3 periods and, notably, clears a meaningful
 t-stat even in period 1 alone (+2.07) where the minimal score on its own
 does not (−1.63) — combining the two components appears to add real,
-independent statistical power (consistent with `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md`'s
+independent statistical power (consistent with `docs/reports/scoring/SCORING_UPDATE_REPORT.md`'s
 earlier finding that `value_ma20`/liquidity is ~0-correlated with the
 volatility cluster, i.e. genuinely orthogonal information, not restating
 the same signal).
 
-## Reading against the pre-registered criteria (`docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`)
+## Reading against the pre-registered criteria (`docs/reports/scoring/SCORE_V2_DESIGN.md`)
 
 | Criterion | Result | Pass? |
 |---|---|---|
@@ -102,8 +102,8 @@ and the null-test percentile framework, both explicitly designed this
 session to be more trustworthy than single-realization backtest CAGR),
 while the minimal score wins on mean/median CAGR in this one 5-fold
 backtest sample. Given the session-long theme of distrusting raw CAGR
-comparisons in favor of IC/percentile evidence (`docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`,
-`docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`), and that v2's own three pre-registered
+comparisons in favor of IC/percentile evidence (`docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`,
+`docs/reports/scoring/SCORE_FORENSIC_REPORT.md`), and that v2's own three pre-registered
 criteria pass cleanly, **v2 is judged to clearly beat the minimal score
 on the stronger evidence**, not superseded by it. This judgment call is
 recorded explicitly rather than presented as unambiguous — a reader who
@@ -124,7 +124,7 @@ alpha_score_shadow_v1]` for the latest date to
 `data/signals/alpha_score_shadow_log.parquet` on every run (deduped on
 `symbol`+`date`), building a growing daily record. **First entry:
 2026-07-09, 28 symbols** — this is where v2's real, live out-of-sample
-track record starts; everything in this report and `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`
+track record starts; everything in this report and `docs/reports/scoring/SCORE_V2_DESIGN.md`
 is in-sample/backtested by comparison.
 
 **Cập nhật 2026-07-16 — chuỗi thưa trước tự động hóa, không phải lỗ hổng
@@ -191,7 +191,7 @@ round did.
 **KHÔNG được dùng làm căn cứ phân bổ vốn thật** cho đến khi qua một trong các
 điều kiện xem lại dưới đây với kết quả thuận lợi.
 
-**Lý do, tổng hợp từ `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` (GĐ5)**:
+**Lý do, tổng hợp từ `docs/reports/scoring/ROBUSTNESS_REPORT.md` (GĐ5)**:
 - v2 có **hiệu ứng xếp hạng thật** — IC ổn định qua thời gian (t_NW
   `realized_vol_20d`/`value_ma20` = −5.48/−3.37 trên dữ liệu hiện hành, gần
   như y hệt −5.41/−3.33 lúc thiết kế, không suy giảm), và cả hai đều **sống
@@ -200,13 +200,13 @@ round did.
 - Nhưng **chiến lược (không phải nhân tố) chưa có bằng chứng lợi nhuận đứng
   vững qua kiểm định đa kiểm định trung thực**: Deflated Sharpe Ratio =
   **0.0083** khi khai báo M=560 "thử nghiệm" đã thực hiện trong lịch sử dự
-  án (cách đếm đầy đủ: `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5) — tức xác suất còn lại
+  án (cách đếm đầy đủ: `docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5) — tức xác suất còn lại
   cho "đây là kỹ năng thật, không phải may mắn trong 560 lần thử" chỉ
   **0.83%**. Bootstrap CI (block=20 ngày, N=1000, seed=42) cho cả CAGR
   ([−9.6%, +19.3%]) lẫn Sharpe ([−0.59, +1.32]) đều **chứa 0** — không bác bỏ
   được giả thuyết "hiệu suất thật bằng 0" ở mức 95%.
 - Cả hai con số DSR/bootstrap trên **CHƯA trừ mức sàn hiệu chỉnh survivorship
-  bias** (`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`: +0.4%/+1.2%/+2.9% ở cửa sổ
+  bias** (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`: +0.4%/+1.2%/+2.9% ở cửa sổ
   20/60/120 ngày) — nếu trừ thêm, phần "hiệu suất thật" còn lại chỉ càng nhỏ
   hơn, không lớn hơn.
 
@@ -216,7 +216,7 @@ và "Sharpe đáng tin sau khấu trừ đa kiểm định" chính là lý do c�
 thay vì triển khai thẳng. Kết luận này không rút lại việc v2 vẫn là composite
 **có bằng chứng độc lập tốt nhất** trong toàn bộ danh mục nhân tố đã test của
 dự án (so với `trend_score`/`momentum_score`/... đều yếu hơn nhiều, xem
-`docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`) — chỉ là "tốt nhất trong số đã test" không
+`docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`) — chỉ là "tốt nhất trong số đã test" không
 đồng nghĩa "đủ tốt để dùng vốn thật".
 
 **Nếu có bất kỳ vốn thật nào hiện đang theo `client_ready_watchlist`/`alpha_score`
@@ -237,7 +237,7 @@ thứ 4**:
    đủ 6 tháng dữ liệu live (trùng mốc điều kiện #1), tính Sharpe ratio **thuần
    out-of-sample** (chỉ dùng return thật ghi nhận trong shadow log, không
    backtest) của danh mục v2-scored, rồi so với khoảng tin cậy bootstrap đã
-   tính ở `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` ([−0.59, +1.32], năm hoá) — nếu Sharpe
+   tính ở `docs/reports/scoring/ROBUSTNESS_REPORT.md` ([−0.59, +1.32], năm hoá) — nếu Sharpe
    out-of-sample nằm trong hoặc dưới nửa dưới của CI này, đó là xác nhận
    thêm cho quyết định "chưa đủ bằng chứng dùng vốn thật" ở trên, không phải
    một điều kiện độc lập mới đòi hỏi bằng chứng khác; nếu Sharpe out-of-sample

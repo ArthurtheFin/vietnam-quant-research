@@ -4,14 +4,14 @@
 trọng số/tham số nào của `alpha_score` v2 hay `final_watchlist.py`, bất kể kết
 quả.** Mục đích: đo và kết luận trung thực. `audit/PATH_TO_100.md` mục 9 (4/8).
 
-**Trích dẫn nguồn**: `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`/`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`,
-`docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`,
-`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`, `docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md` (mục 1 dưới đây, tài
+**Trích dẫn nguồn**: `docs/reports/scoring/SCORE_V2_DESIGN.md`/`docs/reports/scoring/SCORE_V2_REPORT.md`,
+`docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`,
+`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`, `docs/reports/scoring/V2_STABILITY_NOTE.md` (mục 1 dưới đây, tài
 liệu riêng do nội dung dài).
 
 ---
 
-## 1. Nghịch lý 71.0 vs 52.8 — đã giải (chi tiết đầy đủ: `docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md`)
+## 1. Nghịch lý 71.0 vs 52.8 — đã giải (chi tiết đầy đủ: `docs/reports/scoring/V2_STABILITY_NOTE.md`)
 
 Ba nghi phạm: (a) khác cỗ máy gọi `run_portfolio_backtest` — loại ngay (cùng
 hàm). (b) dữ liệu mới/2 mốc khác nhau. (c) hai bộ lọc GĐ4 thêm vào
@@ -24,7 +24,7 @@ hình (ACTIVE-only, không `minimal_eligible`): **70.5** — gần như không �
 
 **Kết luận bằng loại trừ**: gate `minimal_eligible` (ATR/`distance_ma20`/
 drawdown/giá sàn, không chỉ thanh khoản/trend) là nguyên nhân gần như toàn bộ
-của chênh lệch. `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`'s 71.0 đúng cho v2 kiểm tra độc lập,
+của chênh lệch. `docs/reports/scoring/SCORE_V2_REPORT.md`'s 71.0 đúng cho v2 kiểm tra độc lập,
 nhưng lạc quan hơn thực tế nếu trích dẫn làm bằng chứng cho v2 hoạt động BÊN
 TRONG pipeline đầy đủ của `final_watchlist.py`. Khuyến nghị: nếu tương lai có
 quyết định dùng lại v2 làm cơ sở xếp hạng cho `final_watchlist.py`, phải kiểm
@@ -32,7 +32,7 @@ quyết định dùng lại v2 làm cơ sở xếp hạng cho `final_watchlist.p
 
 ## 2. Recalibrate t_NW của v2's 2 nhân tố trên dữ liệu hiện hành
 
-| Nhân tố | t_NW gốc (`docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`) | t_NW hiện hành (full, residualized) | Δ |
+| Nhân tố | t_NW gốc (`docs/reports/scoring/SCORE_V2_DESIGN.md`) | t_NW hiện hành (full, residualized) | Δ |
 |---|---|---|---|
 | `realized_vol_20d` | −5.41 | **−5.48** | +0.07 (mạnh hơn nhẹ) |
 | `value_ma20` | −3.33 | **−3.37** | +0.04 (mạnh hơn nhẹ) |
@@ -65,7 +65,7 @@ thành phần con, cùng dữ liệu, cùng script `diagnose_factor_ic_robust.py
 | `realized_vol_20d` | −5.48 |
 | `volatility_percentile` | −3.16 |
 | `tail_ratio_60d` | **+0.98 — KHÔNG có ý nghĩa thống kê** |
-| `risk_penalty_score` | không tính được (luôn NaN→0.5 trung lập, xem `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 2 phát hiện #4) |
+| `risk_penalty_score` | không tính được (luôn NaN→0.5 trung lập, xem `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 2 phát hiện #4) |
 
 **Kết luận: (i) risk_score ≈ cụm vol.** Cả 3 thành phần đóng góp thật
 (`atr_pct_14`, `realized_vol_20d`, `volatility_percentile`) đều là biến thể
@@ -115,14 +115,14 @@ tự công bố trong chính report đó, không tự đếm lại):
 
 | Nguồn | Số tổ hợp |
 |---|---|
-| `docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` (44 nhân tố × 2 universe × 2 target) | 176 |
-| `docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` (48 nhân tố × 2 universe × 2 target — tái chạy trên dữ liệu sạch, tính là một đợt thử riêng) | 192 |
-| `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md` (factor-direction, lift-based) | 88 |
-| `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` (7 thành phần composite × ~4 cấu hình + v2/watchlist tối giản) | 38 |
-| `docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` (tổ hợp holding-period) | 30 |
+| `docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` (44 nhân tố × 2 universe × 2 target) | 176 |
+| `docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` (48 nhân tố × 2 universe × 2 target — tái chạy trên dữ liệu sạch, tính là một đợt thử riêng) | 192 |
+| `docs/reports/scoring/EVENT_DETECTION_REPORT.md` (factor-direction, lift-based) | 88 |
+| `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` (7 thành phần composite × ~4 cấu hình + v2/watchlist tối giản) | 38 |
+| `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` (tổ hợp holding-period) | 30 |
 | Portfolio construction sensitivity (size 5/10/20 × sector cap, ước lượng từ commit `7c791d7`, không có bảng số chi tiết để đếm chính xác — ước lượng 3×3) | 9 (ước lượng) |
-| `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` round 1 (3 tín hiệu × 3 lag × {test chính, CAR}) | 18 |
-| `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md` (3 nhóm × 3 lag) | 9 |
+| `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` round 1 (3 tín hiệu × 3 lag × {test chính, CAR}) | 18 |
+| `docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md` (3 nhóm × 3 lag) | 9 |
 | **Tổng M** | **560** |
 
 **Đây là ước lượng công khai, không phải số chính xác** — đặc biệt dòng
@@ -170,7 +170,7 @@ thật = 0" ở mức 95%, nhất quán với kết quả DSR.
 **Chú thích cố định, áp dụng cho mọi số long-only trong tài liệu này và các
 báo cáo tương lai**: mọi con số CAGR/Sharpe/excess-return long-only ở trên
 CHƯA trừ mức sàn hiệu chỉnh survivorship bias đã định lượng ở
-`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` (**+0.4%/+1.2%/+2.9%** ở cửa sổ 20/60/120
+`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` (**+0.4%/+1.2%/+2.9%** ở cửa sổ 20/60/120
 ngày giao dịch) — nếu trừ thêm, CAGR/Sharpe thật sự còn thấp hơn số đã báo ở
 trên, không cao hơn.
 

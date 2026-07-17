@@ -1,8 +1,8 @@
 # CONCENTRATION_ANALYSIS_REPORT — is the tail concentration risk, or the signal?
 
-**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/docs/reports/data/DATA_BASELINE.md`),
-deployed scoring at commit `7c791d7` (post-`docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md` and
-`docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` changes). Follow-up to `docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`,
+**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/DATA_BASELINE.md`),
+deployed scoring at commit `7c791d7` (post-`docs/reports/scoring/SCORING_UPDATE_REPORT.md` and
+`docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` changes). Follow-up to `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`,
 which ruled out simple regime labels and transaction costs and named
 portfolio structure (5 equal-weighted names, idiosyncratic/sector variance)
 as the next suspect. **Seed = 42** for every random draw below (same
@@ -42,7 +42,7 @@ portfolio's CAGR was then located as a percentile within each fold's
 eligible names on average did *better* than the deployed scoring system.
 This is the cleaner, apples-to-apples measure the null test was designed
 to produce, and it is a more serious finding than the raw mean-CAGR
-comparison in `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md`/`docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` surfaced
+comparison in `docs/reports/scoring/SCORING_UPDATE_REPORT.md`/`docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` surfaced
 on its own.
 
 ### Per-fold, against the pre-registered interpretation
@@ -63,7 +63,7 @@ on its own.
   disaster fold — the pre-registered signature of "active signal actively
   hurt this period," not concentration noise.** 99.6% of random 5-stock
   portfolios from the same eligible universe did *better* than the
-  deployed score's actual picks. This sharpens `docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`'s
+  deployed score's actual picks. This sharpens `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`'s
   2026 finding: it isn't just an unlucky concentrated draw during a
   narrow-breadth market — the scoring formula itself steered toward
   names that underperformed even a random draw from the same

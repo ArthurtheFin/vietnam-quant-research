@@ -1,11 +1,11 @@
-"""docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md NV3: run the deployed composite alpha_score
+"""docs/reports/scoring/SCORE_FORENSIC_REPORT.md NV3: run the deployed composite alpha_score
 through the exact same canonical IC pipeline as
 scratch/diagnose_factor_ic_robust.py (Newey-West maxlags=20, raw +
 residualized target, full + top-150 universe) -- ironically never tested
 directly as a single factor before, only its individual inputs
 (distance_ma20/return_20d/realized_vol_20d) were. Run alongside a
 "minimal score" = realized_vol_20d alone (the one component with
-validated standalone IC in docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md) as the benchmark
+validated standalone IC in docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md) as the benchmark
 to beat.
 """
 from __future__ import annotations
@@ -87,7 +87,7 @@ def sector_demean(frame: pd.DataFrame, value_col: str, eligible_mask: pd.Series)
 REBALANCE_PERIOD = 21
 LIQUIDITY_LOOKBACK = 60
 TOP_N = 150
-MIN_VALUE_MA20 = 3_000_000_000.0  # same locked-in threshold as docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md
+MIN_VALUE_MA20 = 3_000_000_000.0  # same locked-in threshold as docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md
 
 df["median_value_60d"] = df.groupby("symbol")["value"].transform(
     lambda s: s.rolling(LIQUIDITY_LOOKBACK, min_periods=30).median()
@@ -167,7 +167,7 @@ result = pd.DataFrame(rows)
 pd.set_option("display.width", 160)
 print("\n" + "=" * 90)
 print("MAIN TABLE -- alpha_score (composite) vs realized_vol_20d (minimal, validated score)")
-print("Eligibility threshold: value_ma20 >= 3B VND (locked per docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md)")
+print("Eligibility threshold: value_ma20 >= 3B VND (locked per docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md)")
 print("=" * 90)
 print(result.to_string(index=False, formatters={"mean_IC": "{:+.4f}".format, "t_naive": "{:+.2f}".format, "t_NW": "{:+.2f}".format}))
 

@@ -2,8 +2,8 @@
 
 **This document is written and committed BEFORE any v2 comparison,
 null test, or IC run.** Every design choice below is justified from
-evidence already on record in `docs/reports/data/docs/reports/data/DATA_BASELINE.md`, `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md`,
-and `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` — none of it is derived from, or will be
+evidence already on record in `docs/reports/data/DATA_BASELINE.md`, `docs/reports/scoring/SCORING_UPDATE_REPORT.md`,
+and `docs/reports/scoring/SCORE_FORENSIC_REPORT.md` — none of it is derived from, or will be
 adjusted in response to, this round's confirmation run. If the
 confirmation run (a separate step, after this file is committed) looks
 bad, the response is to report honestly and hold, not to revise this
@@ -20,13 +20,13 @@ run. Accept the result as written.
 
 ### 1. `realized_vol_20d` — core component, weight 70%
 
-**Evidence**: `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` NV3 — mean IC −0.0758 (full) /
+**Evidence**: `docs/reports/scoring/SCORE_FORENSIC_REPORT.md` NV3 — mean IC −0.0758 (full) /
 −0.0734 (top150), t_NW **−5.41 in both universes**, residualized target.
 Same-signed across all 3 time periods and *strengthening* over time
-(t_NW −1.63 → −2.49 → −7.99, `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`'s 3-period
+(t_NW −1.63 → −2.49 → −7.99, `docs/reports/scoring/SCORE_FORENSIC_REPORT.md`'s 3-period
 table). This is the single most robust, longest-standing piece of
 evidence in the whole factor-testing program this session — it is also
-the one component `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`'s forensic found actively
+the one component `docs/reports/scoring/SCORE_FORENSIC_REPORT.md`'s forensic found actively
 *helping* during the 2026 disaster fold (IC +0.1894 that period) while
 everything else in the old composite was actively hurting.
 
@@ -43,7 +43,7 @@ outliers (a raw z-score would be more sensitive to the fat-tailed
 
 ### 2. Liquidity cluster (`value_ma20`) — secondary component, weight 30%
 
-**Evidence**: `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV1 — `value_ma20` and
+**Evidence**: `docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV1 — `value_ma20` and
 `liquidity_score` both showed mean IC −0.0413, t_NW **−3.33**, but **full
 universe only** (did not clear the bar in the top-150 subset) and
 residualized target only. Weaker and narrower evidence than
@@ -51,7 +51,7 @@ residualized target only. Weaker and narrower evidence than
 is exactly why it gets the smaller weight below, not a tuned figure.
 `value_ma20` and `liquidity_score` are the same signal in different
 units (Spearman correlation +1.00 — the latter is a percentile-rank
-transform of the former, `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV1) — only one is
+transform of the former, `docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV1) — only one is
 needed; `value_ma20` (the raw, more legible quantity) is used directly.
 
 **Direction**: reward LOW `value_ma20`, i.e. smaller/less-liquid names
@@ -62,7 +62,7 @@ illiquid names outright, since the eligibility gate's own
 candidate).
 
 **Survivorship-bias caveat (carried forward, not resolved here)**: per
-`docs/reports/data/docs/reports/data/DATA_BASELINE.md` caveat #2, this dataset excludes any company delisted,
+`docs/reports/data/DATA_BASELINE.md` caveat #2, this dataset excludes any company delisted,
 merged away, or suspended since 2020. A small/less-liquid-name premium is
 exactly the kind of effect survivorship bias is expected to inflate —
 the small caps that didn't survive to be in today's universe are
@@ -75,12 +75,12 @@ disclosed limitation of the weight below, not new information.
 
 ### `distance_ma20` — kept as a gate only, NOT added to the v2 linear score
 
-Already loosened to 0.23/0.33 (`docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV2) in
+Already loosened to 0.23/0.33 (`docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV2) in
 `src/screening/final_watchlist.py`'s eligibility gate — **unchanged,
 not touched by this round**. Not promoted into v2's weighted score
 because its evidentiary basis is a different statistical framework
 (event-detection lift, not cross-sectional IC) and, per
-`docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md`, that lift result was explicitly flagged as
+`docs/reports/scoring/SCORING_UPDATE_REPORT.md`, that lift result was explicitly flagged as
 **"not yet statistically confirmed."** Mixing an unconfirmed lift-style
 result into an IC-validated linear score would blur two different kinds
 of evidence together under one weight — keeping it as a separate,
@@ -93,10 +93,10 @@ role stays "gate/filter as currently."
 
 | Component | Reason for exclusion |
 |---|---|
-| `momentum_score` | `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` NV2: IC flips from +0.0158 (2023-2025) to **−0.1050** (2026) — a momentum-crash/reversal pattern. Never independently validated (its own inputs, `return_20d`, already removed from the score in `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md` for near-zero IC across all 4 tested combinations). |
+| `momentum_score` | `docs/reports/scoring/SCORE_FORENSIC_REPORT.md` NV2: IC flips from +0.0158 (2023-2025) to **−0.1050** (2026) — a momentum-crash/reversal pattern. Never independently validated (its own inputs, `return_20d`, already removed from the score in `docs/reports/scoring/SCORING_UPDATE_REPORT.md` for near-zero IC across all 4 tested combinations). |
 | `rs_score` | Same forensic pattern: IC flips from +0.0141 to **−0.1060** in 2026. No independent validated-IC evidence of its own either. |
-| `trend_score` | `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` NV2: pinned at exactly 100.0 for all 30 stocks selected in the 2026 forensic sample — saturated by the `above_ma200` eligibility gate that already runs before scoring, so it has no discriminating power left to contribute to a ranking. |
-| `volume_score` | Never appeared in the 21/192 passing IC combinations (`docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV1) and was never independently validated elsewhere in this session's factor-testing program. No positive evidence to include it on the "only validated factors" principle. |
+| `trend_score` | `docs/reports/scoring/SCORE_FORENSIC_REPORT.md` NV2: pinned at exactly 100.0 for all 30 stocks selected in the 2026 forensic sample — saturated by the `above_ma200` eligibility gate that already runs before scoring, so it has no discriminating power left to contribute to a ranking. |
+| `volume_score` | Never appeared in the 21/192 passing IC combinations (`docs/reports/scoring/SCORING_UPDATE_REPORT.md` NV1) and was never independently validated elsewhere in this session's factor-testing program. No positive evidence to include it on the "only validated factors" principle. |
 
 ---
 
@@ -139,7 +139,7 @@ this session (2022-2026 partial).
 **Three variants backtested**:
 1. **v2** (this design).
 2. **Old composite** (current deployed `alpha_score`, all 6 components,
-   post-`docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md` edits).
+   post-`docs/reports/scoring/SCORING_UPDATE_REPORT.md` edits).
 3. **Minimal score** (`realized_vol_20d` alone, 100% weight, same
    inverted-rank normalization) — the benchmark v2 must clearly beat to
    justify its extra complexity.
@@ -149,7 +149,7 @@ this session (2022-2026 partial).
 - Null test: 2,000 random portfolios/fold, **seed=42**, same eligible
   universe/rebalance/cost, for v2 (the old composite's null-test result,
   average percentile 41.2, and the minimal score's, are both already on
-  record from `docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`/`docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`
+  record from `docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`/`docs/reports/scoring/SCORE_FORENSIC_REPORT.md`
   and are reused as the comparison baseline, not rerun).
 - IC Newey-West, maxlags=20, full+top150 universe, raw+residualized
   target, 3-period split — same pipeline as
@@ -159,7 +159,7 @@ this session (2022-2026 partial).
 v2 is **accepted** only if **all three** hold:
 1. Null-test average percentile **> 50** across the 5 folds.
 2. **No single fold's percentile < 5** (the disaster-signature threshold
-   `docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md` pre-registered).
+   `docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md` pre-registered).
 3. IC **same-sign across all 3 periods** (full universe, residualized
    target).
 

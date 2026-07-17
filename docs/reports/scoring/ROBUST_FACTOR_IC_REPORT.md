@@ -1,6 +1,6 @@
 # ROBUST_FACTOR_IC_REPORT — Newey-West + residualized target + liquidity subset
 
-> **Addendum (see `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`)**: the "2020-2026" sample this
+> **Addendum (see `docs/reports/data/DATA_AUDIT_REPORT.md`)**: the "2020-2026" sample this
 > report describes is, in reality, a 5-6 symbol dataset in 2020-2022 and a
 > ~90-symbol dataset in 2023-2024 — 495 of 501 symbols have no data before
 > 2023, and 406 of 501 have none before 2025-Q2. This report's eligibility

@@ -1,6 +1,6 @@
 # STRATEGY RESEARCH REPORT — vietnam-quant-research
 
-Nối tiếp `docs/reports/codebase_audit/docs/reports/codebase_audit/REMEDIATION_REPORT.md` (audit fix). Phạm vi: sau khi sửa xong các lỗi đo lường/logic, dùng chính hạ tầng đã sửa để trả lời câu hỏi "chiến lược hiện tại có thực sự lời không, và có thể cải thiện được không" — bằng dữ liệu thật (`data/` copy từ repo gốc, 2020-01-02 → 2026-07-06, 501 mã tracked).
+Nối tiếp `docs/reports/codebase_audit/REMEDIATION_REPORT.md` (audit fix). Phạm vi: sau khi sửa xong các lỗi đo lường/logic, dùng chính hạ tầng đã sửa để trả lời câu hỏi "chiến lược hiện tại có thực sự lời không, và có thể cải thiện được không" — bằng dữ liệu thật (`data/` copy từ repo gốc, 2020-01-02 → 2026-07-06, 501 mã tracked).
 
 ---
 

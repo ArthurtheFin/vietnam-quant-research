@@ -1,4 +1,4 @@
-"""Task 3 re-pilot (Round 3, docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md): re-fetch the same
+"""Task 3 re-pilot (Round 3, docs/reports/data/BACKFILL_DESIGN_REPORT.md): re-fetch the same
 20 pilot symbols (seed=42, unchanged) through the REAL production fetch
 path -- fetch_symbol_history (chunked, with the now-fixed fallback) -- not
 the ad hoc direct get_daily_ohlc call the original pilot script used (which

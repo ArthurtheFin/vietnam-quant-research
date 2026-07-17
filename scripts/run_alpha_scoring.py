@@ -99,7 +99,7 @@ def main():
 
     # Shadow log: v2 (deployed) vs v1 (shadow) side by side, appended daily
     # so the live out-of-sample comparison accumulates day by day starting
-    # from today (docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md).
+    # from today (docs/reports/scoring/SCORE_V2_REPORT.md).
     if "alpha_score_shadow_v1" in latest_subset.columns:
         shadow_cols = ["symbol", "date", "alpha_score", "alpha_score_shadow_v1"]
         shadow_today = latest_subset[shadow_cols].copy()

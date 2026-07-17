@@ -1,6 +1,6 @@
 # EVENT_DETECTION_REPORT — reframed from IC to tail-event lift
 
-> **Addendum (see `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`, written as a direct follow-up to
+> **Addendum (see `docs/reports/data/DATA_AUDIT_REPORT.md`, written as a direct follow-up to
 > this report's Period-1 finding)**: the root cause of Period 1's
 > structural NaN is now confirmed as a universe/coverage problem, not the
 > 10B VND liquidity threshold. Only 5-6 symbols (of 501) have sustained
@@ -11,7 +11,7 @@
 > traded value — ruling out a units bug. This is a much larger issue than
 > "the threshold happened to be too strict for 2020-2022" as this report
 > originally framed it: there was barely a universe to apply any threshold
-> to in that period. Not fixed or re-run this round; see `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`
+> to in that period. Not fixed or re-run this round; see `docs/reports/data/DATA_AUDIT_REPORT.md`
 > for remediation options.
 
 Reframes the question from "average monotonic relationship" (IC) to "can a

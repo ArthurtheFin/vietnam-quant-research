@@ -4,14 +4,14 @@
 from this point forward must cite `data/disclosure/events.parquet` (full
 501-symbol-universe crawl minus `GEE`, completed 2026-07-12, code commit
 range `2e17be7`..`7933e91`) as its disclosure data source. See
-`docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` (Rounds 3-5) for the full design and
+`docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` (Rounds 3-5) for the full design and
 verification history; this document is the operational/descriptive summary,
-mirroring `docs/reports/data/docs/reports/data/DATA_BASELINE.md`'s role for the price dataset.
+mirroring `docs/reports/data/DATA_BASELINE.md`'s role for the price dataset.
 
 **This document is descriptive only.** Nothing below joins against price,
 computes a return, or reports any statistic that mixes disclosure timing
 with market outcomes. That boundary is deliberate — see
-`docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5/NV0 for why, and do not extend this
+`docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5/NV0 for why, and do not extend this
 document with return-linked statistics; that belongs in a separately
 pre-registered signal-test design, not appended here after the fact.
 
@@ -23,7 +23,7 @@ pre-registered signal-test design, not appended here after the fact.
 | Fetch method | `GET cafef.vn/du-lieu/Ajax/PageNew/DataHistory/GDCoDong.ashx?Symbol={sym}&PageSize=2000` (blank date range = full history), one polite request per symbol at >=2.5s pacing |
 | Fetch window | 2026-07-12 18:27 UTC → 2026-07-12 18:51 UTC (~24 min, 500 symbols) |
 | Code commit range | `2e17be7` (client+crawler) .. `7933e91` (incremental ingest) |
-| Symbols crawled | 500 of 501 (`GEE` excluded per `config/excluded_symbols.csv`, same exclusion as `docs/reports/data/docs/reports/data/DATA_BASELINE.md`) |
+| Symbols crawled | 500 of 501 (`GEE` excluded per `config/excluded_symbols.csv`, same exclusion as `docs/reports/data/DATA_BASELINE.md`) |
 | Crawl errors | 0/500 (no rate-limiting encountered, no fetch failures) |
 | Raw tier size | 29.3 MB |
 | Parsed rows (pre-validation) | 57,800 |
@@ -222,7 +222,7 @@ ROUND 4 five-symbol pilot, just at full-universe scale.
    above): grouped `events.parquet` by `NATURAL_KEY_BASE`, sampled 10 of the
    98 size-2 groups, printed both rows' parsed columns + `raw_payload`.
 2. **Panel is skewed toward large/long-listed symbols, same caveat as
-   `docs/reports/data/docs/reports/data/DATA_BASELINE.md`'s survivorship-bias note, compounded here.** The 500
+   `docs/reports/data/DATA_BASELINE.md`'s survivorship-bias note, compounded here.** The 500
    symbols are "listed today"; disclosure history depth correlates with how
    long a company has been listed and how large/active its insider base
    is. Any later analysis must normalize by period × symbol-group (e.g.
@@ -247,5 +247,5 @@ ROUND 4 five-symbol pilot, just at full-universe scale.
 7. **This dataset has not been joined against price/return data, and this
    document deliberately contains no statistic that would require such a
    join.** Any signal-test design must be pre-registered (per
-   `docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5's hard constraint) before this
+   `docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5's hard constraint) before this
    dataset is looked at alongside price data for the first time.

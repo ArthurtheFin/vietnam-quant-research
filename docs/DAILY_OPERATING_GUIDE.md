@@ -18,7 +18,7 @@ liệu này và report gốc lệch nhau, tin report gốc.
 >    sử thử nghiệm của dự án (560 lần thử), và khoảng tin cậy bootstrap cho cả
 >    CAGR lẫn Sharpe của nó đều **chứa số 0** — nghĩa là không thể bác bỏ khả
 >    năng "hiệu suất thật = 0, mọi thứ nhìn thấy chỉ là may mắn". Nguồn:
->    `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5, `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md` mục "Trạng thái sau
+>    `docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5, `docs/reports/scoring/SCORE_V2_REPORT.md` mục "Trạng thái sau
 >    GĐ5". Nếu hiện có bất kỳ khoản vốn thật nào đang theo watchlist/score của
 >    dự án này: khuyến nghị chính thức là đưa về 0, hoặc nếu không thể ngừng
 >    ngay, giới hạn ở mức "học phí" — số tiền mà mất trắng không gây tổn hại
@@ -28,7 +28,7 @@ liệu này và report gốc lệch nhau, tin report gốc.
 >    thanh khoản, dữ liệu tươi, đang thật sự giao dịch. **Thứ tự trong file là
 >    xếp theo thanh khoản (`value_ma20`, giảm dần), KHÔNG phải theo độ hấp
 >    dẫn đầu tư.** Mã đứng hạng 1 là mã thanh khoản cao nhất trong rổ, không
->    phải mã "tốt nhất". Đây là quyết định có chủ đích (`docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`
+>    phải mã "tốt nhất". Đây là quyết định có chủ đích (`docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`
 >    — "Nhánh C"), không phải một tính năng chưa làm xong.
 > 3. **Mọi quyết định đầu tư — chọn mã nào, mua bao nhiêu, lúc nào — là của
 >    bạn.** Hệ thống chỉ thu hẹp vũ trụ 500 mã xuống một danh sách sạch, đủ
@@ -90,7 +90,7 @@ kết luận cuối cùng. Nếu ngắt quãng: xử lý ngay theo mục 5, đ�
 `data/output/client_ready_watchlist.csv`/`trading_watchlist.csv`/`research_candidates.csv`)
 
 **Nguồn**: `src/screening/final_watchlist.py`. Nhãn "Nhánh C" —
-`docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`.
+`docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`.
 
 | Cột | Ý nghĩa | Có bằng chứng dùng để xếp hạng không? |
 |---|---|---|
@@ -98,11 +98,11 @@ kết luận cuối cùng. Nếu ngắt quãng: xử lý ngay theo mục 5, đ�
 | `symbol` | Mã cổ phiếu | — |
 | `value_ma20` | Giá trị giao dịch bình quân 20 ngày (VND) — **đây là cột quyết định thứ hạng** | Đây là thước đo vận hành (thanh khoản), không phải một nhân tố alpha đã kiểm định |
 | `candidate_tier` | `Client Ready` / `Trading Watchlist` / `Research Candidate` / `Data Review` — xem giải thích tier bên dưới | — |
-| `final_score`, `base_final_score` | Điểm tổng hợp 7 thành phần cũ — **CHỈ ĐỂ THAM KHẢO/NGHIÊN CỨU, KHÔNG điều khiển thứ hạng hay việc mã có vào watchlist hay không** kể từ Nhánh C | **Không** — composite này đã kiểm định và KHÔNG đạt tiêu chí (`docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 1, 4) |
+| `final_score`, `base_final_score` | Điểm tổng hợp 7 thành phần cũ — **CHỈ ĐỂ THAM KHẢO/NGHIÊN CỨU, KHÔNG điều khiển thứ hạng hay việc mã có vào watchlist hay không** kể từ Nhánh C | **Không** — composite này đã kiểm định và KHÔNG đạt tiêu chí (`docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 1, 4) |
 | `trend_score`, `momentum_score`, `relative_strength_score`, `volume_score` | Thành phần con của điểm cũ | **Không** — t-stat đều yếu (`\|t_NW\|<1`), `momentum_score`≡`relative_strength_score` về mặt toán học (một sự dư thừa đã phát hiện, chưa sửa) |
 | `liquidity_score` | Thành phần con cũ (thưởng `value_ma20` cao) | **Không — chiều SAI**: t_NW=−4.19, đã gỡ khỏi mọi tính toán điểm tổng, chỉ còn hiển thị |
-| `risk_score` | Thành phần con đo biến động thấp | Có bằng chứng thống kê (t_NW=+4.72) nhưng **trùng lặp với `alpha_score` v2** (tương quan +0.822) — không phải nguồn thông tin mới, đã đóng hồ sơ (`docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 3) |
-| `signal_score` | Thành phần con dựa trên `meta_ranking.parquet` | **Không tính được** — file nguồn hóa ra là ảnh chụp một thời điểm, không phải chuỗi lịch sử (`docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 2, phát hiện #4) |
+| `risk_score` | Thành phần con đo biến động thấp | Có bằng chứng thống kê (t_NW=+4.72) nhưng **trùng lặp với `alpha_score` v2** (tương quan +0.822) — không phải nguồn thông tin mới, đã đóng hồ sơ (`docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 3) |
+| `signal_score` | Thành phần con dựa trên `meta_ranking.parquet` | **Không tính được** — file nguồn hóa ra là ảnh chụp một thời điểm, không phải chuỗi lịch sử (`docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 2, phát hiện #4) |
 | `reason` | Câu giải thích ngắn — **luôn có tiền tố cảnh báo** `[Không xếp hạng alpha, chỉ sắp theo thanh khoản...]` | — |
 | `eligibility_status`, `eligibility_reason` | Mã có qua được sàng lọc cơ bản không (thanh khoản, dữ liệu tươi, đang giao dịch) | — |
 | `cashflow_data_status`, `confirmation_status`, `cashflow_verification` | Dữ liệu dòng tiền/xác nhận có sẵn sàng cùng ngày không — ảnh hưởng việc mã có được xếp `Client Ready` hay bị hạ xuống `Trading Watchlist` | — |
@@ -154,8 +154,8 @@ cứu một mã cụ thể (ai đăng ký mua/bán, khi nào, bao nhiêu) — **
 làm tín hiệu dự báo giá tự động**. Đã kiểm định 3 vòng pre-register riêng
 biệt (test chính, khớp đối chứng survivorship bias, đối chứng khớp cặp cho
 cụm/gia đình) — **kết quả âm tính ở cả 3 vòng**, không nhân tố disclosure
-nào đạt ngưỡng ứng viên. Nguồn: `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`,
-`docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_REPORT.md`. Dữ liệu vẫn được cập nhật hằng ngày vì có
+nào đạt ngưỡng ứng viên. Nguồn: `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`,
+`docs/reports/disclosure/DISCLOSURE_PREREG_2_REPORT.md`. Dữ liệu vẫn được cập nhật hằng ngày vì có
 giá trị khác (dấu hiệu sớm cho hủy niêm yết — mục 6/Gate #3), không phải vì
 nhánh tín hiệu này còn mở.
 
@@ -209,7 +209,7 @@ duyệt qua watchlist thấy quen. Ở trạng thái hiện tại, hệ thống 
 - **`realized_vol_20d` (qua `risk_score`/`liquidity_score`... trong file
   điểm)**: đây là **nhân tố duy nhất trong toàn dự án có bằng chứng xếp hạng
   ổn định qua thời gian** (t_NW ≈ −5.48, sống sót qua hiệu chỉnh đa kiểm định
-  FDR — `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 2, 4) — mã biến động THẤP có xu hướng
+  FDR — `docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 2, 4) — mã biến động THẤP có xu hướng
   xếp hạng tốt hơn về mặt thống kê. **NHƯNG chưa có bằng chứng đây là một
   CHIẾN LƯỢC sinh lời đáng cược vốn thật** (DSR=0.0083, CI bootstrap chứa 0
   — xem khung nguyên tắc đầu trang). Dùng con số này như một dữ kiện tham
@@ -235,7 +235,7 @@ survivorship bias trước khi tin phần "vượt trội" còn lại**:
 | ~60 ngày giao dịch | 1.2% |
 | ~120 ngày giao dịch | 2.9% |
 
-(`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` — universe hiện tại chỉ gồm mã còn niêm yết
+(`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` — universe hiện tại chỉ gồm mã còn niêm yết
 hôm nay, nên tự nó đã có một mức "vượt trội ảo" không liên quan gì đến chọn
 mã giỏi.)
 
@@ -295,7 +295,7 @@ Nếu bảng trên không khớp triệu chứng bạn gặp, hoặc chạy lạ
 
 ## 6. Điều kiện dừng/xem lại — khi nào quay lại hỏi
 
-Bốn điều kiện dưới đây (nguyên văn từ `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md` mục "Trạng thái
+Bốn điều kiện dưới đây (nguyên văn từ `docs/reports/scoring/SCORE_V2_REPORT.md` mục "Trạng thái
 sau GĐ5"/"Conditions for review") xác định khi nào trạng thái "shadow only,
 không vốn thật" của `alpha_score` v2 cần được XEM LẠI — không phải tự động
 đảo ngược, mà là **mở một phiên làm việc mới để đánh giá bằng chứng, giống
@@ -313,7 +313,7 @@ cách quyết định ban đầu được đưa ra**.
 4. **Khi đủ 6 tháng (trùng mốc #1): tính Sharpe out-of-sample thuần** (chỉ
    dùng lợi nhuận thật ghi trong shadow log, không phải backtest) của danh
    mục v2-scored, so với khoảng tin cậy bootstrap `[−0.59, +1.32]` (năm hoá,
-   `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5). Nằm trong/dưới nửa dưới của khoảng này →
+   `docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5). Nằm trong/dưới nửa dưới của khoảng này →
    xác nhận thêm quyết định "chưa đủ bằng chứng dùng vốn thật" hiện tại,
    không cần làm gì khác. Vượt hẳn lên trên (đặc biệt gần/vượt +1.32) → đáng
    mở một round xem xét lại — vẫn cần review có pre-register riêng, **không

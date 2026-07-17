@@ -22,7 +22,7 @@ Impact paragraph below, which continues to apply in full.
 **Exact location**: structural — no file constructs a point-in-time
 listing/delisting table anywhere in `src/` or `scripts/`.
 `src/validation/bias_checks.py::check_survivorship_bias` exists but is
-never called against real data. `docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md` Task 2
+never called against real data. `docs/reports/data/BACKFILL_DESIGN_REPORT.md` Task 2
 documents that the available SSI endpoints (`get_securities`,
 `get_securities_details`) cannot enumerate historically-delisted
 symbols.
@@ -32,7 +32,7 @@ minus `GEE`) is "symbols listed today, backfilled to 2020." Any company
 delisted, merged away, or suspended indefinitely since 2020 is invisible
 to every backtest run against this universe (`src/backtest/portfolio_backtest.py`,
 `src/backtest/breakout_research.py`) and every factor-IC test
-(`docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, `docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`). A prior
+(`docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, `docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`). A prior
 notebook cell that mocked a survivorship check with a hardcoded
 `["FLC","ROS","ART"]` list was replaced with an honest "no data
 available" state — an improvement in honesty, but the underlying gap
@@ -88,7 +88,7 @@ hardcoded path outside `dataset_config.py`.
 features = read_parquet(PROJECT_ROOT / "data/processed/stock_features.parquet")
 ```
 
-**Evidence**: `docs/reports/data/docs/reports/data/DATA_BASELINE.md` (this repo's own official price-dataset
+**Evidence**: `docs/reports/data/DATA_BASELINE.md` (this repo's own official price-dataset
 baseline) explicitly states: *"data/full_history_v2 is not yet merged
 into data/processed/ — any code still reading data/processed/stock_features.parquet
 directly is reading data known to be wrong for a large, uncatalogued
@@ -109,7 +109,7 @@ price series, corrupting downstream vol/return/risk-contribution
 figures without any error or warning surfacing.
 
 **Recommended fix**: either merge `data/full_history_v2` into
-`data/processed/` (the fix `docs/reports/data/docs/reports/data/DATA_BASELINE.md` itself already
+`data/processed/` (the fix `docs/reports/data/DATA_BASELINE.md` itself already
 recommends), or repoint `build_portfolio_stack.py` at
 `data/full_history_v2` directly.
 
@@ -197,14 +197,14 @@ as regressions against every field in `FORBIDDEN_V1_SHADOW_FIELDS`
 reappearing in any output.
 
 **Severity**: CRITICAL. **Confidence**: CONFIRMED (direct code citation,
-cross-referenced against `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`).
+cross-referenced against `docs/reports/scoring/SCORE_FORENSIC_REPORT.md`).
 
 **Exact location**: `src/screening/final_watchlist.py`, `relative_strength_score`
 computation (`rs_raw`, ~line 459), which includes `_rank(out.get("alpha_rs_score", ...))`.
 `alpha_rs_score` is merged in from `alpha_scores.parquet`'s `rs_score`
 column (`_merge_latest_alpha`, ~line 386).
 
-**Evidence**: `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` found this exact `rs_score`
+**Evidence**: `docs/reports/scoring/SCORE_FORENSIC_REPORT.md` found this exact `rs_score`
 component's IC flipped from +0.0141 (2023-2025) to **-0.1060 in 2026** —
 "the single largest negative IC of any component in that fold" and one of
 "the primary culprits" of a real backtest fold that lost -59.7% while

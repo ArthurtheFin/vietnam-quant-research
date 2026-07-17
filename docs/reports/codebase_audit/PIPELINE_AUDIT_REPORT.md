@@ -10,7 +10,7 @@ headline finding; the routine pipeline health table is secondary.
 ## Headline finding: the entire validated strategy was calibrated on stale, pre-fix feature data
 
 The `stock_features.parquet` this whole session's research was built on
-(`docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`, `docs/reports/deploy/docs/reports/deploy/DEPLOY_REPORT.md`, `docs/reports/scoring/docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md`,
+(`docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`, `docs/reports/deploy/DEPLOY_REPORT.md`, `docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md`,
 and the two production changes already pushed to PR #1) had file mtime
 **2026-07-07 08:35** — **it predates commit `4b42df4` (2026-07-08 09:29,
 "fix(G4): flag out-of-band returns as corporate actions instead of clipping")**
@@ -46,7 +46,7 @@ on.
 
 ### Re-running the exact same validation scripts, unchanged, on the regenerated data
 
-| Fold | Reported (stale data, `docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6) | **Re-run just now (fresh data)** |
+| Fold | Reported (stale data, `docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6) | **Re-run just now (fresh data)** |
 |---|---|---|
 | 2022 | -27.6% | -27.6% (unaffected — no flags before 2023) |
 | 2023 | +13.1% | +11.2% |
@@ -204,7 +204,7 @@ both show a near-zero, sign-unstable relationship).
    formula found so far has real alpha; this isn't a two-horse race where
    picking the less-bad option is a fix.
 3. **This reopens factor research from scratch**, not a re-calibration.
-   Redoing `docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`'s existing scripts on fresh data
+   Redoing `docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`'s existing scripts on fresh data
    won't help — the same three factors were just tested rigorously on
    correctly-computed data and don't hold up under either reasonable
    corporate-action handling. New factors, different data (possibly

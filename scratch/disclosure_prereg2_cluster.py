@@ -1,7 +1,7 @@
-"""NV2 -- run docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md exactly as locked. One run,
+"""NV2 -- run docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md exactly as locked. One run,
 no parameter tuning after seeing results. Tests H1 (cluster buying) and
 H2 (family-related-person buying) against a matched control (DCAR),
-instead of against zero, per docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md.
+instead of against zero, per docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md.
 
 Reuses (does not redefine) cluster_events/compute_car/
 block_bootstrap_mean_car/recompute_available_at from

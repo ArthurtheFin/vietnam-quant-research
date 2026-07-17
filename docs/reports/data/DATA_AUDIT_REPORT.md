@@ -1,7 +1,7 @@
 # DATA_AUDIT_REPORT — the "501-symbol, 2020-2026" universe is real only from ~2025-Q2
 
 Pure diagnosis, no fixes, no re-runs, no threshold changes. Triggered by
-`docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s finding of only 2-5 eligible names/day in
+`docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s finding of only 2-5 eligible names/day in
 2020-2022 — which is inconsistent with 2021 being a record-liquidity year
 for VN equities, so the suspect was a data problem, not a real liquidity
 constraint. **Confirmed: it's a universe/coverage problem, not liquidity and
@@ -25,7 +25,7 @@ reading each year, `data/processed/stock_features.parquet`):
 | 2026 (partial, ~123 sessions) | 323 | 128 | 198 | 261 |
 
 **2020-2022: only 5-6 symbols have sustained data, out of a claimed
-501-symbol universe.** This alone explains `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s
+501-symbol universe.** This alone explains `docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s
 "2-5 eligible names/day" finding — it was never a liquidity-threshold
 problem, there was almost nothing in the data to filter in the first place.
 
@@ -105,12 +105,12 @@ research effort has been built on on is, in reality:
 ## Consequences for prior conclusions — this is the important part
 
 **Every walk-forward result in this session (and the prior session's
-`docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`) that included a pre-2025 period was computed
+`docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`) that included a pre-2025 period was computed
 on a universe far smaller than believed:**
 
 - The "2022 crash fold" (-27.6%, repeated identically across every re-test
-  in this session — `docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`, `docs/reports/deploy/docs/reports/deploy/DEPLOY_REPORT.md`,
-  `docs/reports/scoring/docs/reports/scoring/CRASH_RISK_RESEARCH_REPORT.md`, `docs/reports/codebase_audit/docs/reports/codebase_audit/PIPELINE_AUDIT_REPORT.md`) is the return
+  in this session — `docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`, `docs/reports/deploy/DEPLOY_REPORT.md`,
+  `docs/reports/scoring/CRASH_RISK_RESEARCH_REPORT.md`, `docs/reports/codebase_audit/PIPELINE_AUDIT_REPORT.md`) is the return
   of a **5-6 symbol portfolio**, not a cross-sectional stock-picking result
   over hundreds of names. With `portfolio_size=5`, the backtest's "top-5 by
   score" selection had essentially no universe to select FROM in 2020-2022
@@ -121,23 +121,23 @@ on a universe far smaller than believed:**
   zero-fill variants) — there was barely a choice being made.
 - The "2023 fold" (~90-93 symbols) is thin but at least somewhat
   cross-sectional; still far from the claimed universe size.
-- `docs/reports/scoring/docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md`'s 40-date IC reconstruction,
-  `docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`'s 176-combination Newey-West re-test, and
-  `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s 88-combination lift test all applied
+- `docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md`'s 40-date IC reconstruction,
+  `docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`'s 176-combination Newey-West re-test, and
+  `docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s 88-combination lift test all applied
   eligibility filters (liquidity + `above_ma200`) that, per Task 1's table,
   could only be meaningfully satisfied from **2023 onward, and mostly only
   from 2025-Q2 onward** — meaning every one of those "walk-forward 2020-2026"
   or "rolling 5-fold" analyses was, in the years that actually contributed
   usable days, testing something much closer to **a 14-24 month sample**,
   not 6 years. Both reports already contain a version of this caveat for
-  the specific period-1 gap found in `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`; this
+  the specific period-1 gap found in `docs/reports/scoring/EVENT_DETECTION_REPORT.md`; this
   report generalizes it to essentially all prior "multi-year" work.
 - This also affects the ORIGINAL audit + strategy research
-  (`docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`, `docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md`) from the session before
+  (`docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`, `docs/reports/codebase_audit/AUDIT_REPORT.md`) from the session before
   this one — every one of its "2020-2023 train / 2024-2026 test" splits and
   "6-year backtest" claims rests on the same thin early-period universe.
 
-**Addenda added to `docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` and `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`**
+**Addenda added to `docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` and `docs/reports/scoring/EVENT_DETECTION_REPORT.md`**
 pointing back to this report, per instruction.
 
 ## Correction (statistical error in the original version of this section)
@@ -152,8 +152,8 @@ direction. It cannot be cited as support for a negative conclusion, and it
 equally could not have been cited as support for a positive one.
 
 **Correct scope of what remains valid**: the negative findings in
-`docs/reports/scoring/docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md`, `docs/reports/scoring/docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`, and
-`docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md` retain whatever validity they had **only for
+`docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md`, `docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md`, and
+`docs/reports/scoring/EVENT_DETECTION_REPORT.md` retain whatever validity they had **only for
 the sub-period where the universe was actually thick enough to test
 anything** — in practice, ~2025-Q2 onward with something close to the full
 universe, and 2023-2024 only weakly (~90-93 symbols, thin but non-trivial).
@@ -164,7 +164,7 @@ not confirmatory** — neither for nor against the factors tested.
 production (`src/analytics/reversal_quality_score.py`, replacing both the
 backtest fallback and `score_meta_ranking()`) rests on a much thinner
 evidence base than recorded at deploy time.** The original walk-forward
-validation (`docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`) presented 2022 as a real,
+validation (`docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md`) presented 2022 as a real,
 informative crash-year test fold; it was not — it was a 5-6 symbol result
 with no cross-sectional power. Whatever confidence that fold contributed to
 the original "validated" decision should be discounted entirely, and the

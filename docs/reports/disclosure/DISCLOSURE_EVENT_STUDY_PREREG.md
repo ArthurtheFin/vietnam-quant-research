@@ -2,18 +2,18 @@
 
 **Viết và commit TRƯỚC khi bất kỳ dòng code nào join `data/disclosure/events.parquet`
 với dữ liệu giá.** Đây là lần đầu tiên hai nguồn dữ liệu này được nhìn cùng nhau —
-`docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5 và `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` đều giữ nguyên
+`docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5 và `docs/reports/data/DISCLOSURE_BASELINE.md` đều giữ nguyên
 tắc "không join cho đến khi có prereg", đúng kỷ luật đã áp dụng cho
-`docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md` trước đây. Mọi lựa chọn dưới đây chốt dựa trên bằng chứng đã
-có (`docs/reports/data/docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`, `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`) và
+`docs/reports/scoring/SCORE_V2_DESIGN.md` trước đây. Mọi lựa chọn dưới đây chốt dựa trên bằng chứng đã
+có (`docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/DISCLOSURE_BASELINE.md`, `docs/reports/scoring/EVENT_DETECTION_REPORT.md`) và
 cấu trúc code hiện có — không có gì trong tài liệu này được điều chỉnh sau khi nhìn
 kết quả NV2, vì NV2 chưa chạy khi tài liệu này được viết. Nếu kết quả NV2 xấu: báo
 cáo, dừng, bàn lại — không quay lại sửa tài liệu này rồi chạy lại.
 
-**Nguồn trích dẫn bắt buộc**: `data/disclosure/events.parquet` (`docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`,
+**Nguồn trích dẫn bắt buộc**: `data/disclosure/events.parquet` (`docs/reports/data/DISCLOSURE_BASELINE.md`,
 57,282 dòng, đã re-ingest 2026-07-14 với `NATURAL_KEY` mở rộng — xem
-`docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` caveat #1 + NV0a audit) join với `data/processed/stock_features.parquet`
-(`docs/reports/data/docs/reports/data/DATA_BASELINE.md`, nguồn `OFFICIAL_FEATURES_PATH` trong `src/data/dataset_config.py`,
+`docs/reports/data/DISCLOSURE_BASELINE.md` caveat #1 + NV0a audit) join với `data/processed/stock_features.parquet`
+(`docs/reports/data/DATA_BASELINE.md`, nguồn `OFFICIAL_FEATURES_PATH` trong `src/data/dataset_config.py`,
 đã rebuild từ `data/full_history_v2` — Gate #6 đã đóng, xem PUSH_REVIEW.md "Đồng bộ
 full_history_v2..." vòng 3) và `data/raw/index_ohlcv/VNINDEX.parquet` (benchmark).
 
@@ -40,7 +40,7 @@ ràng buộc CẤM bên dưới, không phải một lựa chọn ngầm định
 `insider_registration` đã tự gộp cả "nội bộ" và "người liên quan" theo logic parser
 gốc (`src/data/disclosure_parser.py`: `is_insider = bool(person_role) or
 bool(related_role)`) — không tách riêng "nội bộ" khỏi "liên quan" thành 2 tín hiệu
-phụ, vì `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`'s role classification (insider/major_shareholder/
+phụ, vì `docs/reports/data/DISCLOSURE_BASELINE.md`'s role classification (insider/major_shareholder/
 related_person) là heuristic v1 áp lên bảng mô tả, không phải một cột lọc sẵn có
 trên `events.parquet` — tách thêm sẽ là một lựa chọn không nằm trong 3 tín hiệu đã
 chốt (S1/S2/S3), ngoài phạm vi.
@@ -49,7 +49,7 @@ chốt (S1/S2/S3), ngoài phạm vi.
 RESULT (`insider_result` event_type, hoặc bất kỳ field `Real*`/`execution_date`
 trên một dòng `insider_registration` — dòng registration tự nó không có các field
 này nên không có rủi ro rò rỉ qua schema, nhưng liệt kê rõ để chốt) và không tính
-execution/registration ratio (`docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`'s "Execution / registration
+execution/registration ratio (`docs/reports/data/DISCLOSURE_BASELINE.md`'s "Execution / registration
 ratio" section) làm feature hay filter dưới bất kỳ hình thức nào.
 
 ## Point-in-time: `available_at`
@@ -61,7 +61,7 @@ nguyên cột đã có.**
 
 **Caveat quan trọng, xác nhận trước khi chạy NV2**: tính đến thời điểm viết tài
 liệu này, `scripts/update_disclosure_daily.py` (nhánh live của quy tắc point-in-time)
-**chưa từng được chạy theo lịch thật** (`docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5,
+**chưa từng được chạy theo lịch thật** (`docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md` Round 5,
 NV2: "Not yet run on a real schedule this round"). Suy ra: **gần như toàn bộ (nếu
 không phải 100%) 57,282 dòng trong `events.parquet` có `is_backfilled=True`**, tức
 toàn bộ kết quả chính của round này phụ thuộc vào giả định lag `+1 ngày giao dịch`
@@ -108,12 +108,12 @@ khứ/hiện tại. Hệ quả đã biết: một mã `INACTIVE_LONG` hôm nay b
 thường — thu hẹp N ở giai đoạn cũ hơn mức lý tưởng, nhưng **không tạo look-ahead
 bias theo hướng lạc quan** (loại trừ một mã không tương quan với việc mã đó có
 `event=1` hay không tại các ngày còn active trong quá khứ của nó) — cùng bản chất
-với caveat survivorship-bias đã ghi nhận ở `docs/reports/data/docs/reports/data/DATA_BASELINE.md`/`docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`,
+với caveat survivorship-bias đã ghi nhận ở `docs/reports/data/DATA_BASELINE.md`/`docs/reports/data/DISCLOSURE_BASELINE.md`,
 không phải một nguồn thiên lệch mới.
 
 ## Nhãn sự kiện "bùng nổ" (event label)
 
-Tái dùng nguyên định nghĩa đã pre-register và chạy trong `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`
+Tái dùng nguyên định nghĩa đã pre-register và chạy trong `docs/reports/scoring/EVENT_DETECTION_REPORT.md`
 (Task 1), không phát minh định nghĩa mới:
 
 ```
@@ -123,7 +123,7 @@ event(symbol, day) = 1  if  excess_return_60d_forward(symbol, day) >= +25%
 `excess_return_60d_forward(symbol, day)` = lợi nhuận đơn (simple return) của mã từ
 `day` đến `day + 60 ngày giao dịch` (điểm-đến-điểm, KHÔNG phải max trong cửa sổ),
 trừ đi lợi nhuận đơn của VNINDEX cùng cửa sổ — hiệu số đơn giản, không điều chỉnh
-beta (đúng convention `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md` đã dùng). **Đây là cột forward
+beta (đúng convention `docs/reports/scoring/EVENT_DETECTION_REPORT.md` đã dùng). **Đây là cột forward
 tính riêng cho round này** — khác với `excess_return_20d`/`excess_return_60d` sẵn
 có trong `final_watchlist.py`'s pipeline, vốn là lợi nhuận trailing (nhìn về quá
 khứ từ ngày hiện tại) dùng cho màn hình lọc RS, không phải nhãn dự báo. Không được
@@ -144,7 +144,7 @@ lift(S) = P(event=1 | signal_active(S)=True) / base_rate
 
 `base_rate` tính pooled trên toàn bộ panel (mọi ngày, mọi mã đủ điều kiện, không
 phân biệt active hay không) — đúng convention "base rate" của
-`docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md` (4.20% overall), không phải base rate riêng theo từng
+`docs/reports/scoring/EVENT_DETECTION_REPORT.md` (4.20% overall), không phải base rate riêng theo từng
 ngày rồi lấy trung bình.
 
 **Block bootstrap cho CI**: đơn vị resample là **khối 60 ngày giao dịch liên tiếp**
@@ -156,16 +156,16 @@ khối = toàn bộ panel `(symbol,day)` trong 60 ngày giao dịch liên tiếp
 thành một panel tổng hợp cùng độ dài xấp xỉ N, tính lại `lift(S)` trên panel tổng
 hợp. Lặp **≥ 1,000 lần** (đúng yêu cầu, không làm tròn xuống). CI 95% = phân vị
 2.5/97.5 của phân phối `lift` bootstrap. `random_state` cố định (dùng `42`, đúng
-convention seed đã lặp lại nhiều lần trong session này — `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`,
+convention seed đã lặp lại nhiều lần trong session này — `docs/reports/scoring/SCORE_V2_DESIGN.md`,
 `monte_carlo`), không thử nhiều seed rồi chọn seed đẹp.
 
 ## Lát cắt: 3 giai đoạn thời gian × 2 nhóm thanh khoản
 
-**3 giai đoạn**: tái dùng nguyên đường biên đã có trong `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`
+**3 giai đoạn**: tái dùng nguyên đường biên đã có trong `docs/reports/scoring/EVENT_DETECTION_REPORT.md`
 (không tự chọn biên mới): Giai đoạn 1 = 2020-01 → 2022-03, Giai đoạn 2 = 2022-03 →
 2024-05, Giai đoạn 3 = 2024-05 → 2026-07 (ngày cuối = ngày chạy NV2 thực tế).
 
-**Rủi ro đã biết trước, không phải bất ngờ sau khi chạy**: `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`
+**Rủi ro đã biết trước, không phải bất ngờ sau khi chạy**: `docs/reports/scoring/EVENT_DETECTION_REPORT.md`
 đã ghi nhận Giai đoạn 1 gần như không có ngày nào đủ điều kiện thanh khoản đủ dùng
 (median 2-5 mã đủ điều kiện/ngày ở ngưỡng 10 tỷ cũ) — ở ngưỡng 3 tỷ của round này
 tình hình có thể đỡ hơn nhưng chưa được kiểm chứng trước. Nếu Giai đoạn 1 có < 30
@@ -190,7 +190,7 @@ ngày, các mã đủ điều kiện hôm đó được xếp vào "thanh khoả
 
 Nếu chỉ có 1 hoặc 0 giai đoạn đủ ≥30 sự kiện để kết luận (rủi ro Giai đoạn 1 nêu
 trên xảy ra ở mức nặng), PASS là bất khả thi về mặt cấu trúc — báo cáo đúng như
-vậy (đúng tinh thần `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s Period-1 gap), không hạ tiêu
+vậy (đúng tinh thần `docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s Period-1 gap), không hạ tiêu
 chí xuống 2 giai đoạn hay 1 giai đoạn để "cứu" một kết luận.
 
 ## Tiêu chí cho S3 (đối chứng dấu — kiểm định H2)
@@ -246,14 +246,14 @@ trong báo cáo, không chọn lag cho kết quả đẹp nhất làm kết lu�
 
 ## Caveat ghi sẵn (trước khi chạy, không phải hậu kiểm)
 
-1. **Survivorship bias** (kế thừa `docs/reports/data/docs/reports/data/DATA_BASELINE.md` caveat #2 +
-   `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` caveat #2): universe là "niêm yết hôm nay, chiếu
+1. **Survivorship bias** (kế thừa `docs/reports/data/DATA_BASELINE.md` caveat #2 +
+   `docs/reports/data/DISCLOSURE_BASELINE.md` caveat #2): universe là "niêm yết hôm nay, chiếu
    ngược". Một tín hiệu có lift cao có thể lạc quan giả — công ty biến mất khỏi
    universe hôm nay (hủy niêm yết/sáp nhập/đình chỉ) không được tính vào cả tử số
    lẫn mẫu số của lift, theo cả hai hướng, nên hướng thiên lệch cụ thể không suy
    diễn được một chiều — chỉ ghi nhận là giới hạn, không định lượng thêm ở round
    này.
-2. **Panel disclosure lệch mã lớn/lâu đời** (`docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` caveat #2):
+2. **Panel disclosure lệch mã lớn/lâu đời** (`docs/reports/data/DISCLOSURE_BASELINE.md` caveat #2):
    độ sâu lịch sử disclosure tương quan với tuổi niêm yết — không chuẩn hóa theo
    period × nhóm mã trong test chính (test đã tự chia theo giai đoạn thời gian,
    nhưng KHÔNG chia theo tuổi niêm yết/vốn hóa) — nếu lift dương chủ yếu đến từ

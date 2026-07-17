@@ -1,4 +1,4 @@
-"""Verification checks for the pilot backfill (Task 3 of docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md).
+"""Verification checks for the pilot backfill (Task 3 of docs/reports/data/BACKFILL_DESIGN_REPORT.md).
 Reads only from data/pilot_backfill/raw/ and existing data/processed/ +
 data/processed/benchmark_vnindex.parquet for comparison; writes nothing back
 to existing data.

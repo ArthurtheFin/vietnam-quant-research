@@ -2,7 +2,7 @@
 
 **Viết và commit TRƯỚC khi bất kỳ dòng code nào chạy thiết kế dưới đây.** Đây là
 lần kiểm định XÁC NHẬN đầu tiên của hai giả thuyết được sinh ra ở
-`docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`'s "Exploratory addendum" — hai lát cắt đó
+`docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`'s "Exploratory addendum" — hai lát cắt đó
 (cụm nhiều người nội bộ, người liên quan gia đình) **trùng với văn liệu học
 thuật về insider trading** (cluster buying như một tín hiệu tin cậy hơn — vd.
 Ali & Hirshleifer 2016 "opportunistic vs. routine" clustering; buying của
@@ -12,8 +12,8 @@ trading quốc tế, không phải suy đoán tự do từ dữ liệu này). Đ
 cuối của nhánh disclosure**: PASS hay âm tính, nhánh đóng lại sau round này theo
 đúng kết quả, không mở thêm biến thể.
 
-**Khác biệt cốt lõi so với `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`**: test trước so
-CAR với 0 (không có gì làm chuẩn) — `docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` cho thấy
+**Khác biệt cốt lõi so với `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`**: test trước so
+CAR với 0 (không có gì làm chuẩn) — `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` cho thấy
 điều đó lẫn vào một mức drift dương ~+2.9%/120 ngày không liên quan gì đến nội
 dung tín hiệu, chỉ vì bản thân universe "còn sống" đã có drift dương. Round này
 so với **đối chứng khớp cặp** (matched control) thay vì 0 — mọi mã đối chứng đều
@@ -22,9 +22,9 @@ giao dịch), nên hiệu số `DCAR = CAR(sự kiện) − CAR(đối chứng)`
 lớn survivorship drift ở cả hai vế, còn lại phần chênh lệch (nếu có) mới thật sự
 gắn với nội dung tín hiệu.
 
-**Nguồn trích dẫn**: `docs/reports/data/docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`,
-`docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` + `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md` (test
-gốc, kết luận âm tính), `docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` (lý do thiết kế đối
+**Nguồn trích dẫn**: `docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/DISCLOSURE_BASELINE.md`,
+`docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` + `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md` (test
+gốc, kết luận âm tính), `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` (lý do thiết kế đối
 chứng khớp cặp thay vì so 0).
 
 ---
@@ -40,7 +40,7 @@ chứng khớp cặp thay vì so 0).
   đúng nguyên cách gộp nhóm `ROLE_GROUPS` đã dùng trong exploratory addendum,
   không định nghĩa lại) có DCAR vượt đối chứng khớp cặp.
 - **Đối chứng H0 nội bộ**: đăng ký mua **đơn lẻ** (không thuộc nhóm cụm, không
-  thuộc nhóm gia đình) — kỳ vọng theo `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`'s kết
+  thuộc nhóm gia đình) — kỳ vọng theo `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`'s kết
   luận chính (test lift/CAR gốc, không điều kiện theo lát cắt, đều âm tính/không
   vượt 0): **không vượt đối chứng**. H0 không phải một giả thuyết cần "thắng" —
   vai trò của nó là kiểm tra tính hợp lệ của chính thiết kế đối chứng khớp cặp:
@@ -82,7 +82,7 @@ VNINDEX)`:
    rổ đủ điều kiện) với mã `i` tại `t`.
 3. **Cùng `trading_status` = `ACTIVE`** tại `t` (dùng snapshot hiện tại
    `latest_trading_status()`, đúng quyết định đã khóa ở
-   `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` — snapshot hiện tại áp đồng nhất cho toàn
+   `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` — snapshot hiện tại áp đồng nhất cho toàn
    lịch sử, không phải tái lập point-in-time thật cho các ngày trước
    2026-07-13). Chỉ áp cho ỨNG VIÊN ĐỐI CHỨNG, không áp thêm điều kiện này cho
    mã sự kiện `i` (mã sự kiện giữ nguyên như tập đã gộp cụm từ round trước,
@@ -125,7 +125,7 @@ thay vì `CAR`.
 - **PASS**: CI 95% của `DCAR` trung bình (pooled toàn mẫu) ở **CẢ +60 VÀ +120
   ngày** đều nằm hoàn toàn > 0 (CI dưới > 0 ở cả hai cửa sổ), **VÀ** dấu dương
   ổn định (điểm trung tâm DCAR > 0) ở **≥ 2/3 giai đoạn thời gian** (tái dùng
-  nguyên 3 giai đoạn đã dùng ở `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`: 2020-01→
+  nguyên 3 giai đoạn đã dùng ở `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`: 2020-01→
   2022-03, 2022-03→2024-05, 2024-05→2026-07 — không đổi biên).
 - **Lát < 30 sự kiện**: chỉ mô tả (điểm DCAR, N), không dùng để kết luận
   PASS/âm tính ở cấp giai đoạn đó — đúng quy tắc đã dùng ở prereg trước.
@@ -160,7 +160,7 @@ nhất.
 - **CẤM tuyệt đối** mọi field thuộc pha RESULT hoặc tỷ lệ thực hiện — chỉ dùng
   `insider_registration`/`major_shareholder_change` REGISTRATION, đúng như
   round trước.
-- Caveat panel lệch mã lớn/lâu đời (`docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` caveat #2) vẫn hiệu
+- Caveat panel lệch mã lớn/lâu đời (`docs/reports/data/DISCLOSURE_BASELINE.md` caveat #2) vẫn hiệu
   lực — không chuẩn hóa thêm theo tuổi niêm yết ở round này.
 - 18 mã `INACTIVE_LONG` giữ trong lịch sử giá nhưng không được chọn làm đối
   chứng (điều kiện `trading_status = ACTIVE` ở trên tự động loại chúng).

@@ -1,9 +1,9 @@
 # SCORE_FORENSIC_REPORT — tracing the 2026 failure to specific score components
 
-**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/docs/reports/data/DATA_BASELINE.md`),
-code at commit `3b8c4a8` (post `docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`'s
+**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/DATA_BASELINE.md`),
+code at commit `3b8c4a8` (post `docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`'s
 portfolio-config change, applied in this round's NV1 below). Follow-up to
-`docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`'s null test, which found the deployed
+`docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`'s null test, which found the deployed
 `alpha_score` (`src/alpha/scoring.py`) underperforms random stock-picking
 on average (mean percentile 41.2/2000 across 5 folds) and that 2026
 specifically (percentile 0.4) looked signal-driven, not concentration
@@ -28,7 +28,7 @@ strength-rewarding) component, noted explicitly at each use.
 `max_per_sector` None→2 (cap only activates when a caller also supplies
 `sector_map`; without one it's a no-op, unchanged from before). Full
 rationale and caveat are in the function's own docstring now, citing
-`docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`: this is a diversification decision
+`docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`: this is a diversification decision
 made because a pre-registered theoretical prediction was tested and
 partially confirmed (worst-fold CAGR shallowed monotonically with size),
 **not** because this configuration won the sensitivity table outright —
@@ -42,8 +42,8 @@ rest of this report is about.
 ### Every stock selected, per rebalance, with decision-date score decomposition
 
 (`portfolio_size=5` used explicitly here — matching the exact
-configuration diagnosed in `docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`/
-`docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`, not this round's new size=10 default,
+configuration diagnosed in `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`/
+`docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`, not this round's new size=10 default,
 since the point is explaining *that* diagnosed result.)
 
 30 picks across 6 rebalances (`data/full_history_v2/score_forensic_2026_decomposition.csv`
@@ -75,7 +75,7 @@ every component). Two things stand out immediately:
 are the primary culprits**: both were mildly positive in 2023-2025 and
 flipped to strongly negative in 2026 — a classic momentum-crash/reversal
 pattern (chasing recent winners, which then reversed hard in the
-narrow-breadth 2026 market documented in `docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`).
+narrow-breadth 2026 market documented in `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`).
 `volatility_score` (the component built on `realized_vol_20d`, the one
 factor with independently validated IC) did the opposite: it got
 *stronger* in 2026, but its 10% weight in the composite was nowhere near
@@ -103,7 +103,7 @@ Ran `alpha_score` itself through the canonical Newey-West IC pipeline
 raw + residualized target, full + top-150 universe, eligibility
 `value_ma20>=3B` per the locked threshold), alongside a "minimal score" =
 `realized_vol_20d` alone, the one component with independently validated
-IC (`docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`).
+IC (`docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`).
 
 | Factor | Universe | Target | mean IC | t_NW |
 |---|---|---|---|---|
@@ -154,7 +154,7 @@ Of the three directions on offer:
   has *no* significant standalone predictive power anywhere it was
   tested, while its single volatility-based ingredient does, robustly,
   and is getting stronger over time. Rebuilding the score to weight
-  primarily on `realized_vol_20d` (and, per `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md`'s
+  primarily on `realized_vol_20d` (and, per `docs/reports/scoring/SCORING_UPDATE_REPORT.md`'s
   earlier volatility-cluster work, potentially its closely-related
   cluster-mates if a future round wants to explore that) rather than the
   current 50%-momentum/RS design is the change the evidence points at.
@@ -168,5 +168,5 @@ Of the three directions on offer:
 `scoring.py` beyond NV1's portfolio-config application. A future round
 should design the rebuilt score's exact weighting with its own
 pre-registered criteria (this report does not prescribe one), then run
-the same before/after comparison discipline `docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md`
+the same before/after comparison discipline `docs/reports/scoring/SCORING_UPDATE_REPORT.md`
 established.

@@ -270,7 +270,7 @@ def test_save_watchlist_outputs_drops_forward_columns(tmp_path) -> None:
 
 
 def test_momentum_score_ignores_alpha_score() -> None:
-    """docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md side effect: alpha_score (from data/signals/
+    """docs/reports/scoring/SCORE_V2_REPORT.md side effect: alpha_score (from data/signals/
     alpha_scores.parquet) is now the v2 composite (volatility/liquidity,
     not momentum) -- momentum_score must no longer move when only
     alpha_score changes, with every other alpha_* input held fixed."""
@@ -308,12 +308,12 @@ def test_momentum_score_ignores_alpha_score() -> None:
     )
     assert (merged["momentum_score_low_alpha"] == merged["momentum_score_high_alpha"]).all(), (
         "momentum_score must be unaffected by alpha_score -- alpha_score is a "
-        "volatility/liquidity signal now (docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md), not momentum"
+        "volatility/liquidity signal now (docs/reports/scoring/SCORE_V2_REPORT.md), not momentum"
     )
 
 
 def test_relative_strength_score_ignores_alpha_rs_score() -> None:
-    """Audit gate #17 / critical finding P0-4: docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md found
+    """Audit gate #17 / critical finding P0-4: docs/reports/scoring/SCORE_FORENSIC_REPORT.md found
     the v1 shadow's rs_score IC flipped to -0.1060 in 2026, one of the primary
     drivers of a real -59.7% backtest loss. relative_strength_score must not
     move when only the v1 shadow's rs_score changes -- mirrors
@@ -353,7 +353,7 @@ def test_relative_strength_score_ignores_alpha_rs_score() -> None:
     )
     assert (merged["relative_strength_score_low_rs"] == merged["relative_strength_score_high_rs"]).all(), (
         "relative_strength_score must be unaffected by the v1 shadow's rs_score -- "
-        "docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md found it actively harmful (IC -0.1060 in 2026)"
+        "docs/reports/scoring/SCORE_FORENSIC_REPORT.md found it actively harmful (IC -0.1060 in 2026)"
     )
 
 

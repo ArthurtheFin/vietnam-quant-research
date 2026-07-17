@@ -1,6 +1,6 @@
 # WATCHLIST_VALIDATION_REPORT — first IC/null-test of final_watchlist's composite
 
-**Kết quả của lần chạy DUY NHẤT theo `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md`, khóa
+**Kết quả của lần chạy DUY NHẤT theo `docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md`, khóa
 trước khi chạy.** Không có tham số/tiêu chí nào bị đổi sau khi nhìn số. Scripts:
 `scratch/watchlist_validation.py` (dựng panel điểm số lịch sử, tái dùng nguyên
 `_score()`/`_mark_filters()`/`_merge_benchmark()` của `final_watchlist.py`),
@@ -8,9 +8,9 @@ trước khi chạy.** Không có tham số/tiêu chí nào bị đổi sau khi 
 (null test 2,000 danh mục/fold). Kết quả thô: `data/output/watchlist_validation_ic_main.csv`,
 `_ic_periods.csv`, `_null_composite.csv`, `_null_minimal_watchlist.csv`.
 
-**Trích dẫn nguồn**: `audit/PATH_TO_100.md` mục 3, `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md`,
-`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`/`docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`, `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`,
-`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`, `audit/SECTOR_MAPPING_COVERAGE_REPORT.md`.
+**Trích dẫn nguồn**: `audit/PATH_TO_100.md` mục 3, `docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md`,
+`docs/reports/scoring/SCORE_V2_REPORT.md`/`docs/reports/scoring/SCORE_V2_DESIGN.md`, `docs/reports/scoring/SCORE_FORENSIC_REPORT.md`,
+`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`, `audit/SECTOR_MAPPING_COVERAGE_REPORT.md`.
 
 ## Kết luận một dòng
 
@@ -109,7 +109,7 @@ bộ. Bảng trên là kết quả SAU khi sửa.
    (quy tắc "không xếp hạng alpha" áp dụng đồng loạt, không có ngoại lệ cho
    từng thành phần).
 
-   **ĐÓNG HỒ SƠ (GĐ5/GĐ5.5, `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 3)** — round này từng
+   **ĐÓNG HỒ SƠ (GĐ5/GĐ5.5, `docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 3)** — round này từng
    ghi "ứng viên tốt nhất cho một prereg đơn-nhân-tố tương lai"; khám nghiệm
    sau đó (correlation matrix + phân rã thành phần) cho kết quả ngược lại:
    **`risk_score` tương quan Spearman trung bình ngày +0.822 với `v2_score`**
@@ -137,11 +137,11 @@ bộ. Bảng trên là kết quả SAU khi sửa.
 
 ## 3. Mốc so sánh
 
-### 3a. `alpha_score` v2 (trích lại, không chạy lại — `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`)
+### 3a. `alpha_score` v2 (trích lại, không chạy lại — `docs/reports/scoring/SCORE_V2_REPORT.md`)
 Null avg percentile **71.0** (không fold <5); IC t_NW **+6.09** (full) /
 **+5.67** (top150), residualized, đồng dấu dương cả 3 giai đoạn.
 
-**Cập nhật (GĐ5, `docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md`)**: 71.0 này đo v2 kiểm tra ĐỘC LẬP
+**Cập nhật (GĐ5, `docs/reports/scoring/V2_STABILITY_NOTE.md`)**: 71.0 này đo v2 kiểm tra ĐỘC LẬP
 (chỉ qua gate thô `min_value_ma20`/`above_ma200`), không phải v2 hoạt động
 bên trong gate đầy đủ của `final_watchlist.py` — mục 3b bên dưới (52.8) mới
 là con số đúng cho ngữ cảnh đó. Đã xác nhận bằng loại trừ: nguyên nhân chênh
@@ -191,7 +191,7 @@ tình huống RÀNG BUỘC gốc dự phòng ("nếu kết quả rơi vào vùng
 thận trọng hơn") — áp dụng đúng như đã khóa: **chọn C (thận trọng hơn B)**,
 không tự nới lỏng ngưỡng để "cứu" B dù về mặt trực giác watchlist tối giản có
 vẻ là một tín hiệu thật (và `alpha_score` v2 của chính nó ĐÃ được xác nhận
-riêng, qua một bài test khác, ở `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`, với ngưỡng chấp nhận
+riêng, qua một bài test khác, ở `docs/reports/scoring/SCORE_V2_REPORT.md`, với ngưỡng chấp nhận
 lỏng hơn round này). Không coi đây là mâu thuẫn — hai bài test có tiêu chí khác
 nhau theo thiết kế (round này cố tình đặt thanh cao hơn cho việc XẾP HẠNG bên
 trong `final_watchlist.py`), và pipeline vẫn tiếp tục dùng `alpha_score` v2
@@ -206,7 +206,7 @@ nguyên trạng ở các nơi khác (không bị round này rút lại).
   vào tier (giữ nguyên mọi gate cấu trúc/chất lượng dữ liệu khác: eligibility,
   cashflow, confirmation, warning-block — không liên quan alpha score).
 - Nhãn rõ trong cột `reason` của mọi dòng:
-  `"[Không xếp hạng alpha, chỉ sắp theo thanh khoản -- xem docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md]"`.
+  `"[Không xếp hạng alpha, chỉ sắp theo thanh khoản -- xem docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md]"`.
 - `liquidity_score` gỡ khỏi `base_final_score` (khóa sẵn, không phụ thuộc
   nhánh) — 10 điểm phân bổ lại tỷ lệ thuận cho 6 thành phần còn lại
   (trend 27.78, momentum 22.22, relative_strength 22.22, volume 5.56,

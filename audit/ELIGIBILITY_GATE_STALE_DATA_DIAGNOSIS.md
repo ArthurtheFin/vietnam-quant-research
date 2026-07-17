@@ -53,14 +53,14 @@ trading calendar (business days minus `config/vn_market_holidays.csv`):
 parquet for VIC/FPT/VCB/HPG/VNM/MWG shows **no rows at all** (not
 volume=0 placeholder rows) after 2026-07-06 — this is an absence of
 fetched data, not an omitted-but-valid trading session. The
-volume=0/no-trade-day convention documented in `docs/reports/data/docs/reports/data/DATA_BASELINE.md`
+volume=0/no-trade-day convention documented in `docs/reports/data/DATA_BASELINE.md`
 caveat #3 is real, but it explains interior gaps for thin names (like
 APL's genuine 10.3% coverage) — not this systemic, universe-wide
 tail-end cutoff.
 
-## 4. Actual root cause: two un-reconciled fetch batches, confirmed in `docs/reports/data/docs/reports/data/DATA_BASELINE.md`
+## 4. Actual root cause: two un-reconciled fetch batches, confirmed in `docs/reports/data/DATA_BASELINE.md`
 
-`docs/reports/data/docs/reports/data/DATA_BASELINE.md:20-21`:
+`docs/reports/data/DATA_BASELINE.md:20-21`:
 > Fetch window: 2026-07-09 main run, **+ supplementary re-fetch pass same
 > day for 48 symbols**. Requested date range: 2020-01-01 → 2026-07-06
 > (**2026-07-10 for the 48 supplemented symbols**).

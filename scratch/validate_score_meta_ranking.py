@@ -156,7 +156,7 @@ print(f"{'(B) SHUFFLED reconstructed score (avg of ' + str(N_SEEDS) + ' seeds)':
 
 # --- Rolling 5-fold breakdown, SAME fold boundaries as the validated
 # 3-factor score's rolling_walk_forward.py, for a direct apples-to-apples
-# comparison against docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 6's table. ---
+# comparison against docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 6's table. ---
 FOLDS = [
     ("2022-01-01", "2022-12-31"),
     ("2023-01-01", "2023-12-31"),
@@ -182,7 +182,7 @@ for start, end in FOLDS:
 if fold_cagrs:
     fold_arr = np.array(fold_cagrs)
     print(f"  AvgCAGR={fold_arr.mean():+.2%}  MedCAGR={np.median(fold_arr):+.2%}  WinRate={(fold_arr > 0).mean():.0%}")
-    print("  (compare to docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 6: 3-factor score got "
+    print("  (compare to docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 6: 3-factor score got "
           "AvgCAGR=+0.9%, MedCAGR=+5.3%, WinRate=80%)")
 
 # --- Secondary check: the REAL, complete formula (with real trade_cards),

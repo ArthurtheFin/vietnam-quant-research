@@ -2,7 +2,7 @@
 EXTREME breadth-collapse trigger (pct_above_ma50 < threshold, far more
 extreme than the legacy 0.55 cutoff used by market_regime) protect 2022
 without destroying the good years the way the blunt regime filter and the
-crash_severity filter both did (see docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 5
+crash_severity filter both did (see docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 5
 and scratch/validate_crash_severity_overlay.py)?
 
 Motivation (see scratch diagnostics run interactively): pct_above_ma50 fell

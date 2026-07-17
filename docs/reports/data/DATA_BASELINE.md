@@ -8,7 +8,7 @@ data source, and note whether it has been reconciled against or replaces
 assuming the two are interchangeable.
 
 Full derivation, root-cause analysis, and verification methodology: see
-`docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md` (Rounds 1-4). This document is the operational
+`docs/reports/data/BACKFILL_DESIGN_REPORT.md` (Rounds 1-4). This document is the operational
 summary for consumers of the data, not a repeat of that investigation.
 
 ## Dataset identity
@@ -19,7 +19,7 @@ summary for consumers of the data, not a repeat of that investigation.
 | Fetch method | Single direct `get_daily_ohlc` call per symbol, `page_size=1000`, `max_pages=10` (primary/adjusted SSI FCData endpoint; deliberately never uses the chunked `fetch_symbol_history`/fallback path) |
 | Fetch window | 2026-07-09 15:31 UTC → 2026-07-09 16:51 UTC (main run), + supplementary re-fetch pass same day for 48 symbols, **+ full-universe sync 2026-07-13 (see "Sync to a common date" below — closes the gap between these two original batches)** |
 | Requested date range | 2020-01-01 → 2026-07-06 (2026-07-10 for the 48 supplemented symbols); **now current through 2026-07-13 for 441/501 symbols after the sync** |
-| Code commit | `2ebd2b0` (includes the Task 1 fix `d12a6ac`: `_normalize_daily_ohlc_response` now correctly maps `closepriceadjusted` → `close` on fallback-sourced chunks, and derives adjusted `open`/`high`/`low` consistently — see docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md Round 3). Sync commit: see PUSH_REVIEW.md's 2026-07-13 price-sync entry. |
+| Code commit | `2ebd2b0` (includes the Task 1 fix `d12a6ac`: `_normalize_daily_ohlc_response` now correctly maps `closepriceadjusted` → `close` on fallback-sourced chunks, and derives adjusted `open`/`high`/`low` consistently — see docs/reports/data/BACKFILL_DESIGN_REPORT.md Round 3). Sync commit: see PUSH_REVIEW.md's 2026-07-13 price-sync entry. |
 | Symbols | 501 (all currently-listed HOSE/HNX/UPCOM symbols per `data/processed/stock_features.parquet`'s current universe) |
 | Total rows | 716,725 as of the 2026-07-13 sync (mean 1,431/symbol, median 1,613, min 100, max 1,627 [full 2020-01-02→2026-07-13 coverage]) |
 | Size on disk | 47 MB |
@@ -96,7 +96,7 @@ complementary signal to the gap-based status above: the ratio of observed
 trading days to expected trading sessions (holiday-aware, same
 `config/vn_market_holidays.csv`) over the last 60 sessions. A day with no
 row is a day with no matched trade -- valid for a genuinely low-liquidity
-name (docs/reports/data/docs/reports/data/DATA_BASELINE.md caveat #3), so this is a liquidity signal, not by
+name (docs/reports/data/DATA_BASELINE.md caveat #3), so this is a liquidity signal, not by
 itself a suspension one.
 
 **Empirically checked before wiring this in**: STALE_SHORT (real thin
@@ -118,7 +118,7 @@ to do more than once a day).
 
 **Market breakdown**: HOSE 394, UPCOM 61 (+3 more resolved via `data/raw/securities/UPCOM.parquet` — AMD, ART, ASA), HNX 41 (+2 more resolved via `data/raw/securities/HOSE.parquet` — KPF, PSH). 5 symbols have no `market` value anywhere in `data/processed/stock_features.parquet`'s history; resolved via the raw securities-listing fallback files.
 
-## Verification summary (full detail: docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md Round 4)
+## Verification summary (full detail: docs/reports/data/BACKFILL_DESIGN_REPORT.md Round 4)
 
 - **Fetch correctness**: mechanism-proven via Task 3's 20-symbol pilot —
   data fetched through this exact method matched an independent bug-immune
@@ -159,7 +159,7 @@ to do more than once a day).
    `data/processed/stock_features.parquet` directly is reading data known
    to be wrong for a large, uncatalogued subset of symbols until that
    merge happens.**
-2. **Survivorship bias, unresolved** (carried over from `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`
+2. **Survivorship bias, unresolved** (carried over from `docs/reports/data/DATA_AUDIT_REPORT.md`
    and Round 1 Task 2): the 501-symbol universe is "symbols listed today,
    backfilled to 2020" — any company delisted, merged away, or suspended
    indefinitely since 2020 is invisible to this dataset regardless of how
@@ -169,8 +169,8 @@ to do more than once a day).
    characteristics but disappeared from today's listing.
 
    **EXPLORATORY quantification, 2026-07-14** (not a confirmed decomposition —
-   see `docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` for full caveats): using
-   `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`'s S3 (sell-registration) placebo finding
+   see `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` for full caveats): using
+   `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`'s S3 (sell-registration) placebo finding
    as a starting point, an independent unconditional cross-check (mean excess
    return vs. VNINDEX of every `(symbol, day)` in the same eligible universe,
    not conditioned on any disclosure event, N=325k-347k) estimates a

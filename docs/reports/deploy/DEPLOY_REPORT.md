@@ -1,6 +1,6 @@
 # DEPLOY REPORT — validated 3-factor score → production
 
-Follows `docs/reports/deploy/docs/reports/deploy/IMPLEMENTATION_PLAN_DEPLOY.md` (approved). Scope: items 1-3 only
+Follows `docs/reports/deploy/IMPLEMENTATION_PLAN_DEPLOY.md` (approved). Scope: items 1-3 only
 (§4 was resolved as "leave `score_meta_ranking()` untouched").
 
 ## What was done
@@ -54,7 +54,7 @@ Re-ran the exact research scripts against current code + data, unchanged:
 - `PYTHONPATH=. python3 scratch/rolling_walk_forward.py` → the "take-profit
   trend-break" row reproduces **exactly**: 2022 -27.6%, 2023 +13.1%, 2024
   +2.0%, 2025 +11.6%, 2026 +5.3%, avg +0.9%, median +5.3%, win rate 80% —
-  identical to `docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6, and identical to the run
+  identical to `docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6, and identical to the run
   performed during Phase 0 before any code changed (confirms no regression
   from the fallback swap or notebook edit).
 - `PYTHONPATH=. python3 scratch/walk_forward_validation.py` → single-split
@@ -75,7 +75,7 @@ Re-ran the exact research scripts against current code + data, unchanged:
 
 1. ~~`score_meta_ranking()` in `src/analytics/meta_ranking.py` is untouched.~~
    **Superseded in a later session**: the formula was subsequently validated
-   (`docs/reports/scoring/docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md` — negative IC, loses in 3 of 5
+   (`docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md` — negative IC, loses in 3 of 5
    rolling-fold years, confirmed on the complete formula including real
    walk-forward `trade_cards`) and then replaced outright with the same
    validated 3-factor score used elsewhere, once that evidence was in hand.
@@ -84,7 +84,7 @@ Re-ran the exact research scripts against current code + data, unchanged:
 2. **2022-style crash risk (report §7.1) is unresolved** — no new stop-loss/
    regime/give-back logic was added; out of scope per your instructions.
 3. **D3 survivorship bias** — still open, untouched.
-4. **docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md G1/G5/G6** (relative-rank scoring, default-50 filler,
+4. **docs/reports/codebase_audit/AUDIT_REPORT.md G1/G5/G6** (relative-rank scoring, default-50 filler,
    duplicate bonus stacking) — all describe `score_meta_ranking()`, not
    anything touched here; still open.
 5. The 0.39/0.32/0.29 weights are a point-in-time calibration on 2020-2026

@@ -2,12 +2,12 @@
 
 **NHÃN: EXPLORATORY.** Tài liệu này ước lượng một con số, không kiểm định một giả
 thuyết. Nó xuất phát từ một phát hiện phụ (không phải kết luận chính đã khóa) của
-`docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`: tín hiệu đối chứng S3 (bán, kỳ vọng CAR ≤ 0
+`docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`: tín hiệu đối chứng S3 (bán, kỳ vọng CAR ≤ 0
 theo H2) lại có CAR dương gần bằng S1/S2 (mua) — gợi ý một phần lớn "excess
 return" đo được trong round đó không đến từ nội dung tín hiệu disclosure, mà từ
 việc bản thân universe hiện tại (mọi mã đủ điều kiện phân tích) đã có drift dương
 sẵn so với VNINDEX, nhiều khả năng phản ánh survivorship bias (universe = "mã còn
-sống hôm nay", đã ghi ở `docs/reports/data/docs/reports/data/DATA_BASELINE.md` caveat #2 / `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`
+sống hôm nay", đã ghi ở `docs/reports/data/DATA_BASELINE.md` caveat #2 / `docs/reports/data/DISCLOSURE_BASELINE.md`
 caveat #2). **Không loại trừ được các nguyên nhân khác** (equity risk premium
 chung của rổ đã lọc thanh khoản, độ lệch beta chưa gỡ hết dù đã trừ VNINDEX, hay
 nhiễu thống kê) — con số dưới đây là một ước lượng nhất quán với giả thuyết
@@ -30,7 +30,7 @@ minh phương pháp thống kê mới). Kết quả thô + lineage:
 | +60 ngày | +2.63% | [−0.75%, +4.42%] | 2,536 |
 | +120 ngày | +4.67% | [−1.02%, +8.15%] | 2,486 |
 
-(Số liệu giống hệt `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md` mục 4 — không tính lại,
+(Số liệu giống hệt `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md` mục 4 — không tính lại,
 chỉ trích dẫn để đối chiếu cạnh hai ước lượng mới bên dưới.)
 
 ### 2. Toàn bộ sự kiện disclosure gộp (S1+S2+S3, đã gộp cụm theo từng loại rồi
@@ -43,7 +43,7 @@ chỉ trích dẫn để đối chiếu cạnh hai ước lượng mới bên d�
 | +120 ngày | +4.71% | [−1.05%, +8.24%] | 6,520 |
 
 ### 3. Đối chiếu chéo độc lập — excess return KHÔNG điều kiện bất kỳ sự kiện nào
-   (toàn bộ `(mã, ngày)` trong rổ đủ điều kiện của `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`,
+   (toàn bộ `(mã, ngày)` trong rổ đủ điều kiện của `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`,
    toàn lịch sử 2020–2026)
 
 | Cửa sổ | Excess return trung bình | CI 95% | n |
@@ -114,11 +114,11 @@ bias trực tiếp thay vì suy luận gián tiếp qua placebo như ở đây.
    dần theo cửa sổ dài hơn (mẫu hình hợp lý về mặt kinh tế cho một drift tích
    lũy theo thời gian).
 3. **Không tách theo giai đoạn/nhóm thanh khoản** ở round này (khác với test
-   chính đã khóa trong `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`) — một ước lượng gộp
+   chính đã khóa trong `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`) — một ước lượng gộp
    toàn kỳ duy nhất, đơn giản hóa có chủ đích cho một exploratory pass.
 4. **Kế thừa mọi caveat đã có** của rổ đủ điều kiện (18 mã `INACTIVE_LONG` bị
    loại khỏi lịch sử của chính nó, `trading_status` không thực point-in-time
-   trước 2026-07-13) — xem `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` mục "Rổ đủ điều
+   trước 2026-07-13) — xem `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` mục "Rổ đủ điều
    kiện".
 5. **Đây KHÔNG phải một prereg mới, KHÔNG kiểm định lại H1/H2** — không có tiêu
    chí PASS/FAIL nào ở đây, chỉ là một con số ước lượng để dùng làm ngữ cảnh diễn

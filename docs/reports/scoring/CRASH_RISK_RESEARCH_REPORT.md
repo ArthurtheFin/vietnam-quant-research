@@ -1,6 +1,6 @@
 # CRASH_RISK_RESEARCH_REPORT — a new angle on the 2022-style crash problem
 
-Follow-up to `docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §7.1: "2022-style broad market
+Follow-up to `docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §7.1: "2022-style broad market
 crash (-27.6%) has no working protection. All 4 tried approaches (stop-loss,
 regime filter, crash-severity filter, give-back stop) either didn't help or
 destroyed the good years." This asks whether a genuinely different signal
@@ -53,7 +53,7 @@ once hit this extreme. Requiring the condition to hold for **3 consecutive
 days** (avoid single-day noise) before treating it as "Risk-off" and
 combining with the existing take-profit overlay:
 
-## Result — same 5-fold walk-forward protocol as docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md §6
+## Result — same 5-fold walk-forward protocol as docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md §6
 
 | | 2022 | 2023 | 2024 | 2025 | 2026 | Avg | Median | Win rate |
 |---|---|---|---|---|---|---|---|---|

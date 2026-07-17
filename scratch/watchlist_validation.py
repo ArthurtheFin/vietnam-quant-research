@@ -1,4 +1,4 @@
-"""GD4 NV2 -- run docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md exactly as locked. One run,
+"""GD4 NV2 -- run docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md exactly as locked. One run,
 no parameter tuning after seeing results. Reuses (does not redefine)
 final_watchlist.py's own _score()/_mark_filters()/_merge_benchmark(), the
 Newey-West/residualization/top-150 machinery from scratch/score_v2_ic_test.py,

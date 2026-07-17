@@ -1,4 +1,4 @@
-"""NV1 (volatility-cluster examination), follow-up to docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md's
+"""NV1 (volatility-cluster examination), follow-up to docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md's
 21/192 passing IC combinations. Before touching deployed scoring
 (src/alpha/scoring.py), determine whether these 21 combinations represent
 independent signals or one (or a few) underlying signal(s) wearing

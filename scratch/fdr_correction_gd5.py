@@ -5,11 +5,11 @@ data) + WATCHLIST_VALIDATION's composite-component IC table (GD4, 38 rows,
 34 with a defined t_NW). Two-sided p-value from t_NW via normal
 approximation (N~1500 days per test, t-distribution ~ normal at this df).
 
-Scope note: lift/CI-based tests (docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md,
-docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md) are NOT included -- different statistical
+Scope note: lift/CI-based tests (docs/reports/scoring/EVENT_DETECTION_REPORT.md,
+docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md) are NOT included -- different statistical
 framework (bootstrap CI on a ratio, not a t-stat/p-value), would need a
 separate conversion not attempted here. Scope is explicitly the two t_NW
-table sources above; see docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md for the full accounting.
+table sources above; see docs/reports/scoring/ROBUSTNESS_REPORT.md for the full accounting.
 """
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 # IMPLEMENTATION PLAN — Remediation `vietnam-quant-research`
 
-Nguồn: `docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md` (40 phát hiện). Trạng thái: **CHỜ DUYỆT — chưa sửa file nào.**
+Nguồn: `docs/reports/codebase_audit/AUDIT_REPORT.md` (40 phát hiện). Trạng thái: **CHỜ DUYỆT — chưa sửa file nào.**
 
 Nguyên tắc thực thi đã cam kết: fix tối thiểu đúng trọng tâm; mỗi cụm fix = 1 commit `fix(<mã>): ...`; mỗi fix logic tài chính kèm test reproduce-bug-trước-fix-sau; không bịa dữ liệu — thiếu dữ liệu thì fail loudly.
 

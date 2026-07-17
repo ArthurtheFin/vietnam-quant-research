@@ -160,7 +160,7 @@ def test_natural_key_prevents_duplicate_rows_on_reingest(tmp_path) -> None:
 
 
 def test_widened_key_keeps_two_distinct_same_day_disclosures(tmp_path) -> None:
-    """docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md caveat #1: a person making two genuinely
+    """docs/reports/data/DISCLOSURE_BASELINE.md caveat #1: a person making two genuinely
     distinct disclosures (different direction/volume) on the same calendar
     date must not collapse into one row under the old 4-field key."""
     df = pd.DataFrame([
@@ -181,7 +181,7 @@ def test_widened_key_keeps_two_distinct_same_day_disclosures(tmp_path) -> None:
 def test_dedup_seq_keeps_two_identical_looking_registrations_same_day(tmp_path) -> None:
     """The remaining collision class after widening: two distinct
     registration windows, same symbol/person/date/direction/volume (e.g.
-    the real Vuong Ngoc Yen/ACE case in docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md) -- only
+    the real Vuong Ngoc Yen/ACE case in docs/reports/data/DISCLOSURE_BASELINE.md) -- only
     dedup_seq (row-order tiebreaker) can tell these apart."""
     df = pd.DataFrame([
         _base_row(registration_window_start=pd.Timestamp("2011-02-14"), registration_window_end=pd.Timestamp("2011-04-14")),

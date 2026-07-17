@@ -2,7 +2,7 @@
 
 **Design-and-survey round. No crawler or pipeline code written this
 round** — this document is for review before any of it is built.
-References `docs/reports/data/docs/reports/data/DATA_BASELINE.md` (dataset versioning conventions) and the
+References `docs/reports/data/DATA_BASELINE.md` (dataset versioning conventions) and the
 current `data/full_history_v2/` pipeline this would join against.
 
 **Target signal**: Vietnam-listed insider (`người nội bộ` — board/
@@ -23,12 +23,12 @@ joins disclosure data against price or return data.** The reason is
 sequencing, not caution for its own sake: a signal-test design must be
 pre-registered *before* anyone looks at how disclosure timing relates to
 subsequent price moves, exactly the discipline this session already
-applied to `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md` and `docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` elsewhere
+applied to `docs/reports/scoring/SCORE_V2_DESIGN.md` and `docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` elsewhere
 in the codebase. Looking at event-to-return statistics now, even
 "just descriptively," would let that look quietly bias whatever test design
 gets written next — the single most important guardrail for this new
 branch of work, and the reason this round's descriptive doc
-(`docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`) is share-count/date statistics only, never
+(`docs/reports/data/DISCLOSURE_BASELINE.md`) is share-count/date statistics only, never
 return statistics.
 
 ### NV1 — full-universe crawl
@@ -39,12 +39,12 @@ the current universe (`data/full_history_v2/raw/*.parquet` minus
 ~24 minutes wall-clock** — in line with ROUND 4/NV7's estimate. 57,800
 rows parsed, 56,870 valid (in `events.parquet`), 518 rejected (in
 `errors.parquet`, 0.90% reject rate — consistent with the pilot's 0.9%
-found on 5 symbols). Full descriptive results: `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`
-(new document, mirroring `docs/reports/data/docs/reports/data/DATA_BASELINE.md`'s role for the price dataset).
+found on 5 symbols). Full descriptive results: `docs/reports/data/DISCLOSURE_BASELINE.md`
+(new document, mirroring `docs/reports/data/DATA_BASELINE.md`'s role for the price dataset).
 
 **Headline finding**: historical depth is much better than the 5-symbol
 ROUND 4 pilot suggested — **157 of 500 symbols (31%) have disclosure
-history reaching back to 2008**, not just HPG. See `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`
+history reaching back to 2008**, not just HPG. See `docs/reports/data/DISCLOSURE_BASELINE.md`
 for the full depth histogram and every other descriptive cut requested
 (period × event type, role distribution, execution/registration ratio,
 field-completeness-by-year, rejected-row breakdown).
@@ -55,7 +55,7 @@ person_name, disclosure_date)` collides for 829 rows (1.4%) where the same
 person made two genuinely distinct disclosures published the same calendar
 day — `append_parquet`'s dedup keeps only one, meaning up to several
 hundred real events aren't individually represented right now. Documented
-in `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` caveat #1, not fixed this round (schema change,
+in `docs/reports/data/DISCLOSURE_BASELINE.md` caveat #1, not fixed this round (schema change,
 out of "kiểm kê" scope) — flagged for whoever next relies on this dataset
 needing an exact event count.
 
@@ -79,7 +79,7 @@ built on top of `disclosure_events`. No signal test, walk-forward, or IC
 computation. **Next round, if pursued, should open by pre-registering the
 signal-test design** (event window, label definition, train/test split,
 acceptance bar) **before** running it against this dataset — the same
-discipline `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md` used, applied to a new data source for the
+discipline `docs/reports/scoring/SCORE_V2_DESIGN.md` used, applied to a new data source for the
 first time.
 
 ---
@@ -360,7 +360,7 @@ picks `disclosure_date`, which tells a backtest "this was knowable on
 `disclosure_date`" even though **this pipeline** didn't actually have
 the row until `ingested_at`, strictly later. A backtest driven off that
 rule would be trading on information before its own ingestion pipeline
-had captured it — exactly the class of bug `docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` and
+had captured it — exactly the class of bug `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` and
 `run_portfolio_backtest`'s T-1 convention were built to prevent
 elsewhere in this project, reintroduced here by an inverted min/max.
 
@@ -678,7 +678,7 @@ All three sources list the **same 10 endpoints**, no more, no fewer:
 | DailyOhlc | `Market/DailyOhlc` | Daily OHLC + volume/value (the adjusted, primary price endpoint this whole project is built on) |
 | IntradayOhlc | `Market/IntradayOhlc` | Intraday tick-level OHLC |
 | DailyIndex | `Market/DailyIndex` | Daily index-level trading results |
-| DailyStockPrice | `Market/DailyStockPrice` | Daily price incl. raw/adjusted close, foreign-investor activity (the fallback endpoint `docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md` root-caused the adjustment bug in) |
+| DailyStockPrice | `Market/DailyStockPrice` | Daily price incl. raw/adjusted close, foreign-investor activity (the fallback endpoint `docs/reports/data/BACKFILL_DESIGN_REPORT.md` root-caused the adjustment bug in) |
 | BackTest | `Market/BackTest` | Present in the SDK's method list and URL constants; not wrapped in `src/data/ssi_client.py`, not documented with a description on either official page found — appears to be a historical-replay/testing utility, not disclosure-related regardless |
 
 **Corporate-actions/events/disclosure check**: **zero** of these 10
@@ -733,7 +733,7 @@ nothing further to check within SSI's own documented offering.
 disclosure question): **no corporate-action endpoint exists either** —
 neither DailyOhlc/DailyStockPrice nor any other endpoint returns
 dividend/split events directly; the existing pipeline's own adjustment
-handling (`docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md`) works by consuming `DailyOhlc`'s
+handling (`docs/reports/data/BACKFILL_DESIGN_REPORT.md`) works by consuming `DailyOhlc`'s
 *already-adjusted* close series, not by reading discrete corporate-
 action records. **No reconciliation source was found here** — if a
 future round wants an independent corporate-action feed to cross-check
@@ -758,7 +758,7 @@ our wrapper: `MarketDataClient` exposes exactly 9 endpoints —
 `access_token`, `backtest`, `daily_index`, `daily_ohlc`,
 `daily_stock_price`, `index_components`, `index_list`, `intraday_ohlc`,
 `securities`, `securities_details`. Nothing disclosure/event/ownership-
-related exists anywhere in the package, confirming `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`'s
+related exists anywhere in the package, confirming `docs/reports/data/DATA_AUDIT_REPORT.md`'s
 original scope finding (this feed is price data only). **Ruled out.**
 
 *(Superseded by the deeper check above: this was SDK-code-only —
@@ -940,7 +940,7 @@ usable_as_of_T = effective_knowable_date <= T
 ```
 Taking the earlier (stricter) of the two whenever both are meaningful
 avoids the specific class of look-ahead bug this session spent a lot of
-effort on elsewhere (`docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`'s D1 decision-timing
+effort on elsewhere (`docs/reports/scoring/FOLD_AUTOPSY_REPORT.md`'s D1 decision-timing
 convention, `run_portfolio_backtest`'s T-1 rule) — same principle,
 applied here.
 
@@ -950,7 +950,7 @@ applied here.
   `data/full_history_v2/raw/{symbol}.parquet`'s universe. Any disclosed
   symbol not in the current 501-symbol universe (delisted, OTC-only, or
   not yet backfilled) is logged and dropped, not treated as an error —
-  consistent with `docs/reports/data/docs/reports/data/DATA_BASELINE.md`'s disclosed survivorship-bias
+  consistent with `docs/reports/data/DATA_BASELINE.md`'s disclosed survivorship-bias
   caveat, which this inherits.
 - **Trading-calendar alignment**: `disclosure_date` (or
   `ingested_at`-derived effective date) that falls on a non-trading day

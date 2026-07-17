@@ -1,7 +1,7 @@
 # SCORING_UPDATE_REPORT — applying the NV4 recommendations to deployed scoring
 
-**Dataset/code version**: `data/full_history_v2` (see `docs/reports/data/docs/reports/data/DATA_BASELINE.md`),
-factor re-test evidence in `docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, code at commit
+**Dataset/code version**: `data/full_history_v2` (see `docs/reports/data/DATA_BASELINE.md`),
+factor re-test evidence in `docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, code at commit
 `4762d81` + this round's changes (below). Follow-up to that report's NV4
 recommendations, executed in the order requested: (1) examine the
 volatility cluster behind the 21/192 passing IC combinations before
@@ -130,7 +130,7 @@ consistent with its operational history.
 
 ### Survivorship-bias caveat (as instructed, not solved here)
 
-The 501-symbol universe (per `docs/reports/data/docs/reports/data/DATA_BASELINE.md`) excludes any company
+The 501-symbol universe (per `docs/reports/data/DATA_BASELINE.md`) excludes any company
 delisted, merged away, or suspended indefinitely since 2020. This matters
 specifically for the volatility-level signal: a stock entering acute
 distress typically shows *rising* volatility just before it is
@@ -143,7 +143,7 @@ effect of high volatility on forward returns look *better* than reality
 (survivors' bad-but-not-fatal outcomes vs. non-survivors' unobserved
 worse ones) — and can only be resolved with a point-in-time universe
 including delisted names, which this data source cannot currently provide
-(`docs/reports/data/docs/reports/data/DATA_BASELINE.md` caveat #2). Not addressed this round.
+(`docs/reports/data/DATA_BASELINE.md` caveat #2). Not addressed this round.
 
 ---
 
@@ -153,7 +153,7 @@ including delisted names, which this data source cannot currently provide
 (`src/alpha/scoring.py:110-114`). Was `(rank(return_20d) + rank(return_60d))/2`;
 now `rank(return_60d)` alone. Evidence: no significant IC in any of the 4
 tested combinations (max |t_NW|=1.24, raw sign flips between universes) —
-`docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` NV4.
+`docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` NV4.
 
 **`distance_ma20` gate — loosened, not removed**
 (`src/screening/final_watchlist.py:64-65`). `max_distance_ma20`: 0.18 →
@@ -228,6 +228,6 @@ and a 5-fold, largely crash-dominated backtest (2 of 5 folds are
 a small, noisy sample for detecting a ~0.6pp average difference. Per the
 explicit constraint for this round, **this result is accepted as-is, not
 used to tune or revert the change** — the removal is justified by the
-IC evidence in `docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, and this backtest's job was
+IC evidence in `docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`, and this backtest's job was
 only to confirm nothing broke (no blown-up drawdown, no collapsed win
 rate, no runaway turnover) — which it does confirm.

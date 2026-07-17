@@ -1,10 +1,10 @@
-"""Pilot backfill (Task 3 of docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md): fetch full
+"""Pilot backfill (Task 3 of docs/reports/data/BACKFILL_DESIGN_REPORT.md): fetch full
 2020-01-01 -> present history for 20 symbols via the existing SSI FCData
 client, writing to data/pilot_backfill/raw/ (NEVER touches
 data/processed/ or data/signals/ -- existing data is not overwritten).
 
 20 symbols = 5 reference (HPG, SSI, STB, TCB, VPB -- confirmed missing
-2021 data in docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md) + 15 random, spread evenly across
+2021 data in docs/reports/data/DATA_AUDIT_REPORT.md) + 15 random, spread evenly across
 liquidity tiers of the CURRENT universe (fixed seed=42, see chat for the
 selection script).
 """

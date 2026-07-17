@@ -15,7 +15,7 @@ ERRORS_PATH = Path("data/disclosure/errors.parquet")
 UNIVERSE_DIR = Path("data/full_history_v2/raw")
 
 # Widened 2026-07-13 (audit PATH_TO_100.md Data Quality item, +1):
-# docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md's original key (symbol, event_type, person_name,
+# docs/reports/data/DISCLOSURE_BASELINE.md's original key (symbol, event_type, person_name,
 # disclosure_date) silently collapsed 829/57,800 parsed rows (1.4%) that
 # share a natural key with at least one other row -- almost always a person
 # making two genuinely distinct disclosures (different registration window,
@@ -52,7 +52,7 @@ def load_universe_symbols(universe_dir: Path = UNIVERSE_DIR) -> set[str]:
 
 
 def _compute_available_at(df: pd.DataFrame) -> pd.Series:
-    """ROUND 3 point-in-time rule (docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md):
+    """ROUND 3 point-in-time rule (docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md):
     - live rows (is_backfilled=False): available_at = max(disclosure_date, ingested_at)
     - backfilled rows (is_backfilled=True): available_at = disclosure_date + 1 trading day
       (a conservative placeholder lag, to be replaced by a measured live

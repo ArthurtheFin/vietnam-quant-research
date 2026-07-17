@@ -7,9 +7,9 @@ null-test cho hai con số khác nhau trên cùng một signal.
 
 ## Bối cảnh
 
-- `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md` (round xác nhận v2 ban đầu): null-test percentile
+- `docs/reports/scoring/SCORE_V2_REPORT.md` (round xác nhận v2 ban đầu): null-test percentile
   trung bình **71.0**, không fold nào <5.
-- `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 3b (GĐ4, "watchlist tối giản" = v2_score
+- `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 3b (GĐ4, "watchlist tối giản" = v2_score
   + gate hiện hành của `final_watchlist.py`): percentile trung bình **52.8**,
   không fold nào <10 nhưng cũng không đạt >60.
 
@@ -53,7 +53,7 @@ nguyên (`scratch/v2_stability_toggle.py`).
 
 | Cấu hình | Percentile trung bình |
 |---|---|
-| Không lọc gì thêm (nguyên bản `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`) | 71.0 |
+| Không lọc gì thêm (nguyên bản `docs/reports/scoring/SCORE_V2_REPORT.md`) | 71.0 |
 | + `trading_status==ACTIVE` (441/500 mã) | 70.5 |
 | + `trading_status==ACTIVE` **VÀ** `minimal_eligible` (GĐ4) | **52.8** |
 
@@ -77,7 +77,7 @@ bất cứ khi nào nó được dùng làm cơ sở xếp hạng BÊN TRONG `fi
 (như "watchlist tối giản" ở GĐ4 mô phỏng, và cũng là cách nó từng được cân
 nhắc dùng trước khi GĐ4 chuyển sang không-xếp-hạng-alpha), nó hoạt động trong
 đúng bối cảnh 52.8, không phải 71.0 — vì gate `minimal_eligible` luôn đi kèm.
-**`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`'s con số 71.0 là đúng cho v2 kiểm tra ĐỘC LẬP (chỉ qua
+**`docs/reports/scoring/SCORE_V2_REPORT.md`'s con số 71.0 là đúng cho v2 kiểm tra ĐỘC LẬP (chỉ qua
 gate thô của `run_portfolio_backtest`), nhưng lạc quan hơn thực tế nếu diễn
 giải nó như bằng chứng cho v2 hoạt động BÊN TRONG `final_watchlist.py`'s pipeline
 đầy đủ.** Không đổi gì trong round này (đúng ràng buộc) — nhưng khuyến nghị: nếu

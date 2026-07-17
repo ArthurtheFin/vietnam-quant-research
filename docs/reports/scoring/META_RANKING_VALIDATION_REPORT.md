@@ -1,6 +1,6 @@
 # META_RANKING_VALIDATION_REPORT — is `score_meta_ranking()` actually good?
 
-Follow-up to `docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §7.2, which flagged that the live
+Follow-up to `docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §7.2, which flagged that the live
 client-watchlist formula (`src/analytics/meta_ranking.py::score_meta_ranking`)
 was never validated good or bad — the original backtest never reached it
 (it only ever fell through to the momentum fallback, since
@@ -99,7 +99,7 @@ Real beat 19 of 20 shuffle seeds here — taken alone, this would look like a
 positive signal.
 
 **Rolling 5-fold breakdown** (same fold boundaries as
-`docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6, one independent test year at a time):
+`docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6, one independent test year at a time):
 
 | | 2022 | 2023 | 2024 | 2025 | 2026 | Avg | Median | Win rate |
 |---|---|---|---|---|---|---|---|---|

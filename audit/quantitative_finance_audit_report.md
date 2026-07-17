@@ -21,7 +21,7 @@ The system is **not ready for a real-capital pilot**. It is,
 however, a genuinely more mature and better-engineered codebase than a
 first read of "Experimental" might suggest: this repository has already
 been through at least one full internal self-audit
-(`docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md`/`docs/reports/codebase_audit/docs/reports/codebase_audit/REMEDIATION_REPORT.md`), and the large majority of
+(`docs/reports/codebase_audit/AUDIT_REPORT.md`/`docs/reports/codebase_audit/REMEDIATION_REPORT.md`), and the large majority of
 that audit's own findings — same-bar look-ahead bias, a silent
 benchmark-substitution bug, fabricated volatility inputs, a mislabeled
 Kelly-sizing bug, hardcoded NAV, mock survivorship data — are confirmed
@@ -152,7 +152,7 @@ transaction-cost models and two structurally different sector-cap
 mechanisms coexist without being unified — maintainability risk, not a
 live numerical bug. Covariance shrinkage is a fixed-intensity blend, not
 a genuine Ledoit-Wolf/OAS estimator (already known-deferred per
-`docs/reports/codebase_audit/docs/reports/codebase_audit/REMEDIATION_REPORT.md` H5).
+`docs/reports/codebase_audit/REMEDIATION_REPORT.md` H5).
 
 ## 9. Backtesting Findings
 

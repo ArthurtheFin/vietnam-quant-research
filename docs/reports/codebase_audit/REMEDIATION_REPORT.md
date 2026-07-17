@@ -1,6 +1,6 @@
 # REMEDIATION REPORT — vietnam-quant-research
 
-Nguồn: `docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md` (40 phát hiện) → `docs/reports/codebase_audit/docs/reports/codebase_audit/IMPLEMENTATION_PLAN.md` (APPROVED) → 21 commit trên nhánh này.
+Nguồn: `docs/reports/codebase_audit/AUDIT_REPORT.md` (40 phát hiện) → `docs/reports/codebase_audit/IMPLEMENTATION_PLAN.md` (APPROVED) → 21 commit trên nhánh này.
 
 ---
 
@@ -120,6 +120,6 @@ Ban đầu worktree này không có `.env`/`data/` (bị `.gitignore`, không t�
 
 ## 4. Việc cần bạn làm tiếp (không thể tự động hoá từ phía tôi)
 
-1. **Chạy pipeline thật với dữ liệu thật** (cần SSI FCData credentials): `update_securities.py` → `update_daily_data.py --scope core` → `generate_features.py` → ... → `run_daily_pipeline.py`, rồi đối chiếu output với bảng "expected output changes" trong `docs/reports/codebase_audit/docs/reports/codebase_audit/IMPLEMENTATION_PLAN.md` để có con số hiệu suất thật trước/sau.
+1. **Chạy pipeline thật với dữ liệu thật** (cần SSI FCData credentials): `update_securities.py` → `update_daily_data.py --scope core` → `generate_features.py` → ... → `run_daily_pipeline.py`, rồi đối chiếu output với bảng "expected output changes" trong `docs/reports/codebase_audit/IMPLEMENTATION_PLAN.md` để có con số hiệu suất thật trước/sau.
 2. **Xác nhận `--scope full`** hoạt động đúng sau khi chạy `update_securities.py` thật (cần mạng + credentials — không tự chạy được trong môi trường audit này).
 3. **Quyết định hướng cho 4 mục DEFERRED lớn** (D3, H5, A1/E3, D6) ở mục 3.

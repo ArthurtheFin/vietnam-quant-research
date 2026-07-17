@@ -1,4 +1,4 @@
-"""docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md confirmation run, null-test leg: v2's percentile
+"""docs/reports/scoring/SCORE_V2_DESIGN.md confirmation run, null-test leg: v2's percentile
 within 2,000 random portfolios per fold, under the currently-deployed
 config (portfolio_size=10, sector cap=2). Seed=42, one continuous RNG
 stream, same convention as scratch/concentration_null_test.py.
@@ -26,7 +26,7 @@ sector_df = pd.read_csv("config/sector_map.csv")
 sector_map = dict(zip(sector_df["symbol"], sector_df["sector"]))
 
 # v2 score = 0.70 * inverted-rank(realized_vol_20d) + 0.30 * inverted-rank(value_ma20)
-# per docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md, computed cross-sectionally per day.
+# per docs/reports/scoring/SCORE_V2_DESIGN.md, computed cross-sectionally per day.
 def compute_v2_score(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
 

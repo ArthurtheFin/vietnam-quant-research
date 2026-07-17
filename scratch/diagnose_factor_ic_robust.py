@@ -151,8 +151,8 @@ def sector_demean(frame: pd.DataFrame, value_col: str, eligible_mask: pd.Series)
 REBALANCE_PERIOD = 21  # ~1 month
 LIQUIDITY_LOOKBACK = 60
 TOP_N = 150
-MIN_VALUE_MA20 = 3_000_000_000.0  # lowered from 10B (see docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md
-# Round 5 / docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md open question #1): 10B was too strict for
+MIN_VALUE_MA20 = 3_000_000_000.0  # lowered from 10B (see docs/reports/data/BACKFILL_DESIGN_REPORT.md
+# Round 5 / docs/reports/scoring/EVENT_DETECTION_REPORT.md open question #1): 10B was too strict for
 # 2020-2022 under the pre-backfill dataset; full_history_v2 now has clean
 # 2020+ coverage, so the threshold is revisited to let that period contribute.
 
@@ -259,7 +259,7 @@ for uname, (elig_col, raw_target_col, resid_target_col) in UNIVERSES.items():
 result = pd.DataFrame(rows)
 result["abs_t_NW"] = result["t_NW"].abs()
 result = result.sort_values("abs_t_NW", ascending=False)
-# GD5 NV2/NV4 (docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md): save the raw table for FDR analysis and
+# GD5 NV2/NV4 (docs/reports/scoring/ROBUSTNESS_REPORT.md): save the raw table for FDR analysis and
 # for re-checking realized_vol_20d/value_ma20's t_NW on current data -- output
 # capture only, no change to the methodology above.
 result.to_csv("data/output/factor_retest_v2_rerun_gd5.csv", index=False)

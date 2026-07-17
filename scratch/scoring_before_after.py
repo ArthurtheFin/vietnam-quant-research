@@ -1,4 +1,4 @@
-"""NV3 (docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md evidence): before/after comparison of the
+"""NV3 (docs/reports/scoring/SCORING_UPDATE_REPORT.md evidence): before/after comparison of the
 src/alpha/scoring.py change (return_20d removed from momentum_score) on
 data/full_history_v2. distance_ma20's threshold-loosening in
 src/screening/final_watchlist.py is a gate change, not a scoring-formula

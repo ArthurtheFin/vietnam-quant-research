@@ -5,7 +5,7 @@ from src.analytics.meta_ranking import build_meta_ranking, top_meta_candidates
 
 def test_build_meta_ranking_prefers_mean_reversion_setups():
     """meta_score is now the walk-forward-validated 3-factor mean-reversion
-    score (docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md sections 3-6): lowest distance_ma20 /
+    score (docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md sections 3-6): lowest distance_ma20 /
     return_20d / realized_vol_20d ranks highest, not highest momentum. AAA is
     given the best (lowest) technical profile of the three AND the strongest
     breakout/stealth evidence, so it should win on both meta_score and

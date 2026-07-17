@@ -108,7 +108,7 @@
     "car_cluster_gap_days": 20,
     "eligible_panel_rows": 351183,
     "eligible_symbols": 391,
-    "note": "EXPLORATORY estimate, not a confirmatory test -- see docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md"
+    "note": "EXPLORATORY estimate, not a confirmatory test -- see docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md"
   },
   "lineage": {
     "git_commit_hash": "900d9cb6d1a881360420e142775733e8912581ae",

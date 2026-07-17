@@ -1,13 +1,13 @@
 # DISCLOSURE_PREREG_2_REPORT — matched-control test, final round of the branch
 
-**Kết quả của lần chạy DUY NHẤT theo `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md`, khóa
+**Kết quả của lần chạy DUY NHẤT theo `docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md`, khóa
 trước khi chạy.** Không có tham số/định nghĩa cụm/cửa sổ nào bị đổi sau khi nhìn
 số. Script: `scratch/disclosure_prereg2_cluster.py` (commit `02be8c0`). Kết quả
 thô + lineage: `data/disclosure/prereg2_cluster_results.json`.
 
-**Trích dẫn nguồn**: `docs/reports/data/docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`,
-`docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`/`_REPORT.md` (test gốc), `docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`
-(lý do dùng đối chứng khớp cặp), `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md` (thiết kế round
+**Trích dẫn nguồn**: `docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/DISCLOSURE_BASELINE.md`,
+`docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`/`_REPORT.md` (test gốc), `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`
+(lý do dùng đối chứng khớp cặp), `docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md` (thiết kế round
 này, khóa trước).
 
 ## Kết luận một dòng
@@ -90,7 +90,7 @@ Hiệu ứng dương của H2 **tập trung gần như toàn bộ ở Giai đo�
 Giai đoạn 2 và 3 phẳng-đến-âm ở +120 ngày. Số giai đoạn dương ở CẢ +60 VÀ +120
 đồng thời: chỉ 1/3 (Giai đoạn 1) — không đạt ngưỡng ≥2/3 đã khóa, dù đã bỏ qua
 tiêu chí CI. **Mẫu hình này giống hệt mẫu hình đã thấy ở H1/S1 trong
-`docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`** (lift giảm mạnh qua 3 giai đoạn) — một
+`docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`** (lift giảm mạnh qua 3 giai đoạn) — một
 dấu hiệu lặp lại của hiệu ứng chỉ tồn tại trong giai đoạn dữ liệu sớm/mỏng hơn,
 không phải một tín hiệu ổn định theo thời gian.
 
@@ -114,14 +114,14 @@ trọng thêm như đã dự phòng trong prereg.
 
 **Không nhóm nào (H1, H2, H0) đạt PASS ở bất kỳ lag nào.** Đây là test cuối
 cùng đã pre-register của nhánh "disclosure như tín hiệu dự báo bùng nổ/vượt
-trội" — theo đúng ràng buộc đã khóa trong `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md`:
+trội" — theo đúng ràng buộc đã khóa trong `docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md`:
 **kết quả âm tính → đóng nhánh vĩnh viễn cho mục đích tín hiệu.**
 
-**Tổng kết toàn bộ hành trình nhánh disclosure** (3 round, `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`
-→ `docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`/exploratory addendum → `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md`):
+**Tổng kết toàn bộ hành trình nhánh disclosure** (3 round, `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`
+→ `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`/exploratory addendum → `docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md`):
 - Test chính (lift bùng nổ, so 0): âm tính cho cả 3 tín hiệu cơ bản.
 - Phát hiện phụ (CAR, so 0): dương nhưng hóa ra phần lớn là survivorship drift
-  của chính universe, không phải nội dung tín hiệu (`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`).
+  của chính universe, không phải nội dung tín hiệu (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`).
 - Hai giả thuyết có prior học thuật (cụm mua, gia đình), kiểm định đúng cách
   bằng đối chứng khớp cặp để triệt tiêu drift: **vẫn âm tính**, kể cả sau khi đã
   loại bỏ đúng confound đã tìm ra ở round trước.

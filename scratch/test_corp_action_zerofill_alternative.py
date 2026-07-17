@@ -2,7 +2,7 @@
 corporate-action handling recover the IC/backtest signal that collapsed
 after regenerating stock_features.parquet with the current G4 fix?
 
-Context (see docs/reports/codebase_audit/docs/reports/codebase_audit/PIPELINE_AUDIT_REPORT.md): G4 NaNs out return_1d on any day
+Context (see docs/reports/codebase_audit/PIPELINE_AUDIT_REPORT.md): G4 NaNs out return_1d on any day
 flagged as a suspected unadjusted corporate action. Because return_20d /
 forward_return_20d are 20-day ROLLING PRODUCTS of return_1d, a single NaN'd
 day poisons the entire 20-day window around it -- 1,545 flagged days (0.86%

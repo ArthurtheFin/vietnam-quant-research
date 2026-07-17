@@ -10,7 +10,7 @@ Status: **DRAFT — awaiting "APPROVED"**. No production code touched yet.
   Required factor columns (`distance_ma20`, `return_20d`, `realized_vol_20d`) all exist.
 - Re-ran `PYTHONPATH=. python3 scratch/rolling_walk_forward.py` against current code+data. The
   `take-profit trend-break` row reproduces **exactly** the table in
-  `docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6: 2022 -27.6%, 2023 +13.1%, 2024 +2.0%, 2025 +11.6%, 2026 +5.3%,
+  `docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md` §6: 2022 -27.6%, 2023 +13.1%, 2024 +2.0%, 2025 +11.6%, 2026 +5.3%,
   avg +0.9%, median +5.3%, win rate 80%. The formula/report is not stale.
 - Read `src/analytics/meta_ranking.py::score_meta_ranking()` in full. It is a **different, more
   elaborate formula** (breakout/stealth/momentum/execution component blend with synergy bonuses)
@@ -18,7 +18,7 @@ Status: **DRAFT — awaiting "APPROVED"**. No production code touched yet.
   by the walk-forward backtest (which only ever fell through to the *dynamic fallback inside
   `run_portfolio_backtest`*, not to `score_meta_ranking`). It has not changed since the report was
   written.
-- Checked `docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md` G1 (0-100 is relative rank, not absolute), G5 (missing data → default
+- Checked `docs/reports/codebase_audit/AUDIT_REPORT.md` G1 (0-100 is relative rank, not absolute), G5 (missing data → default
   50), G6 (duplicate bonus stacking) — all describe `score_meta_ranking()`, not the backtest
   fallback. Still open, out of scope here per your instructions (no drive-by fixes).
 - Traced production wiring:
@@ -136,7 +136,7 @@ test setup); verification is the Phase 4 manual re-run described below.
 
 **Decided: (i) Leave it untouched.** Ship only items 1-3 below (backtest fallback + notebook
 overlay). The live client watchlist keeps using the existing breakout/stealth/momentum/execution
-blend exactly as today — it is untouched by this deploy, and remains flagged in `docs/reports/deploy/docs/reports/deploy/DEPLOY_REPORT.md`
+blend exactly as today — it is untouched by this deploy, and remains flagged in `docs/reports/deploy/DEPLOY_REPORT.md`
 (Phase 4) as an open item, per report §7.2.
 
 ## 5. Commits (one per cluster, after approval)

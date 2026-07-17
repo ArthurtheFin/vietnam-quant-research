@@ -34,7 +34,7 @@ gate-6 data fix.
 
 **Root cause (expected, not a bug)**: the pre-fix `stock_features.parquet` had
 the ~29-day raw/adjusted-close mixing corruption documented in
-`docs/reports/data/docs/reports/data/DATA_BASELINE.md` / `data/quarantine_existing_v1/README.md`, confirmed via an
+`docs/reports/data/DATA_BASELINE.md` / `data/quarantine_existing_v1/README.md`, confirmed via an
 exact 2x close-price mismatch on 9 large-cap symbols in this same round
 (NV2 commit `28b9f60`). `alpha_score`'s two inputs — `realized_vol_20d` and
 `value_ma20` (turnover) — are both directly computed from `close` and are
@@ -52,7 +52,7 @@ candidates was rejected by the **eligibility gate** (`STALE_DATA` and/or
 
 **Root cause, traced (read-only, not modified)**: the regenerated
 `stock_features.parquet` has genuinely uneven per-symbol date coverage —
-411/500 symbols' latest row is 2026-07-06 (matches `docs/reports/data/docs/reports/data/DATA_BASELINE.md`'s
+411/500 symbols' latest row is 2026-07-06 (matches `docs/reports/data/DATA_BASELINE.md`'s
 documented backfill request window, `2020-01-01 → 2026-07-06`), while a
 disjoint set of 28 mostly small-cap/illiquid symbols (ABT, ADG, CCC, CMV, DBT,
 FDC, HNA, HTL, HUB, ICT, L10, MDG, PJT, S4A, SC5, SFI, SHA, SRC, SVT, TCR, TMS,
@@ -117,7 +117,7 @@ the 296 data-reviewed candidates are now dominated by legitimate business
 criteria, not a freshness artifact: `LOW_LIQUIDITY` (158 alone + 57 combined
 with other reasons), `SEVERE_DISTRIBUTION_RISK` (67 alone + 87 combined),
 `STALE_DATA` only 60 total (exactly the 60 symbols identified in the sync
-as thin-trading/long-inactive — see `docs/reports/data/docs/reports/data/DATA_BASELINE.md`'s sync section, not
+as thin-trading/long-inactive — see `docs/reports/data/DATA_BASELINE.md`'s sync section, not
 a bug).
 
 **`client_ready_watchlist` top-10 comparison, pre-fix (`backup/root-wip-20260713`) vs. post-sync**:

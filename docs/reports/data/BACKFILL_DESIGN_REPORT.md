@@ -1,6 +1,6 @@
 # BACKFILL_DESIGN_REPORT — design + 20-symbol pilot for full 2020 backfill
 
-Follow-up to `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`. Decision already made: backfill full
+Follow-up to `docs/reports/data/DATA_AUDIT_REPORT.md`. Decision already made: backfill full
 history to 2020 (or earlier if the source allows). Round 1 (below, original
 content): design + pilot on 20 symbols. Round 2: root-caused the HPG/TCB
 junction anomaly and finalized the full-backfill plan. Round 3 (this
@@ -51,7 +51,7 @@ not a soft target.
 **If Task 3 passes**: proceed to Task 4 (full 501-symbol backfill to
 `data/full_history_v2/`, exact design already finalized in Round 2's Task 3
 section below — checkpointed, resumable, automated quality suite,
->=95%-pass acceptance bar), then Task 5 (`docs/reports/data/docs/reports/data/DATA_BASELINE.md` — coverage
+>=95%-pass acceptance bar), then Task 5 (`docs/reports/data/DATA_BASELINE.md` — coverage
 table, dataset version, fetch date, code commit hash, open caveats,
 required citation going forward for any factor-test report). Full task
 list and constraints are in the chat history this report doesn't duplicate —
@@ -550,7 +550,7 @@ needed):
 
 **Conclusion: no source-capability limitation.** The existing SSI FCData
 integration can fetch full 2020-2026 (and further back) history for any
-symbol. The gap found in `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md` was purely that this fetch
+symbol. The gap found in `docs/reports/data/DATA_AUDIT_REPORT.md` was purely that this fetch
 was never run for ~495 of 501 symbols — not a provider/API constraint. **No
 alternative data source is needed or was investigated further**, per
 instruction not to register anything new.
@@ -588,7 +588,7 @@ in this universe at all, no matter how much history we backfill for the
 501 currently-active symbols.
 
 **Consequence for event detection specifically**: this creates a real,
-directional bias for exactly the kind of question `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`
+directional bias for exactly the kind of question `docs/reports/scoring/EVENT_DETECTION_REPORT.md`
 asked. A stock that had an explosive +25% 60-day move and *then* later
 deteriorated into delisting is invisible to this dataset — we only ever see
 the survivors of any given pattern. This **inflates the apparent quality**
@@ -604,7 +604,7 @@ negative anyway — but it is a real ceiling on how much confidence a
 ## Task 3 — 20-symbol pilot backfill
 
 **Selection** (fixed seed=42): 5 reference (`HPG, SSI, STB, TCB, VPB` — the
-symbols confirmed missing from 2021 in `docs/reports/data/docs/reports/data/DATA_AUDIT_REPORT.md`) + 15 random,
+symbols confirmed missing from 2021 in `docs/reports/data/DATA_AUDIT_REPORT.md`) + 15 random,
 5 from each of low/mid/high current-liquidity terciles of the full 495-symbol
 universe (excluding the 5 references): `SVD, HAS, PTL, AG1, YBM, VNE, APG,
 LIX, SRC, SJD, LCG, TVC, ITD, HHP, DGW`.

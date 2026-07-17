@@ -1,13 +1,13 @@
 # DISCLOSURE_EVENT_STUDY_REPORT — first test of the disclosure×price join
 
-**Kết quả của lần chạy DUY NHẤT theo `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`, khóa
+**Kết quả của lần chạy DUY NHẤT theo `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`, khóa
 trước khi chạy.** Không có tham số/cửa sổ/ngưỡng nào bị đổi sau khi nhìn số.
 Script: `scratch/disclosure_event_study.py` (commit `5f8f2b6`). Kết quả thô +
 lineage đầy đủ: `data/disclosure/event_study_results.json`.
 
-**Trích dẫn nguồn**: `docs/reports/data/docs/reports/data/DATA_BASELINE.md` (giá — `data/processed/stock_features.parquet`,
-Gate #6 đã đóng), `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` (disclosure — `data/disclosure/events.parquet`,
-57,282 dòng), `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` (thiết kế test, khóa trước).
+**Trích dẫn nguồn**: `docs/reports/data/DATA_BASELINE.md` (giá — `data/processed/stock_features.parquet`,
+Gate #6 đã đóng), `docs/reports/data/DISCLOSURE_BASELINE.md` (disclosure — `data/disclosure/events.parquet`,
+57,282 dòng), `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` (thiết kế test, khóa trước).
 
 ## Kết luận một dòng
 
@@ -28,7 +28,7 @@ không tính được nhãn `event` (còn thiếu 60 ngày giao dịch tới, v�
 dữ liệu): **327,016 dòng có nhãn xác định**, base rate bùng nổ pooled toàn mẫu
 = **10.72%**.
 
-Khác với rủi ro đã cảnh báo trước trong prereg (dựa trên `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s
+Khác với rủi ro đã cảnh báo trước trong prereg (dựa trên `docs/reports/scoring/EVENT_DETECTION_REPORT.md`'s
 ngưỡng 10 tỷ cũ, nơi Giai đoạn 1 gần như không có mã đủ điều kiện): ở ngưỡng 3 tỷ
 + `full_history_v2`, **cả 3 giai đoạn đều vượt xa ngưỡng tối thiểu 30 sự kiện**
 (19,974 / 9,125 / 5,972 sự kiện bùng nổ trong panel đủ điều kiện của mỗi giai
@@ -146,7 +146,7 @@ thời điểm công bố, hay yếu tố khác) trong phạm vi round này.
 ## Caveat (kế thừa từ prereg, xác nhận vẫn hiệu lực sau khi chạy)
 
 1. **Survivorship bias** — không định lượng thêm ở round này, vẫn là giới hạn
-   đã biết (`docs/reports/data/docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`).
+   đã biết (`docs/reports/data/DATA_BASELINE.md`, `docs/reports/data/DISCLOSURE_BASELINE.md`).
 2. **Panel disclosure lệch mã lớn/lâu đời** — test chính không chuẩn hóa theo
    tuổi niêm yết/vốn hóa, chỉ theo giai đoạn thời gian + nhóm thanh khoản.
 3. **18 mã `INACTIVE_LONG`** bị loại khỏi rổ đủ điều kiện ở MỌI ngày lịch sử
@@ -170,7 +170,7 @@ thời điểm công bố, hay yếu tố khác) trong phạm vi round này.
 
 `git_commit_hash`, hash + số dòng của mọi input (`events.parquet`,
 `stock_features.parquet`, `benchmark_vnindex.parquet`, `trading_status.parquet`,
-`VNINDEX.parquet`), hash của chính `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`, và thời
+`VNINDEX.parquet`), hash của chính `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`, và thời
 điểm chạy — đầy đủ trong `data/disclosure/event_study_results.json`'s `lineage`
 block.
 
@@ -263,12 +263,12 @@ chỉ là quan sát trên phân phối, không có kiểm định.
 Nhóm "Nhỏ" (thanh khoản/giá trị giao dịch thấp nhất trong 3 nhóm, vẫn ≥ 3 tỷ do
 đã qua gate đủ điều kiện) có mean/median CAR cao nhất và tăng dần theo cửa sổ;
 nhóm "Lớn" thấp nhất, âm ở median mọi cửa sổ. Mẫu hình này **cùng hướng với
-`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`'s giả thuyết** — mã nhỏ/kém thanh khoản hơn
+`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`'s giả thuyết** — mã nhỏ/kém thanh khoản hơn
 trong rổ hiện tại là đúng nhóm survivorship bias có khả năng phóng đại mạnh
 nhất (ít mã nhỏ "chết dọc đường" sống sót đến hôm nay hơn mã lớn) — nên không
 nên đọc bảng này như bằng chứng một "small-cap insider-buy premium" thật, mà
 nên đọc như một lát cắt khác thể hiện cùng một confound đã nêu ở
-`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`.
+`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`.
 
 ### Kết luận addendum
 
@@ -277,5 +277,5 @@ hiện đã xác nhận. Lát cắt có vẻ đáng theo đuổi nhất nếu c�
 trò "người liên quan gia đình" so với chính người có chức vụ, (b) cụm nhiều
 người nội bộ cùng đăng ký. Cả hai đều cần một prereg riêng, N đủ lớn theo giai
 đoạn, và kiểm định CI/bootstrap đầy đủ trước khi coi là bằng chứng — đúng kỷ
-luật đã áp dụng cho `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`, không được bỏ qua chỉ vì
+luật đã áp dụng cho `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`, không được bỏ qua chỉ vì
 bảng mô tả "trông đẹp".

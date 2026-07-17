@@ -15,7 +15,7 @@ def run_bias_checks(base_dir: str | Path = ".") -> dict[str, object]:
     the check existing purely as unenforced documentation.
 
     setup_signals.parquet intentionally carries forward_return_Nd research
-    labels (see docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md D5), so a "failed" lookahead check here is
+    labels (see docs/reports/codebase_audit/AUDIT_REPORT.md D5), so a "failed" lookahead check here is
     informational, not a pipeline-blocking error -- D5's guards already prevent
     those columns from reaching live scoring/output artifacts.
     """

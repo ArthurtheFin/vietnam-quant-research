@@ -10,12 +10,12 @@ Cây quyết định, tiêu chí, và hai quyết định kèm (liquidity_score,
 mapping) đều khóa ở đây — không đổi sau khi nhìn kết quả NV2.
 
 **Trích dẫn nguồn**: `audit/PATH_TO_100.md` mục 3 (khoảng trống gốc),
-`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`/`docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md` (mốc so sánh v2, phương pháp IC/null
-test chuẩn), `docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md` (máy móc null test gốc),
-`docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` (lý do đã gỡ `alpha_momentum_score`/`alpha_rs_score`),
-`docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` (lý do gỡ `liquidity_score`),
+`docs/reports/scoring/SCORE_V2_REPORT.md`/`docs/reports/scoring/SCORE_V2_DESIGN.md` (mốc so sánh v2, phương pháp IC/null
+test chuẩn), `docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md` (máy móc null test gốc),
+`docs/reports/scoring/SCORE_FORENSIC_REPORT.md` (lý do đã gỡ `alpha_momentum_score`/`alpha_rs_score`),
+`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` (lý do gỡ `liquidity_score`),
 `audit/SECTOR_MAPPING_COVERAGE_REPORT.md` (NV7 GĐ2, số liệu sector mapping),
-`docs/reports/data/docs/reports/data/DATA_BASELINE.md`.
+`docs/reports/data/DATA_BASELINE.md`.
 
 ---
 
@@ -28,7 +28,7 @@ test chuẩn), `docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS
 2022-01→2026-07, không phải chuỗi hằng ngày).
 
 **Universe**: `trading_status == ACTIVE` (snapshot hiện tại, đúng quy ước đã
-khóa ở `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` — áp đồng nhất cho toàn lịch sử, không
+khóa ở `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` — áp đồng nhất cho toàn lịch sử, không
 phải tái lập point-in-time thật). Không thêm ngưỡng thanh khoản/xu hướng nào
 khác cho universe của **test IC** (khác với các round trước từng dùng
 `above_ma200 & value_ma20>=3B` — bỏ đi vì yêu cầu round này nêu rõ dùng
@@ -66,7 +66,7 @@ thứ tự thời gian (tertile theo index, đúng cơ chế `score_v2_ic_test.p
 dùng — không tự chọn mốc ngày cố định mới).
 
 **Null test**: percentile CAGR thật trong 2,000 danh mục ngẫu nhiên/fold
-(`seed=42`, một luồng RNG liên tục, đúng máy móc `docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`/
+(`seed=42`, một luồng RNG liên tục, đúng máy móc `docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`/
 `scratch/concentration_null_test.py`/`score_v2_null_test.py` — không viết lại).
 5 fold theo năm dương lịch (2022–2026, đúng `FOLDS` đã dùng xuyên suốt session
 này). Cấu hình: `rebalance_period=20`, `portfolio_size=10`, `max_per_sector=2`
@@ -75,7 +75,7 @@ như một ngành thật — **đã là hành vi mặc định của `portfolio_
 ~360-365, không phải code mới**, chỉ cần đảm bảo truyền `sector_map` vào mọi
 lệnh gọi ở round này), `transaction_cost_pct=0.0015`, `min_value_ma20=10B`,
 `require_above_ma200=True` — nguyên cấu hình "chuẩn hiện hành" đã dùng cho xác
-nhận v2 (`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`), giao thêm điều kiện `trading_status==ACTIVE`.
+nhận v2 (`docs/reports/scoring/SCORE_V2_REPORT.md`), giao thêm điều kiện `trading_status==ACTIVE`.
 
 ## b) Từng thành phần riêng
 
@@ -100,7 +100,7 @@ quyết định gỡ/giữ nếu kết quả không rõ ràng.
 
 ## c) Mốc so sánh
 
-- **`alpha_score` v2**: đã có kết quả (`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`) — **trích lại
+- **`alpha_score` v2**: đã có kết quả (`docs/reports/scoring/SCORE_V2_REPORT.md`) — **trích lại
   nguyên số, không chạy lại**: null test avg percentile **71.0** (không fold
   nào <5, tệ nhất 20.2 năm 2025); IC Newey-West residualized t_NW **+6.09**
   (full) / **+5.67** (top150), đồng dấu dương cả 3 giai đoạn.
@@ -156,7 +156,7 @@ trong report, đúng ràng buộc gốc.
 Bằng chứng chiều "thưởng thanh khoản thấp" (`_rank(value_ma20)` hiện tại —
 thực ra thưởng thanh khoản CAO, xem chú ý bên dưới) hay "thưởng thanh khoản
 thấp" (như `alpha_score` v2's `value_ma20` component, đảo chiều) đều **nhiễm
-survivorship bias đã định lượng ở `docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`** (mã
+survivorship bias đã định lượng ở `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`** (mã
 nhỏ/kém thanh khoản hơn trong rổ hiện tại chính là nhóm bị phóng đại effect
 mạnh nhất do sống sót đến hôm nay). Chiều ngược lại (thưởng thanh khoản cao)
 cũng không có bằng chứng riêng độc lập nào đã kiểm định trong dự án. Quyết

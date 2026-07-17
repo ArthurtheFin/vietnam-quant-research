@@ -86,7 +86,7 @@ def test_no_rebalance_on_first_day_without_prior_information() -> None:
 
 def test_fallback_score_uses_reversal_quality_when_ranking_missing() -> None:
     """When meta_ranking has no coverage, the backtest must fall back to the
-    validated mean-reversion score (docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 6),
+    validated mean-reversion score (docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 6),
     not the old momentum-chasing blend it replaced. AAA has the LOWEST
     distance_ma20/return_20d/realized_vol_20d (best reversal candidate);
     CCC has the HIGHEST (best momentum candidate, worst reversal candidate).
@@ -423,7 +423,7 @@ def test_giveback_stop_disabled_by_default() -> None:
 def test_missing_benchmark_raises_clear_error() -> None:
     """No 'VNINDEX' row in features and no benchmark_features supplied must
     raise, not silently substitute some other stock's data and label it as
-    the benchmark (the bug this replaces -- see docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md)."""
+    the benchmark (the bug this replaces -- see docs/reports/scoring/FOLD_AUTOPSY_REPORT.md)."""
     dates = pd.bdate_range("2025-01-01", periods=10)
     rows = [{"symbol": "AAA", "date": d, "close": 100.0, "return_1d": 0.001} for d in dates]
     ranking_rows = [{"symbol": "AAA", "date": d, "final_score": 90.0} for d in dates]
@@ -490,7 +490,7 @@ def test_vnindex_row_in_features_used_over_benchmark_features() -> None:
 
 
 def test_max_per_sector_caps_sector_concentration() -> None:
-    """docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md NV2: 2 sectors x 3 symbols each, all
+    """docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md NV2: 2 sectors x 3 symbols each, all
     6 rank above a sector-blind top-3 cut, but with max_per_sector=1 each
     sector can only contribute 1 name to a 2-name portfolio."""
     dates = pd.bdate_range("2025-01-01", periods=10)

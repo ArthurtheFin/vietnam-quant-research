@@ -1,4 +1,4 @@
-"""docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md confirmation run, IC leg: v2_score run through the
+"""docs/reports/scoring/SCORE_V2_DESIGN.md confirmation run, IC leg: v2_score run through the
 exact canonical IC pipeline (scratch/diagnose_factor_ic_robust.py's
 methodology), alongside alpha_score (old composite) and realized_vol_20d
 (minimal score) for direct comparison. Newey-West maxlags=20, full+top150
@@ -171,7 +171,7 @@ result = pd.DataFrame(rows)
 pd.set_option("display.width", 160)
 print("\n" + "=" * 90)
 print("MAIN TABLE -- v2_score vs old composite (alpha_score) vs minimal (realized_vol_20d)")
-print("Eligibility threshold: value_ma20 >= 3B VND (locked per docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md)")
+print("Eligibility threshold: value_ma20 >= 3B VND (locked per docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md)")
 print("=" * 90)
 print(result.to_string(index=False, formatters={"mean_IC": "{:+.4f}".format, "t_naive": "{:+.2f}".format, "t_NW": "{:+.2f}".format}))
 

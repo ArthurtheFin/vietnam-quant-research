@@ -1,7 +1,7 @@
 # FOLD_AUTOPSY_REPORT — diagnosing the left tail in the walk-forward backtest
 
-**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/docs/reports/data/DATA_BASELINE.md`),
-deployed scoring at commit `6f452b2` (post-`docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md`
+**Dataset/code version**: `data/full_history_v2` (`docs/reports/data/DATA_BASELINE.md`),
+deployed scoring at commit `6f452b2` (post-`docs/reports/scoring/SCORING_UPDATE_REPORT.md`
 changes — `return_20d` removed from `momentum_score`, `distance_ma20`
 gate loosened, `realized_vol_20d` unchanged). **Diagnosis-only round**:
 no scoring changes, no tuning, no new factor tests. Same 5 walk-forward
