@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,20 @@ def project_root(start: str | Path | None = None) -> Path:
         if (candidate / "data").exists() and (candidate / "stock-decision-engine").exists():
             return candidate
     raise FileNotFoundError("Cannot find project root containing data/ and stock-decision-engine/.")
+
+
+def _official_clean_ohlcv_path(root: Path) -> Path:
+    """The one path stock-decision-engine may read stock OHLCV from --
+    imports the constant from the main project's single source of truth
+    (audit gate #6 / critical finding P0-2, src/data/dataset_config.py)
+    instead of hardcoding the string, so this module is covered by
+    tests/test_dataset_config.py the same way src/ and scripts/ are."""
+    root_str = str(root)
+    if root_str not in sys.path:
+        sys.path.insert(0, root_str)
+    from src.data.dataset_config import OFFICIAL_CLEAN_OHLCV_PATH
+
+    return root / OFFICIAL_CLEAN_OHLCV_PATH
 
 
 def engine_root(root: Path | None = None) -> Path:
@@ -75,36 +90,34 @@ def _validate_ohlcv(df: pd.DataFrame, label: str) -> None:
 
 def available_tickers(root: Path | None = None) -> list[str]:
     root = root or project_root()
-    symbols: set[str] = set()
-    processed = root / "data/processed/clean_daily_ohlcv.parquet"
-    if processed.exists():
-        df = pd.read_parquet(processed, columns=["symbol"])
-        symbols.update(df["symbol"].dropna().astype(str).str.upper().unique())
-    raw_dir = root / "data/raw/daily_ohlcv"
-    if raw_dir.exists():
-        symbols.update(p.stem.upper() for p in raw_dir.glob("*.parquet"))
-    return sorted(symbols)
+    path = _official_clean_ohlcv_path(root)
+    if not path.exists():
+        return []
+    df = pd.read_parquet(path, columns=["symbol"])
+    return sorted(df["symbol"].dropna().astype(str).str.upper().unique())
 
 
 def load_stock_ohlcv(ticker: str, root: Path | None = None, lookback_days: int | None = None) -> pd.DataFrame:
     root = root or project_root()
     ticker = ticker.upper()
-    paths = [root / "data/processed/clean_daily_ohlcv.parquet", root / f"data/raw/daily_ohlcv/{ticker}.parquet"]
-    errors: list[str] = []
-    for path in paths:
-        if not path.exists():
-            continue
-        df = pd.read_parquet(path)
-        df = _normalize(df, ticker)
-        if "symbol" in df.columns:
-            df = df[df["symbol"].astype(str).str.upper() == ticker]
-        if df.empty:
-            errors.append(f"{path.relative_to(root)} has no rows for {ticker}.")
-            continue
-        _validate_ohlcv(df, ticker)
-        return df.tail(lookback_days).reset_index(drop=True) if lookback_days else df.reset_index(drop=True)
-    tickers = ", ".join(available_tickers(root)[:80])
-    raise FileNotFoundError(f"Ticker {ticker} not found. Available tickers include: {tickers}")
+    path = _official_clean_ohlcv_path(root)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"{path.relative_to(root)} not found. Run scripts/generate_features.py "
+            "-- this is the only stock OHLCV source stock-decision-engine is "
+            "allowed to read (audit gate #6, src/data/dataset_config.py)."
+        )
+    df = pd.read_parquet(path)
+    df = _normalize(df, ticker)
+    if "symbol" in df.columns:
+        df = df[df["symbol"].astype(str).str.upper() == ticker]
+    if df.empty:
+        tickers = ", ".join(available_tickers(root)[:80])
+        raise FileNotFoundError(
+            f"Ticker {ticker} not found in {path.relative_to(root)}. Available tickers include: {tickers}"
+        )
+    _validate_ohlcv(df, ticker)
+    return df.tail(lookback_days).reset_index(drop=True) if lookback_days else df.reset_index(drop=True)
 
 
 def load_benchmark_ohlcv(benchmark: str = "VNINDEX", root: Path | None = None, lookback_days: int | None = None) -> pd.DataFrame:
@@ -115,7 +128,7 @@ def load_benchmark_ohlcv(benchmark: str = "VNINDEX", root: Path | None = None, l
         root / f"data/processed/benchmark_{slug}.parquet",
         root / "data/processed/index_features.parquet",
         root / f"data/raw/index_ohlcv/{symbol}.parquet",
-        root / "data/processed/clean_daily_ohlcv.parquet",
+        _official_clean_ohlcv_path(root),
     ]
     for path in paths:
         if not path.exists():

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+
+from data import project_root
 
 
 def decision_summary(ticker: str, metrics: dict[str, Any], decision: dict[str, Any], simulation: dict[str, float]) -> str:
@@ -72,14 +75,45 @@ def save_outputs(
     decision: dict[str, Any],
     simulation_summary: dict[str, float],
     backtest: dict[str, Any],
+    root: Path | None = None,
 ) -> dict[str, Path]:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
+    lineage = _lineage_metadata(root or project_root())
     prefix = f"{ticker.upper()}_{pd.Timestamp(metrics['date']).date()}"
     summary_path = out / f"{prefix}_decision_summary.txt"
     score_path = out / f"{prefix}_sub_scores.csv"
     metrics_path = out / f"{prefix}_metrics.csv"
     summary_path.write_text(decision_summary(ticker, metrics, decision, simulation_summary), encoding="utf-8")
     decision["sub_scores"].to_csv(score_path, index=False)
-    pd.DataFrame([{**metrics, **{f"mc_{k}": v for k, v in simulation_summary.items()}, **{f"bt_{k}": v for k, v in backtest.items()}}]).to_csv(metrics_path, index=False)
+    pd.DataFrame(
+        [
+            {
+                **metrics,
+                **{f"mc_{k}": v for k, v in simulation_summary.items()},
+                **{f"bt_{k}": v for k, v in backtest.items()},
+                **{f"lineage_{k}": v for k, v in lineage.items()},
+            }
+        ]
+    ).to_csv(metrics_path, index=False)
     return {"summary": summary_path, "scores": score_path, "metrics": metrics_path}
+
+
+def _lineage_metadata(root: Path) -> dict[str, Any]:
+    """Reproducibility lineage (audit gate #12 / CLAUDE.md rule 6): which
+    dataset version and code commit produced this artifact, so a stale or
+    since-regenerated input is detectable after the fact. Reuses the main
+    project's own builder (src/utils/pipeline_io.py) instead of a
+    stock-decision-engine-local re-implementation."""
+    root_str = str(root)
+    if root_str not in sys.path:
+        sys.path.insert(0, root_str)
+    from src.data.dataset_config import OFFICIAL_CLEAN_OHLCV_PATH
+    from src.utils.pipeline_io import build_lineage_metadata
+
+    return build_lineage_metadata(
+        features_path=OFFICIAL_CLEAN_OHLCV_PATH,
+        config_path="stock-decision-engine/config.yaml",
+        dataset_version="full_history_v2",
+        base_dir=root_str,
+    )

@@ -1,10 +1,16 @@
 """Regression test for audit gate #6 (critical finding P0-2): the official
 dataset paths must have exactly one source of truth, `src/data/dataset_config.py`.
 
-Fails the build if any other module in `src/` or `scripts/` hardcodes one of
-the canonical derived-data path strings (instead of importing the constant),
-or reads from the quarantine directory / legacy raw directory outside the
-narrow, explicitly allow-listed writer.
+Fails the build if any other module in `src/`, `scripts/`, or
+`stock-decision-engine/src/` hardcodes one of the canonical derived-data
+path strings (instead of importing the constant), or reads from the
+quarantine directory / legacy raw directory outside the narrow, explicitly
+allow-listed writer.
+
+`stock-decision-engine/src/` was added after `AUDIT_SDE_REPORT.md`
+(HIGH-severity finding #1) confirmed it was reading the pre-gate-6 stale
+`data/processed/clean_daily_ohlcv.parquet` for 6/20 of its real analysis
+runs -- this test is what stops that regressing.
 """
 from __future__ import annotations
 
@@ -43,9 +49,9 @@ FORBIDDEN_DERIVED_PATH_STRINGS = {
 
 def _iter_source_files() -> list[Path]:
     files: list[Path] = []
-    for base in ("src", "scripts"):
+    for base in ("src", "scripts", "stock-decision-engine/src"):
         for path in (PROJECT_ROOT / base).rglob("*.py"):
-            if ".ipynb_checkpoints" in path.parts:
+            if ".ipynb_checkpoints" in path.parts or "__pycache__" in path.parts:
                 continue
             files.append(path)
     return files
