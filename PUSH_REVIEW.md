@@ -1012,3 +1012,74 @@ yêu cầu (script + LaunchAgent + chạy bù + backfill trung thực), nhưng
 đến lúc đó, nhịp ngày vẫn cần chạy tay (`bash scripts/daily_run.sh`) như
 trước, không tệ hơn trạng thái trước round này. Không có gì khác thay đổi
 so với "Trạng thái nghỉ đạt ngày 2026-07-16" ở trên.
+
+## Phase 10 — audit thuần `stock-decision-engine/`, không sửa code (this session)
+
+**Bối cảnh**: người dùng gỡ quy tắc read-only trước đây áp cho
+`stock-decision-engine/` (notebook quyết định cổ phiếu độc lập, 20 lần chạy
+thật/172 file output cho 16 mã, chưa từng backtest) và yêu cầu một vòng audit
+thuần — không sửa code, không tune, không backtest — để biến "cảm giác chưa
+chất lượng" thành danh sách vấn đề có bằng chứng. Báo cáo đầy đủ:
+`stock-decision-engine/AUDIT_SDE_REPORT.md`.
+
+**NV0**: kiểm tra git status — toàn bộ 185 file trong
+`stock-decision-engine/` đã track sẵn, không có gì chưa commit, không cần
+snapshot bổ sung.
+
+**NV1**: bản đồ kiến trúc đầy đủ — entry point (notebook, sửa `TICKER` ở
+cell đầu) → `data.py`/`features.py`/`simulation.py`/`scoring.py`/`report.py`/
+`visualization.py`. Liệt kê đầy đủ công thức 8 sub-score (`market_regime` 10%,
+`trend` 20%, `momentum` 15%, `relative_strength` 15%, `alpha` 15%, `risk`
+10%, `liquidity` 10%, `simulation` 5%) — toàn bộ ngưỡng/trọng số hard-code
+trong `config.yaml`/`scoring.py`, không citation.
+
+**NV2 (phát hiện chính)**: engine KHÔNG tự fetch giá — đọc lại
+`data/processed/clean_daily_ohlcv.parquet` của dự án chính (có fallback tới
+`data/raw/daily_ohlcv/` — đường dẫn dự án chính đánh dấu "Forbidden", hiện
+không kích hoạt được vì thư mục rỗng). Chạy ladder test (yêu cầu gốc:
+HPG/TCB; áp dụng cho toàn bộ 16 mã SDE có output vì không có TCB) so
+`data/quarantine_existing_v1/clean_daily_ohlcv.parquet` (bản cũ, đúng bản
+SDE đã đọc) với `data/full_history_v2/raw/`: **5/16 mã (BID, HDB, HPG, TPB,
+VCB) dính raw/adjusted-close mixing bug đã biết** (4-7 mức ratio riêng biệt,
+29-47% ngày lệch >5%, lệch tối đa 38-115%); 11/16 mã sạch (ratio=1.000 mọi
+ngày). Đối chiếu mốc git xác nhận: TOÀN BỘ 20 lần chạy (nhúng ngày
+2026-06-24 → 2026-07-06) đều SỚM HƠN ngày `data/processed/` được vá thật
+(2026-07-13, `28b9f60`) — nên 6/20 lần chạy trên 5 mã trên chắc chắn dùng dữ
+liệu rolling-window (MA/vol/RSI/ATR) đã nhiễu một phần. Nếu chạy lại HÔM NAY
+dữ liệu sẽ sạch (file hiện tại đã regenerate từ `full_history_v2`, mới nhất
+2026-07-16). Không output nào có lineage metadata (vi phạm `CLAUDE.md` mục
+6). Không vi phạm firewall disclosure.
+
+**NV3 (bằng chứng gián tiếp mạnh nhất)**: không tìm thấy look-ahead/leakage
+nào trong cách tính đặc trưng (điểm tích cực). Nhưng `src/screening/final_watchlist.py`
+có đúng 5 sub-score TRÙNG TÊN với SDE (`trend_score`, `momentum_score`,
+`relative_strength_score`, `liquidity_score`, `risk_score`) — composite đó đã
+bị `WATCHLIST_VALIDATION_REPORT.md` đóng hồ sơ ÂM TÍNH; và
+`SCORE_FORENSIC_REPORT.md` tìm thấy họ nhân tố "đuổi theo sức mạnh giá gần
+đây" (momentum/rs/trend, 70% trọng số `alpha_score` v1) đảo dấu IC từ
++0.014/+0.016 (2023-2025) sang **−0.106/−0.105 (2026)** — đúng giai đoạn 20
+lần chạy SDE nằm trong đó. 50% trọng số cuối của SDE (`trend`+`momentum`+
+`relative_strength`) rơi đúng vào họ nhân tố này — không kết luận SDE có
+cùng lỗi định lượng chính xác (công thức khác), nhưng là bằng chứng gián
+tiếp mạnh để nghi ngờ. Không sub-score nào đạt VALIDATED; tất cả 8 xếp
+PLAUSIBLE_BUT_UNVALIDATED (2 cái — momentum, relative_strength — gắn nhãn
+rủi ro cao).
+
+**Kết quả**: `AUDIT_SDE_REPORT.md` — 8 finding theo severity (2 HIGH, 3
+MEDIUM, 2 LOW, 1 INFO), bảng phân loại 8 sub-score, khuyến nghị tạm thời cho
+172 file output hiện có (6 lần chạy trên mã dính bug: không tin cậy các
+sub-score rolling-window cho đến khi chạy lại; 14 lần chạy còn lại: đọc như
+checklist TA có tổ chức, không phải điểm số đã kiểm định), và đề xuất kế
+hoạch Vòng 2 (point-in-time re-scoring trên `full_history_v2`, universe lớn
+hơn 16 mã, prereg trước khi chạy, BH-FDR nếu test nhiều sub-score, cộng danh
+sách rõ cái gì KHÔNG kiểm định được — Monte Carlo cần test kiểu calibration
+chứ không phải IC, `market_regime` không có cross-sectional variation).
+**Không sửa một dòng code nào của `stock-decision-engine/` trong round này.**
+
+**Lưu ý cho session sau**: người dùng nói CLAUDE.md đã được cập nhật để gỡ
+quy tắc read-only cho `stock-decision-engine/`, nhưng file `CLAUDE.md` hiện
+tại KHÔNG có ghi chú này (đã kiểm tra `grep -i stock-decision-engine
+CLAUDE.md` và toàn bộ lịch sử git của file — không có kết quả). Có thể người
+dùng nhớ nhầm, hoặc thay đổi đó chưa từng được lưu. Chưa tự ý thêm ghi chú
+này vào CLAUDE.md trong round này (ngoài phạm vi NV0-NV4 đã giao) — cần xác
+nhận lại với người dùng ở lần trao đổi kế tiếp.
