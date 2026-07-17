@@ -15,10 +15,10 @@ Market Regime: Bullish
 Trend: Downtrend
 Momentum: Weak
 Relative Strength: Neutral/lagging
-Alpha: 105.44%
-Risk: Elevated
+Alpha: 9.26%
+Risk: Controlled
 Liquidity: Passed
-Simulation: 10.0% target-before-stop probability
+Simulation: 8.9% target-before-stop probability
 
 Main Reasons:
 1. alpha: 90/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
@@ -31,4 +31,4 @@ Warnings:
 3. Available backtest evidence has profit factor below 1.
 
 Vietnamese Broker Note:
-GEX hiện được hệ thống chấm 52/100 với khuyến nghị WEAK SETUP. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength so với VNINDEX đang cải thiện, tức mã có dấu hiệu khỏe hơn thị trường chung. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 10.0%.
+GEX hiện được hệ thống chấm 52/100 với khuyến nghị WEAK SETUP. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength so với VNINDEX đang cải thiện, tức mã có dấu hiệu khỏe hơn thị trường chung. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 8.9%.

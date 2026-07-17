@@ -1,33 +1,34 @@
 Ticker: HDB
 Date: 2026-07-02
 
-Final Score: 63/100
+Final Score: 76/100
 Decision: WATCH / WAIT FOR PULLBACK
 Confidence: Medium
 
-Entry Zone: 26,402 - 26,650
-Stop-loss: 25,807
-Target 1: 27,789
-Target 2: 28,582
+Entry Zone: 26,400 - 26,650
+Stop-loss: 25,800
+Target 1: 27,800
+Target 2: 28,600
 Risk/Reward: 1.50
 
-Market Regime: Weak
-Trend: Downtrend
+Market Regime: Bullish
+Trend: Mixed
 Momentum: Positive
 Relative Strength: Outperforming
-Alpha: 81.71%
+Alpha: 17.93%
 Risk: Controlled
 Liquidity: Passed
-Simulation: 41.0% target-before-stop probability
+Simulation: 34.4% target-before-stop probability
 
 Main Reasons:
-1. relative_strength: 100/100 - Excess return, RS slope, beta, and correlation.
-2. liquidity: 93/100 - Average value, volume participation, z-score, MFI, and CMF.
-3. alpha: 78/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
+1. market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
+2. liquidity: 100/100 - Average value, volume participation, z-score, MFI, and CMF.
+3. alpha: 90/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
 
 Warnings:
 1. Risk/reward is below the preferred buy threshold.
 2. Monte Carlo paths hit stop before target more often than the reverse.
+3. Available backtest evidence has profit factor below 1.
 
 Vietnamese Broker Note:
-HDB hiện được hệ thống chấm 63/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái weak, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength so với VNINDEX đang cải thiện, tức mã có dấu hiệu khỏe hơn thị trường chung. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 41.0%.
+HDB hiện được hệ thống chấm 76/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là mixed. Giá vẫn giữ trên MA50 và MA200, cho thấy cấu trúc trung hạn chưa bị phá vỡ. Relative Strength so với VNINDEX đang cải thiện, tức mã có dấu hiệu khỏe hơn thị trường chung. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 34.4%.

@@ -1,33 +1,32 @@
 Ticker: TPB
 Date: 2026-06-26
 
-Final Score: 57/100
-Decision: WEAK SETUP
-Confidence: Low-Medium
+Final Score: 65/100
+Decision: WATCH / WAIT FOR PULLBACK
+Confidence: Medium
 
-Entry Zone: 15,896 - 16,088
-Stop-loss: 15,436
-Target 1: 16,971
-Target 2: 17,586
+Entry Zone: 15,943 - 16,139
+Stop-loss: 15,471
+Target 1: 17,043
+Target 2: 17,671
 Risk/Reward: 1.50
 
 Market Regime: Bullish
-Trend: Downtrend
+Trend: Mixed
 Momentum: Cooling
-Relative Strength: Neutral/lagging
-Alpha: 23.60%
+Relative Strength: Outperforming
+Alpha: -9.53%
 Risk: Controlled
 Liquidity: Passed
-Simulation: 31.8% target-before-stop probability
+Simulation: 31.4% target-before-stop probability
 
 Main Reasons:
 1. market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
 2. liquidity: 93/100 - Average value, volume participation, z-score, MFI, and CMF.
-3. alpha: 71/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
+3. risk: 80/100 - ATR, volatility percentile, drawdown, CVaR, skew, and stop width.
 
 Warnings:
 1. Risk/reward is below the preferred buy threshold.
-2. Monte Carlo paths hit stop before target more often than the reverse.
 
 Vietnamese Broker Note:
-TPB hiện được hệ thống chấm 57/100 với khuyến nghị WEAK SETUP. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 31.8%.
+TPB hiện được hệ thống chấm 65/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là mixed. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength so với VNINDEX đang cải thiện, tức mã có dấu hiệu khỏe hơn thị trường chung. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 31.4%.

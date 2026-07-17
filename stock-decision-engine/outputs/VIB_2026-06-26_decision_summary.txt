@@ -1,24 +1,24 @@
 Ticker: VIB
 Date: 2026-06-26
 
-Final Score: 49/100
-Decision: WEAK SETUP
-Confidence: Low-Medium
+Final Score: 62/100
+Decision: WATCH / WAIT FOR PULLBACK
+Confidence: Medium
 
-Entry Zone: 15,909 - 16,085
-Stop-loss: 15,486
-Target 1: 16,896
-Target 2: 17,461
+Entry Zone: 16,009 - 16,185
+Stop-loss: 15,586
+Target 1: 16,996
+Target 2: 17,561
 Risk/Reward: 1.50
 
 Market Regime: Bullish
-Trend: Downtrend
-Momentum: Weak
+Trend: Mixed
+Momentum: Positive
 Relative Strength: Neutral/lagging
-Alpha: -6.50%
+Alpha: -6.16%
 Risk: Controlled
 Liquidity: Passed
-Simulation: 37.0% target-before-stop probability
+Simulation: 37.7% target-before-stop probability
 
 Main Reasons:
 1. market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
@@ -29,4 +29,4 @@ Warnings:
 1. Risk/reward is below the preferred buy threshold.
 
 Vietnamese Broker Note:
-VIB hiện được hệ thống chấm 49/100 với khuyến nghị WEAK SETUP. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 37.0%.
+VIB hiện được hệ thống chấm 62/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là mixed. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 37.7%.

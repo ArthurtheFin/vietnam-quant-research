@@ -1,9 +1,9 @@
 component,score,weight,reason
-market_regime,10.0,10,"Benchmark trend, slope, returns, drawdown, and volatility."
+market_regime,100.0,10,"Benchmark trend, slope, returns, drawdown, and volatility."
 trend,95.0,20,"MA structure, slopes, ADX/+DI, and breakout context."
 momentum,83.0,15,"Multi-horizon returns, RSI, MACD, and acceleration."
 relative_strength,100.0,15,"Excess return, RS slope, beta, and correlation."
 alpha,100.0,15,"CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge."
-risk,85.0,10,"ATR, volatility percentile, drawdown, CVaR, skew, and stop width."
+risk,90.0,10,"ATR, volatility percentile, drawdown, CVaR, skew, and stop width."
 liquidity,93.0,10,"Average value, volume participation, z-score, MFI, and CMF."
-simulation,88.0,5,"Bootstrap probability, expected return, and simulated tail risk."
+simulation,58.0,5,"Bootstrap probability, expected return, and simulated tail risk."

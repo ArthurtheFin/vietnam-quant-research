@@ -1,0 +1,33 @@
+Ticker: VPB
+Date: 2026-07-06
+
+Final Score: 71/100
+Decision: WATCH / WAIT FOR PULLBACK
+Confidence: Medium
+
+Entry Zone: 27,175 - 27,519
+Stop-loss: 26,350
+Target 1: 29,100
+Target 2: 30,200
+Risk/Reward: 1.50
+
+Market Regime: Bullish
+Trend: Mixed
+Momentum: Positive
+Relative Strength: Outperforming
+Alpha: -1.27%
+Risk: Controlled
+Liquidity: Passed
+Simulation: 16.7% target-before-stop probability
+
+Main Reasons:
+1. liquidity: 100/100 - Average value, volume participation, z-score, MFI, and CMF.
+2. momentum: 88/100 - Multi-horizon returns, RSI, MACD, and acceleration.
+3. market_regime: 80/100 - Benchmark trend, slope, returns, drawdown, and volatility.
+
+Warnings:
+1. Risk/reward is below the preferred buy threshold.
+2. Monte Carlo paths hit stop before target more often than the reverse.
+
+Vietnamese Broker Note:
+VPB hiện được hệ thống chấm 71/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là mixed. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength so với VNINDEX đang cải thiện, tức mã có dấu hiệu khỏe hơn thị trường chung. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 16.7%.

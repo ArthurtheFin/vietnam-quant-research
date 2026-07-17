@@ -1,0 +1,33 @@
+Ticker: VCB
+Date: 2026-06-30
+
+Final Score: 65/100
+Decision: WATCH / WAIT FOR PULLBACK
+Confidence: Medium
+
+Entry Zone: 61,650 - 62,088
+Stop-loss: 60,600
+Target 1: 64,100
+Target 2: 65,500
+Risk/Reward: 1.50
+
+Market Regime: Bullish
+Trend: Mixed
+Momentum: Positive
+Relative Strength: Neutral/lagging
+Alpha: 28.18%
+Risk: Controlled
+Liquidity: Passed
+Simulation: 35.9% target-before-stop probability
+
+Main Reasons:
+1. market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
+2. momentum: 83/100 - Multi-horizon returns, RSI, MACD, and acceleration.
+3. liquidity: 83/100 - Average value, volume participation, z-score, MFI, and CMF.
+
+Warnings:
+1. Risk/reward is below the preferred buy threshold.
+2. Monte Carlo paths hit stop before target more often than the reverse.
+
+Vietnamese Broker Note:
+VCB hiện được hệ thống chấm 65/100 với khuyến nghị WATCH / WAIT FOR PULLBACK. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là mixed. Giá vẫn giữ trên MA50 và MA200, cho thấy cấu trúc trung hạn chưa bị phá vỡ. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 35.9%.

@@ -15,10 +15,10 @@ Market Regime: Bullish
 Trend: Downtrend
 Momentum: Weak
 Relative Strength: Neutral/lagging
-Alpha: 4.29%
+Alpha: 5.76%
 Risk: Controlled
 Liquidity: Passed
-Simulation: 13.1% target-before-stop probability
+Simulation: 18.5% target-before-stop probability
 
 Main Reasons:
 1. alpha: 90/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
@@ -31,4 +31,4 @@ Warnings:
 3. Available backtest evidence has profit factor below 1.
 
 Vietnamese Broker Note:
-VIX hiện được hệ thống chấm 44/100 với khuyến nghị AVOID. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 13.1%.
+VIX hiện được hệ thống chấm 44/100 với khuyến nghị AVOID. Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là downtrend. Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng, nên cần thận trọng với điểm mua mới. Relative Strength chưa nổi bật so với VNINDEX, vì vậy chưa nên nâng tỷ trọng quá sớm. Tỷ lệ risk/reward hiện chưa đủ hấp dẫn; nên chờ giá về vùng hỗ trợ gần hơn hoặc stop-loss hẹp hơn. Monte Carlo ước tính xác suất chạm target 1 trước stop là 18.5%.
