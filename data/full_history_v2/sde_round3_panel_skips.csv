@@ -1,0 +1,8 @@
+metric,value
+total_rebalance_dates,82
+active_universe_symbols,462
+scored_symbol_date_rows,17620
+skipped_short_history_rows,2708
+skipped_error_rows,0
+first_valid_scored_date,2023-01-16
+lookback_days_required,756

@@ -1,0 +1,39 @@
+Ticker: POW
+Date: 2026-06-26
+
+*** BẢNG DỮ KIỆN THAM KHẢO -- KHÔNG PHẢI KHUYẾN NGHỊ MUA/BÁN ***
+Không có điểm tổng hợp hay xếp loại quyết định nào ở đây. Vòng 3
+(SDE_SCORING_REPORT.md) xác nhận final_score/decision cũ không có
+bằng chứng dự báo (IC Newey-West và null-test đều không đạt tiêu
+chí đã khóa trước) -- công thức đã gỡ bỏ hoàn toàn, không chỉ ẩn.
+
+ATR-based reference levels (không phải điểm vào lệnh khuyến nghị):
+  Entry zone: 14,611 - 14,847
+  Stop-loss:  14,043
+  Target 1:   15,936
+  Target 2:   16,693
+  Risk/Reward: 1.50
+
+Market Regime: Bullish
+Trend: Uptrend
+Momentum: Positive
+Relative Strength: Outperforming
+Alpha (CAPM): -3.11%
+Risk: Controlled
+Liquidity: Passed
+Simulation: 25.7% target-before-stop probability
+
+Chi tiết theo nhóm (reading 0-100 = số tiêu chí TA nội bộ đạt,
+KHÔNG phải xác suất/điểm dự báo -- không có nhóm nào ở đây đã qua
+kiểm định IC/null-test):
+  - market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
+  - trend: 100/100 - MA structure, slopes, ADX/+DI, and breakout context.
+  - momentum: 73/100 - Multi-horizon returns, RSI, MACD, and acceleration.
+  - relative_strength: 100/100 - Excess return, RS slope, beta, and correlation.
+  - alpha: 26/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
+  - risk: 80/100 - ATR, volatility percentile, drawdown, CVaR, skew, and stop width.
+  - liquidity: 100/100 - Average value, volume participation, z-score, MFI, and CMF.
+  - simulation: 33/100 - Bootstrap probability, expected return, and simulated tail risk.
+
+Ghi chú (không phải khuyến nghị):
+POW: đây là bảng dữ kiện tham khảo, KHÔNG phải khuyến nghị mua/bán (SDE_SCORING_REPORT.md, Nhánh C -- final_score/decision cũ không có bằng chứng dự báo, đã gỡ bỏ). Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là uptrend. Giá vẫn giữ trên MA50 và MA200. Relative Strength so với VNINDEX đang cải thiện. Vùng tham chiếu ATR quanh 14,611-14,847, stop-loss tham chiếu 14,043, target 1 tham chiếu 15,936. Monte Carlo (chưa kiểm định calibration) ước tính xác suất chạm target 1 trước stop là 25.7%.

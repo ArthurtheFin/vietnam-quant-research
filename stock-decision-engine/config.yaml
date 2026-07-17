@@ -11,7 +11,6 @@ entry_atr_buffer: 0.5
 stop_atr_multiplier: 2.0
 target_atr_multiplier_1: 3.0
 target_atr_multiplier_2: 5.0
-score_thresholds:
-  buy: 75
-  watch: 60
-  weak: 45
+# score_thresholds (buy/watch/weak) removed 2026-07-17 -- Nhánh C
+# (SDE_SCORING_REPORT.md): không còn final_score/decision label nào dùng
+# ngưỡng này. Xem SDE_SCORING_REPORT.md trước khi thêm lại.

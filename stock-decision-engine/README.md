@@ -1,8 +1,16 @@
 # Stock Decision Engine
 
-Independent decision notebook for `vietnam-quant-research`.
+Independent facts-table notebook for `vietnam-quant-research`.
 
-It answers: given a selected ticker, should I buy now, wait, watch, or avoid?
+**Nhánh C từ 2026-07-17 (`SDE_SCORING_REPORT.md`, Vòng 3)**: đây KHÔNG còn
+là một công cụ khuyến nghị mua/bán. `final_score` (composite trọng số 8
+thành phần) và `decision` (BUY CANDIDATE/WATCH/WEAK SETUP/AVOID/...) đã bị
+gỡ bỏ hoàn toàn khỏi code -- IC Newey-West và null-test (point-in-time,
+full universe, đúng phương pháp đã khóa cho `final_watchlist.py`) đều
+không đạt tiêu chí đã khóa trước cho cả composite lẫn từng sub-score. Đọc
+`SDE_SCORING_REPORT.md` trước khi dùng. Notebook giờ chỉ hiển thị chỉ số
+thô có ngữ cảnh (MA, RSI, ATR, Sharpe, v.v.) cho một mã đã chọn -- không
+điểm tổng hợp, không xếp loại.
 
 ## Structure
 
@@ -39,9 +47,9 @@ CONFIG_PATH = "../config.yaml"
 
 Outputs are saved to `stock-decision-engine/outputs/`:
 
-- decision summary text
-- sub-score CSV
-- metrics CSV
+- facts summary text (`*_facts_summary.txt`, không phải khuyến nghị)
+- facts CSV (`*_facts.csv`, các nhóm chỉ số thô có ngữ cảnh)
+- metrics CSV (kèm lineage: dataset version, git commit hash)
 - matplotlib chart PNGs
 
 ## Notes

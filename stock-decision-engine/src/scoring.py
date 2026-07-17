@@ -1,3 +1,22 @@
+"""Nhánh C (SDE_SCORING_PREREG.md, Vòng 3, SDE_SCORING_REPORT.md): không
+thành phần nào (composite hay từng sub-score riêng) đạt tiêu chí đã khóa
+trước (IC Newey-West |t_NW|>3 đồng dấu 3 giai đoạn residualized/full, HOẶC
+null-test percentile>60 không fold nào <10). `final_score` tổng hợp và
+`decision` (BUY CANDIDATE/WATCH/WEAK SETUP/AVOID/...) đã GỠ BỎ hoàn toàn --
+không phải bị comment/deprecate, không còn trong output ở bất kỳ dạng nào.
+
+Vẫn giữ 8 nhóm "chỉ số thô có ngữ cảnh" (`_market_score`.../`_liquidity_score`
+gọi là "reading" thay vì "score" ở đây) vì đây là facts đã tính sẵn từ
+`metrics`/`simulation`, không phải một quyết định tổng hợp -- đúng tinh thần
+`final_watchlist.py`'s Nhánh C ("không xếp hạng alpha, chỉ hiển thị"), áp
+dụng cho bối cảnh một-mã-một-lúc của SDE (không cần một sort key thay thế
+như final_watchlist cần cho danh sách nhiều mã).
+
+Không xóa các hàm `_market_score`.../`_liquidity_score` -- công thức bên
+trong (đếm bao nhiêu tiêu chí TA đạt, thang 0-100) không đổi, chỉ không còn
+bị cộng có trọng số thành một con số quyết định. Đọc `SDE_SCORING_REPORT.md`
+trước khi coi bất kỳ con số nào ở đây là một khuyến nghị mua/bán.
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -5,20 +24,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-WEIGHTS = {
-    "market_regime": 10,
-    "trend": 20,
-    "momentum": 15,
-    "relative_strength": 15,
-    "alpha": 15,
-    "risk": 10,
-    "liquidity": 10,
-    "simulation": 5,
-}
 
-
-def score_decision(metrics: dict[str, Any], simulation: dict[str, float], backtest: dict[str, Any], cfg: dict[str, Any]) -> dict[str, Any]:
-    scores = {
+def build_facts_table(metrics: dict[str, Any], simulation: dict[str, float], backtest: dict[str, Any], cfg: dict[str, Any]) -> dict[str, Any]:
+    readings = {
         "market_regime": _market_score(metrics),
         "trend": _trend_score(metrics),
         "momentum": _momentum_score(metrics),
@@ -28,22 +36,12 @@ def score_decision(metrics: dict[str, Any], simulation: dict[str, float], backte
         "liquidity": _liquidity_score(metrics, cfg),
         "simulation": _simulation_score(simulation),
     }
-    weighted = sum(scores[k]["score"] * WEIGHTS[k] / 100 for k in WEIGHTS)
-    sub_scores = pd.DataFrame(
-        [{"component": k, "score": round(v["score"], 1), "weight": WEIGHTS[k], "reason": v["reason"]} for k, v in scores.items()]
+    facts = pd.DataFrame(
+        [{"component": k, "reading": round(v["score"], 1), "reason": v["reason"]} for k, v in readings.items()]
     )
-    hard = _hard_filters(metrics, simulation, backtest, cfg)
-    warnings = _warnings(metrics, simulation, backtest)
-    decision = _decision_label(weighted, scores["market_regime"]["score"], metrics, hard, cfg)
-    confidence = _confidence(weighted, hard, simulation)
     return {
-        "final_score": round(float(np.clip(weighted, 0, 100)), 1),
-        "sub_scores": sub_scores,
-        "decision": decision,
-        "confidence": confidence,
-        "warnings": warnings,
-        "hard_filters": hard,
-        "status": _statuses(metrics, scores, simulation),
+        "facts": facts,
+        "status": _statuses(metrics, readings, simulation),
     }
 
 
@@ -128,71 +126,17 @@ def _simulation_score(sim: dict[str, float]) -> dict[str, Any]:
     return _pack(pts, "Bootstrap probability, expected return, and simulated tail risk.")
 
 
-def _hard_filters(m: dict[str, Any], sim: dict[str, float], backtest: dict[str, Any], cfg: dict[str, Any]) -> list[dict[str, Any]]:
-    min_value = float(cfg.get("min_avg_value_20d", 10_000_000_000))
-    checks = [
-        ("average trading value 20D below threshold", m["avg_value_20d"] < min_value),
-        ("price below MA200", not m["above_ma200"]),
-        ("market score below 40", _market_score(m)["score"] < 40),
-        ("risk/reward below 1.5", m["risk_reward"] < 1.5),
-        ("ATR stop-loss distance too wide", m["stop_distance_pct"] > 0.12),
-        ("volatility percentile above 90", m["volatility_percentile"] > 90),
-        ("backtest profit factor below 1", backtest.get("available") and (backtest.get("profit_factor") or 1) < 1),
-        ("probability stop hit > probability target hit", sim["prob_hit_stop_before_target_1"] > sim["prob_hit_target_1_before_stop"]),
-    ]
-    return [{"filter": name, "passed": not bool(failed)} for name, failed in checks]
-
-
-def _decision_label(score: float, market_score: float, m: dict[str, Any], hard: list[dict[str, Any]], cfg: dict[str, Any]) -> str:
-    liq_pass = next(x["passed"] for x in hard if x["filter"].startswith("average trading value"))
-    critical_failed = [x for x in hard if not x["passed"] and x["filter"] in {"price below MA200", "market score below 40"}]
-    if score >= 65 and m["above_ma200"] and m["price_extension_warning"]:
-        return "GOOD STOCK, BAD ENTRY"
-    if score >= cfg["score_thresholds"]["buy"] and market_score >= 60 and m["risk_reward"] >= 1.8 and liq_pass and not critical_failed:
-        return "BUY CANDIDATE"
-    if score >= cfg["score_thresholds"]["watch"]:
-        return "WATCH / WAIT FOR PULLBACK"
-    if score >= cfg["score_thresholds"]["weak"]:
-        return "WEAK SETUP"
-    return "AVOID"
-
-
-def _warnings(m: dict[str, Any], sim: dict[str, float], backtest: dict[str, Any]) -> list[str]:
-    items = []
-    if m["price_extension_warning"]:
-        items.append("Price is extended versus MA20; avoid chasing a full position.")
-    if m["volatility_percentile"] > 85:
-        items.append("Volatility is elevated versus its own history.")
-    if m["risk_reward"] < 1.8:
-        items.append("Risk/reward is below the preferred buy threshold.")
-    if sim["prob_hit_stop_before_target_1"] > sim["prob_hit_target_1_before_stop"]:
-        items.append("Monte Carlo paths hit stop before target more often than the reverse.")
-    if backtest.get("available") and (backtest.get("profit_factor") or 0) < 1:
-        items.append("Available backtest evidence has profit factor below 1.")
-    return items or ["No major quantitative warning."]
-
-
-def _statuses(m: dict[str, Any], scores: dict[str, Any], sim: dict[str, float]) -> dict[str, str]:
+def _statuses(m: dict[str, Any], readings: dict[str, Any], sim: dict[str, float]) -> dict[str, str]:
     return {
-        "market_regime": "Bullish" if scores["market_regime"]["score"] >= 70 else "Neutral" if scores["market_regime"]["score"] >= 45 else "Weak",
-        "stock_trend": "Uptrend" if scores["trend"]["score"] >= 70 else "Mixed" if scores["trend"]["score"] >= 45 else "Downtrend",
-        "momentum": "Positive" if scores["momentum"]["score"] >= 60 else "Cooling" if scores["momentum"]["score"] >= 40 else "Weak",
-        "relative_strength": "Outperforming" if scores["relative_strength"]["score"] >= 60 else "Neutral/lagging",
-        "risk": "Controlled" if scores["risk"]["score"] >= 60 else "Elevated",
-        "liquidity": "Passed" if scores["liquidity"]["score"] >= 60 else "Thin",
+        "market_regime": "Bullish" if readings["market_regime"]["score"] >= 70 else "Neutral" if readings["market_regime"]["score"] >= 45 else "Weak",
+        "stock_trend": "Uptrend" if readings["trend"]["score"] >= 70 else "Mixed" if readings["trend"]["score"] >= 45 else "Downtrend",
+        "momentum": "Positive" if readings["momentum"]["score"] >= 60 else "Cooling" if readings["momentum"]["score"] >= 40 else "Weak",
+        "relative_strength": "Outperforming" if readings["relative_strength"]["score"] >= 60 else "Neutral/lagging",
+        "risk": "Controlled" if readings["risk"]["score"] >= 60 else "Elevated",
+        "liquidity": "Passed" if readings["liquidity"]["score"] >= 60 else "Thin",
         "simulation": f"{sim['prob_hit_target_1_before_stop']:.1%} target-before-stop probability",
     }
 
 
 def _pack(score: float, reason: str) -> dict[str, Any]:
     return {"score": float(np.clip(score, 0, 100)), "reason": reason}
-
-
-def _confidence(score: float, hard: list[dict[str, Any]], sim: dict[str, float]) -> str:
-    failed = sum(not x["passed"] for x in hard)
-    edge = sim["prob_hit_target_1_before_stop"] - sim["prob_hit_stop_before_target_1"]
-    if score >= 75 and failed <= 1 and edge > 0:
-        return "Medium-High"
-    if score >= 60 and failed <= 3:
-        return "Medium"
-    return "Low-Medium"

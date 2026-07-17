@@ -14,7 +14,7 @@ def save_all_charts(
     rolling: pd.DataFrame,
     mc_paths: pd.DataFrame,
     metrics: dict[str, Any],
-    decision: dict[str, Any],
+    facts: dict[str, Any],
     output_dir: str | Path,
     ticker: str,
 ) -> dict[str, Path]:
@@ -27,7 +27,7 @@ def save_all_charts(
         "momentum": lambda: plot_momentum(stock, ticker),
         "risk": lambda: plot_risk(stock, ticker),
         "monte_carlo_fan": lambda: plot_monte_carlo(mc_paths, metrics, ticker),
-        "score_breakdown": lambda: plot_score_breakdown(decision["sub_scores"], ticker),
+        "facts_breakdown": lambda: plot_facts_breakdown(facts["facts"], ticker),
     }
     paths = {}
     for name, maker in makers.items():
@@ -136,11 +136,14 @@ def plot_monte_carlo(paths: pd.DataFrame, metrics: dict[str, Any], ticker: str):
     return fig
 
 
-def plot_score_breakdown(scores: pd.DataFrame, ticker: str):
+def plot_facts_breakdown(facts: pd.DataFrame, ticker: str):
+    """Nhánh C (SDE_SCORING_REPORT.md): đây KHÔNG phải score/decision, chỉ
+    là facts thô có ngữ cảnh -- không sub-score nào ở đây đã qua kiểm định
+    IC/null-test."""
     fig, ax = plt.subplots(figsize=(9, 4.5))
-    s = scores.sort_values("score")
-    ax.barh(s["component"], s["score"], color="#2563eb", alpha=0.85)
+    s = facts.sort_values("reading")
+    ax.barh(s["component"], s["reading"], color="#94a3b8", alpha=0.85)
     ax.set_xlim(0, 100)
-    ax.set_title(f"{ticker.upper()} Score Breakdown")
+    ax.set_title(f"{ticker.upper()} Facts Breakdown (không phải điểm quyết định -- xem SDE_SCORING_REPORT.md)", fontsize=9)
     ax.grid(axis="x", alpha=0.2)
     return fig

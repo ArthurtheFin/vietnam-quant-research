@@ -1,0 +1,9 @@
+component,reading,reason
+market_regime,100.0,"Benchmark trend, slope, returns, drawdown, and volatility."
+trend,50.0,"MA structure, slopes, ADX/+DI, and breakout context."
+momentum,49.0,"Multi-horizon returns, RSI, MACD, and acceleration."
+relative_strength,75.0,"Excess return, RS slope, beta, and correlation."
+alpha,36.0,"CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge."
+risk,80.0,"ATR, volatility percentile, drawdown, CVaR, skew, and stop width."
+liquidity,93.0,"Average value, volume participation, z-score, MFI, and CMF."
+simulation,73.0,"Bootstrap probability, expected return, and simulated tail risk."

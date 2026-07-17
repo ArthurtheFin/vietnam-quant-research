@@ -1,0 +1,39 @@
+Ticker: GEX
+Date: 2026-06-30
+
+*** BẢNG DỮ KIỆN THAM KHẢO -- KHÔNG PHẢI KHUYẾN NGHỊ MUA/BÁN ***
+Không có điểm tổng hợp hay xếp loại quyết định nào ở đây. Vòng 3
+(SDE_SCORING_REPORT.md) xác nhận final_score/decision cũ không có
+bằng chứng dự báo (IC Newey-West và null-test đều không đạt tiêu
+chí đã khóa trước) -- công thức đã gỡ bỏ hoàn toàn, không chỉ ẩn.
+
+ATR-based reference levels (không phải điểm vào lệnh khuyến nghị):
+  Entry zone: 30,923 - 31,582
+  Stop-loss:  29,343
+  Target 1:   34,611
+  Target 2:   36,718
+  Risk/Reward: 1.50
+
+Market Regime: Bullish
+Trend: Mixed
+Momentum: Positive
+Relative Strength: Neutral/lagging
+Alpha (CAPM): 14.25%
+Risk: Controlled
+Liquidity: Passed
+Simulation: 11.5% target-before-stop probability
+
+Chi tiết theo nhóm (reading 0-100 = số tiêu chí TA nội bộ đạt,
+KHÔNG phải xác suất/điểm dự báo -- không có nhóm nào ở đây đã qua
+kiểm định IC/null-test):
+  - market_regime: 100/100 - Benchmark trend, slope, returns, drawdown, and volatility.
+  - trend: 60/100 - MA structure, slopes, ADX/+DI, and breakout context.
+  - momentum: 83/100 - Multi-horizon returns, RSI, MACD, and acceleration.
+  - relative_strength: 50/100 - Excess return, RS slope, beta, and correlation.
+  - alpha: 90/100 - CAPM alpha, Sharpe/Sortino/IR/Calmar, and optional backtest edge.
+  - risk: 70/100 - ATR, volatility percentile, drawdown, CVaR, skew, and stop width.
+  - liquidity: 100/100 - Average value, volume participation, z-score, MFI, and CMF.
+  - simulation: 13/100 - Bootstrap probability, expected return, and simulated tail risk.
+
+Ghi chú (không phải khuyến nghị):
+GEX: đây là bảng dữ kiện tham khảo, KHÔNG phải khuyến nghị mua/bán (SDE_SCORING_REPORT.md, Nhánh C -- final_score/decision cũ không có bằng chứng dự báo, đã gỡ bỏ). Bối cảnh thị trường chung đang ở trạng thái bullish, còn xu hướng của cổ phiếu là mixed. Giá vẫn giữ trên MA50 và MA200. Relative Strength so với VNINDEX đang cải thiện. Vùng tham chiếu ATR quanh 30,923-31,582, stop-loss tham chiếu 29,343, target 1 tham chiếu 34,611. Monte Carlo (chưa kiểm định calibration) ước tính xác suất chạm target 1 trước stop là 11.5%.
