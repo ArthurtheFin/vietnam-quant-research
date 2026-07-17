@@ -1083,3 +1083,80 @@ CLAUDE.md` và toàn bộ lịch sử git của file — không có kết quả)
 dùng nhớ nhầm, hoặc thay đổi đó chưa từng được lưu. Chưa tự ý thêm ghi chú
 này vào CLAUDE.md trong round này (ngoài phạm vi NV0-NV4 đã giao) — cần xác
 nhận lại với người dùng ở lần trao đổi kế tiếp.
+
+## Phase 11 — SDE: sửa chân dữ liệu + regenerate + khóa prereg Vòng 3 (this session)
+
+**Bối cảnh**: tiếp nối Phase 10 (audit thuần) — 2 finding HIGH đã có bằng
+chứng, round này sửa CHÂN DỮ LIỆU + regenerate + viết prereg cho kiểm định
+điểm số ở Vòng 3, KHÔNG đổi công thức/trọng số/ngưỡng điểm nào (nội dung
+điểm chỉ đổi sau khi Vòng 3 chạy, theo cây quyết định đã khóa trước).
+
+**NV0 (commit `44204a6`)**: `CLAUDE.md` mục 10 — ghi rõ
+`stock-decision-engine/` gỡ read-only từ 2026-07-17 (việc treo từ Phase 10:
+người dùng nói đã cập nhật nhưng file thực tế chưa có — nay thêm chính
+thức), phạm vi sửa đổi theo kế hoạch khóa trong `AUDIT_SDE_REPORT.md`.
+
+**NV1 (commit `8795764`)**: nối `stock-decision-engine/src/data.py` về
+`src/data/dataset_config.py::OFFICIAL_CLEAN_OHLCV_PATH` thay vì hard-code
+đường dẫn riêng — gỡ hoàn toàn fallback tới `data/raw/daily_ohlcv/`
+(đường dẫn dự án chính đánh dấu "Forbidden"). Mở rộng
+`tests/test_dataset_config.py` (test hồi quy Gate #6 có sẵn) để quét thêm
+`stock-decision-engine/src/` — không viết test mới, chỉ mở rộng phạm vi
+quét của 3 test đã có. `report.py::save_outputs` nhúng `lineage_*`
+(dataset_version/features_sha256/features_row_count/config_hash/
+git_commit_hash/lineage_generated_at) vào mọi `*_metrics.csv`, tái dùng
+nguyên `src/utils/pipeline_io.py::build_lineage_metadata` của dự án chính
+thay vì viết lại. Notebook cập nhật truyền `root=PROJECT_ROOT` tường minh.
+Smoke test end-to-end xác nhận hoạt động đúng; full suite 295 passed.
+
+**NV2 (commit `861654c`)**: regenerate cả 20 lần chạy cũ (16 mã) đúng NGÀY
+as-of từng lần (không phải chạy "hôm nay" — mới sẽ trộn lẫn hiệu ứng fix bug
+với 3 tuần biến động giá thật, làm sai lệch phép so sánh). Script:
+`scratch/sde_regenerate_gate6.py`. 60 file cũ (date-scoped:
+decision_summary/sub_scores/metrics) chuyển vào
+`stock-decision-engine/outputs/archive_pre_gate6_fix_2026-07-17/` kèm
+README; 112 PNG chart (không gắn theo ngày, chỉ theo mã) bị ghi đè tại
+chỗ, bản cũ vẫn còn trong lịch sử git. Bảng so sánh đầy đủ:
+`stock-decision-engine/GATE6_REGEN_COMPARISON.csv` — **5/20 quyết định bị
+LẬT nhãn** (BMP, SSI, TPB, VIB, VPL), không chỉ ở 6 lần chạy dính bug giá.
+
+**Phát hiện phụ khi regenerate (không có trong Phase 10)**: trước khi
+backfill đầy đủ hoàn tất (2026-07-10, 4 ngày trước lần chạy SDE cuối cùng),
+`clean_daily_ohlcv.parquet` chỉ có lịch sử NGẮN cho hầu hết mã SDE (POW 295
+dòng, SSI 328, STB 332, ACB/GEX 345, VIX 295, VPL 288 — so với
+`lookback_days=756` config yêu cầu) — độc lập với bug raw/adjusted-close,
+ảnh hưởng rộng hơn (7/16 mã thêm, kể cả mã KHÔNG dính bug giá) tới toàn bộ
+thống kê full-window (Sharpe/Sortino/Calmar/Jensen alpha/information
+ratio/max_drawdown/CVaR/skewness — hết `alpha` sub-score, một phần `risk`).
+Ghi thành finding #9 mới trong `AUDIT_SDE_REPORT.md`, đã RESOLVED cho dữ
+liệu hiện tại (đủ sâu từ 2026-07-10) nhưng 60 file archive vẫn mang defect
+này — đúng lý do bị archive, không dùng cho quyết định.
+
+**NV3 (commit `4b88631`)**: `stock-decision-engine/SDE_SCORING_PREREG.md` —
+khóa trước, CHƯA CHẠY. Đối tượng: `final_score` + 8 sub-score (trừ 3 ngoại
+lệ có lý do: `simulation` cần calibration test không phải IC vì là xác
+suất không phải nhân tố xếp hạng; `alpha`'s phần backtest.profit_factor
+không tái tạo point-in-time được; `market_regime` không có biến thiên
+cross-sectional vì chỉ dựa 1 chuỗi VNINDEX). Máy đo ĐÚNG bộ đã khóa cho
+`final_watchlist` (`WATCHLIST_VALIDATION_PREREG.md`): IC Newey-West
+maxlags=20, full+top150, raw+residualized, 3 giai đoạn tertile; null test
+2.000 danh mục/fold seed=42, 5 fold theo năm; BH-FDR trên 7 đối tượng × 2
+universe × 2 target. Cây quyết định 3 nhánh (A: giữ khung/gỡ sub-score IC
+âm; B: tái thiết quanh sub-score có bằng chứng, phần còn lại dán nhãn
+"unvalidated"; C: hạ thành bảng dữ kiện thô, không còn final_score/decision)
+— y hệt cấu trúc đã dùng cho `final_watchlist`. Ghi sẵn kỳ vọng TRƯỚC khi
+chạy (không phải kết luận): 50% trọng số SDE trùng họ nhân tố đã đóng hồ sơ
+âm tính bên dự án chính, nên kỳ vọng hợp lý là IC cũng âm/không rõ ràng —
+để không diễn giải kết quả âm tính (nếu xảy ra) như một bất ngờ cần thêm
+sự hoài nghi mà kết quả dương không bị soi cùng mức.
+
+**NV4**: full suite 295 passed (không đổi qua toàn bộ round).
+`AUDIT_SDE_REPORT.md` cập nhật: finding #1/#3/#6/#7 → RESOLVED kèm commit,
+finding #9 mới (window truncation) thêm vào bảng severity, mục 5-7 viết lại
+phản ánh trạng thái sau Vòng 2, mục 7 rút gọn thành pointer tới
+`SDE_SCORING_PREREG.md` (tránh trùng lặp nội dung giữa hai file).
+
+**Trạng thái cuối round**: dữ liệu SDE sạch cho mọi lần chạy tương lai
+(miễn `daily_run.sh` tiếp tục chạy đều). Công thức/trọng số điểm chưa đổi
+một chữ nào. Vòng 3 (chạy `SDE_SCORING_PREREG.md`) chưa thực hiện — chờ
+phiên riêng theo đúng ràng buộc round này.
