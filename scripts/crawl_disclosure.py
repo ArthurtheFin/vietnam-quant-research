@@ -4,7 +4,7 @@ Usage:
     python scripts/crawl_disclosure.py --symbols TCB MWG TCH VHM HPG
 
 Politeness is hard-coded, not a flag: single-threaded, >=2.5s between
-requests, backs off then gives up on 429/403. See DISCLOSURE_PIPELINE_DESIGN.md
+requests, backs off then gives up on 429/403. See docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md
 Round 4 and src/data/disclosure_client.py for the reasoning.
 """
 import argparse

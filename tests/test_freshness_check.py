@@ -484,7 +484,7 @@ def test_trading_day_count_skips_a_full_tet_period() -> None:
     ordinary weekdays. Uses the real config/vn_market_holidays.csv (not a
     synthetic fixture) -- Tet Nguyen Dan 2026 (Binh Ngo) is 2026-02-16
     through 2026-02-20 (Mon-Fri, verified empirically against
-    data/full_history_v2 -- see DATA_BASELINE.md/config/vn_market_holidays.csv)."""
+    data/full_history_v2 -- see docs/reports/data/docs/reports/data/DATA_BASELINE.md/config/vn_market_holidays.csv)."""
     from src.validation.freshness_check import (
         expected_latest_trading_date,
         load_market_holidays,

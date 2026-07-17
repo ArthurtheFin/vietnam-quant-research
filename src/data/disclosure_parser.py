@@ -113,7 +113,7 @@ def _classify_and_expand(record: dict[str, Any], symbol: str, source_ref: str, f
     (for funds/organizations with no stated board position) neither in the
     insider sense -- emit 0-2 disclosure_events rows per record.
 
-    v1 heuristic (flagged in DISCLOSURE_PIPELINE_DESIGN.md Round 4 as a parse
+    v1 heuristic (flagged in docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md Round 4 as a parse
     simplification, not re-litigated here): a record counts as an "insider"
     disclosure if TransactionManPosition or RelatedManPosition is non-empty
     (a stated board/management position); otherwise it's treated as a plain

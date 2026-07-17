@@ -49,7 +49,7 @@ def run_portfolio_backtest(
 
     On any decision date not covered by `meta_ranking`, falls back to
     src.analytics.reversal_quality_score.score_reversal_quality (validated
-    mean-reversion 3-factor score -- see STRATEGY_RESEARCH_REPORT.md sections
+    mean-reversion 3-factor score -- see docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md sections
     3-6). This replaces a prior momentum/trend/liquidity fallback that a
     shuffle test proved had no alpha.
 
@@ -94,7 +94,7 @@ def run_portfolio_backtest(
     data/processed/stock_features.parquet). If neither a VNINDEX row nor
     `benchmark_features` is available, this raises rather than silently
     substituting some other stock's data and labeling it as the benchmark
-    (that used to happen here -- see FOLD_AUTOPSY_REPORT.md).
+    (that used to happen here -- see docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md).
 
     max_per_sector / sector_map: caps how many of the `portfolio_size`
     selections can share a sector. Selection still walks the score-sorted
@@ -107,7 +107,7 @@ def run_portfolio_backtest(
     selection regardless of max_per_sector's value.
 
     portfolio_size=10 / max_per_sector=2 are the defaults as of
-    CONCENTRATION_ANALYSIS_REPORT.md (was portfolio_size=5, no sector cap).
+    docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md (was portfolio_size=5, no sector cap).
     Basis: a pre-registered theoretical prediction ("more names -> shallower
     worst fold, mean/median converge") was tested and partially confirmed --
     worst-fold CAGR shallowed monotonically with size (-59.7% -> -55.2% ->
@@ -328,7 +328,7 @@ def run_portfolio_backtest(
                 features_today = pd.DataFrame()
                 
             if scores_today.empty and not features_today.empty:
-                # Validated mean-reversion score (STRATEGY_RESEARCH_REPORT.md
+                # Validated mean-reversion score (docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md
                 # section 6) replaces the old momentum/trend/liquidity blend,
                 # which a shuffle test proved had no alpha.
                 scored = score_reversal_quality(features_today.reset_index())
@@ -466,7 +466,7 @@ def run_portfolio_backtest(
     # Benchmark comparison. Requires either a real "VNINDEX" row in
     # `features` or an explicit `benchmark_features` frame -- no silent
     # substitution of an arbitrary other stock's data (that used to happen
-    # here; see FOLD_AUTOPSY_REPORT.md).
+    # here; see docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md).
     vnindex_rows = df[df["symbol"].astype(str).str.upper() == "VNINDEX"].sort_values("date")
     if not vnindex_rows.empty:
         bench_df = vnindex_rows

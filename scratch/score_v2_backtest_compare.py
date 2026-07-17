@@ -1,4 +1,4 @@
-"""SCORE_V2_DESIGN.md confirmation run, walk-forward leg: v2 vs. old
+"""docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md confirmation run, walk-forward leg: v2 vs. old
 composite (deployed alpha_score) vs. minimal score (realized_vol_20d
 alone), identical currently-deployed config (size=10, sector cap=2),
 same 5 folds. One run each, no tuning.

@@ -1,6 +1,6 @@
 """Reusable primitives for the validated mean-reversion factor score.
 
-See STRATEGY_RESEARCH_REPORT.md (sections 3-6) for the research behind this:
+See docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md (sections 3-6) for the research behind this:
 Spearman IC between distance_ma20 / return_20d / realized_vol_20d and
 forward_return_20d, walk-forward validated (single-split + rolling 5-fold) on
 VN 2020-2026 data. All three factors are used INVERTED (low raw value ranks
@@ -23,9 +23,9 @@ FACTORS = ["distance_ma20", "return_20d", "realized_vol_20d"]
 # strategy re-tune. Treat as a default, not a permanent constant --
 # recalibrate periodically the same way on a fresh TRAIN window.
 #
-# Previous calibration (STRATEGY_RESEARCH_REPORT.md section 6, all three
+# Previous calibration (docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md section 6, all three
 # signs negative, weights 0.39/0.32/0.29) was computed against the
-# raw/adjusted-close-corrupted pre-gate-6 dataset (DATA_BASELINE.md P0-2 /
+# raw/adjusted-close-corrupted pre-gate-6 dataset (docs/reports/data/docs/reports/data/DATA_BASELINE.md P0-2 /
 # critical_findings.md). On the corrected data, distance_ma20's and
 # return_20d's mean-reversion IC is now near-zero and sign-flipped (i.e. the
 # apparent signal on the corrupted data does not survive on clean data);

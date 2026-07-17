@@ -1,8 +1,8 @@
 """GD5 NV1 diagnostic (measurement-tool check, NOT a signal test -- see
-V2_STABILITY_NOTE.md): isolate which of the two GD4-added filters
+docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md): isolate which of the two GD4-added filters
 (trading_status==ACTIVE prefilter vs final_watchlist's own
 strict_pass|fallback_eligible "minimal_eligible" gate) drives the
-71.0 (SCORE_V2_REPORT.md) -> 52.8 (GD4 minimal_watchlist) percentile drop,
+71.0 (docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md) -> 52.8 (GD4 minimal_watchlist) percentile drop,
 now that scratch/score_v2_null_test.py rerun on current data ruled out data
 vintage (still 71.0 on 2026-07-15 data with the original config).
 

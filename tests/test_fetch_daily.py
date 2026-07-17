@@ -1,5 +1,5 @@
 """Regression tests for the fetch_daily.py adjustment-basis bug found in
-BACKFILL_DESIGN_REPORT.md Round 2: get_daily_stock_price's raw `closeprice`
+docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md Round 2: get_daily_stock_price's raw `closeprice`
 was silently mapped to `close` in the fallback path instead of the
 separately-provided `closepriceadjusted`, producing a piecewise-adjusted
 series with a step every ~29-day chunk boundary (confirmed on real HPG/TCB

@@ -1,4 +1,4 @@
-"""Task 3 acceptance-gate verification (Round 3, BACKFILL_DESIGN_REPORT.md).
+"""Task 3 acceptance-gate verification (Round 3, docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md).
 
 Compares data/pilot_backfill_v2/raw/ (fetched via the REAL production path,
 fetch_symbol_history, post-fix) against data/processed/stock_features.parquet

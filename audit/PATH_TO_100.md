@@ -44,11 +44,11 @@ việc này xong, vì chúng override toàn bộ:
 ### Gate #6 — Pipeline sản xuất vẫn đọc dữ liệu đã biết là lỗi
 - **Vấn đề**: `scripts/build_portfolio_stack.py` đọc trực tiếp
   `data/processed/stock_features.parquet` — file mà chính
-  `DATA_BASELINE.md` của dự án đã ghi rõ là còn lỗi trộn raw/adjusted
+  `docs/reports/data/docs/reports/data/DATA_BASELINE.md` của dự án đã ghi rõ là còn lỗi trộn raw/adjusted
   close cho một số mã chưa xác định hết, trong khi `data/full_history_v2`
   (đã sửa lỗi) không được dùng ở bước này.
 - **Cần làm**: gộp `data/full_history_v2` vào `data/processed/`
-  (đúng như `DATA_BASELINE.md` đã đề xuất), hoặc trỏ thẳng
+  (đúng như `docs/reports/data/docs/reports/data/DATA_BASELINE.md` đã đề xuất), hoặc trỏ thẳng
   `build_portfolio_stack.py` sang đọc `data/full_history_v2`.
 - **Độ phức tạp**: M (trung bình) — không cần dữ liệu mới, chỉ cần sửa
   đường dẫn đọc dữ liệu + kiểm chứng lại.
@@ -68,7 +68,7 @@ việc này xong, vì chúng override toàn bộ:
 
 ### Gate #17 — Một thành phần "chưa kiểm chứng" vẫn được trình bày như đã kiểm chứng
 - **Vấn đề**: `final_watchlist.py`'s `relative_strength_score` vẫn
-  gộp `alpha_rs_score` — đúng nhân tố mà `SCORE_FORENSIC_REPORT.md`
+  gộp `alpha_rs_score` — đúng nhân tố mà `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`
   của chính dự án đã kết luận là thủ phạm chính gây lỗ -59.7% trong
   một fold backtest thật (IC lật từ +0.0141 xuống -0.1060 năm 2026).
   Lỗi tương tự ở `momentum_score` đã được sửa trong phiên làm việc
@@ -102,7 +102,7 @@ việc này xong, vì chúng override toàn bộ:
 
 ### 3. Signal and Alpha Quality — hiện 4/12, cần +8 (mục cần cải thiện nhiều nhất)
 
-**CẬP NHẬT 2026-07-15 (GĐ4) — `WATCHLIST_VALIDATION_PREREG.md`/`WATCHLIST_VALIDATION_REPORT.md`,
+**CẬP NHẬT 2026-07-15 (GĐ4) — `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md`/`docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`,
 commit range `eb765e6`..`36bba52`:** kiểm định IC/null-test đầu tiên cho toàn
 bộ composite `final_watchlist` đã chạy. Kết quả: composite KHÔNG đạt tiêu chí
 đã khóa (IC t_NW gần 0, không cùng dấu 3 giai đoạn; null test có 1/5 fold sụp
@@ -118,10 +118,10 @@ sửa vận hành, đã sửa.
 |---|---|---|
 | Sửa Gate #17 (gỡ `alpha_rs_score`) — xem trên | phần của critical gate | Đã xong (GĐ trước) |
 | Kiểm định IC/backtest riêng cho TOÀN BỘ composite `final_watchlist` (không chỉ 2 nhân tố của `alpha_score` v2) — hiện 75/100 điểm trọng số của composite này (trend 25 + momentum 20 + relative_strength 20 + liquidity 10) chưa từng được kiểm định ở cấp độ composite | +3 | **XONG — kết quả âm tính, xem trên. Không cộng điểm theo nghĩa "đạt", nhưng khoảng trống kiểm định đã đóng.** |
-| Sửa chiều xếp hạng sai: `liquidity_score` (value_ma20, đang ngược với bằng chứng IC đã có) và `tail_ratio_60d` trong `risk_score` | +1 | `liquidity_score`: XONG (gỡ khỏi ranking hoàn toàn, không chỉ đổi chiều — `WATCHLIST_VALIDATION_REPORT.md` mục 2 xác nhận chiều hiện tại sai, t_NW=−4.19). `tail_ratio_60d` trong `risk_score`: CHƯA — ngoài phạm vi round này, vẫn mở. |
+| Sửa chiều xếp hạng sai: `liquidity_score` (value_ma20, đang ngược với bằng chứng IC đã có) và `tail_ratio_60d` trong `risk_score` | +1 | `liquidity_score`: XONG (gỡ khỏi ranking hoàn toàn, không chỉ đổi chiều — `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 2 xác nhận chiều hiện tại sai, t_NW=−4.19). `tail_ratio_60d` trong `risk_score`: CHƯA — ngoài phạm vi round này, vẫn mở. |
 | Bổ sung trích dẫn bằng chứng cho mọi trọng số/ngưỡng trong `DEFAULT_FINAL_WATCHLIST_CONFIG` (hiện không có báo cáo nào giải thích tại sao là 25/20/20/10/5/10/10) | +1 | **XONG** — docstring `DEFAULT_FINAL_WATCHLIST_CONFIG`'s `weights` (`src/screening/final_watchlist.py`) ghi đầy đủ bằng chứng IC từng thành phần + lý do "unvalidated, giữ vì hiển thị". |
 | Mở rộng `assert_no_forward_columns` sang `src/alpha/scoring.py` và `scripts/run_alpha_scoring.py` (hiện chỉ có ở 2 điểm output, không có ở nơi tính điểm) | +2 | **XONG** — commit `c0a4d82`. |
-| Còn lại (~1 điểm): tuỳ mức độ kiểm định đạt được ở composite | +1 | Chưa cộng — composite không đạt kiểm định; điểm này chờ một nhân tố mới qua đúng quy trình (ứng viên: `risk_score`, t_NW=+4.72, xem `WATCHLIST_VALIDATION_REPORT.md` mục 2). |
+| Còn lại (~1 điểm): tuỳ mức độ kiểm định đạt được ở composite | +1 | Chưa cộng — composite không đạt kiểm định; điểm này chờ một nhân tố mới qua đúng quy trình (ứng viên: `risk_score`, t_NW=+4.72, xem `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 2). |
 
 **Phát hiện phụ, ngoài bảng điểm gốc**: `momentum_score` và
 `relative_strength_score` cho IC giống hệt nhau về mặt toán học (trừ đi lợi
@@ -139,7 +139,7 @@ sửa trong round này.
 *(Đây là mục có khoảng trống lớn nhất theo tỷ lệ — vì hiện gần như
 không có gì chạy thật trong sản xuất. Cân nhắc: có thể dự án này chủ
 đích là risk-based, không cần expected-return — nếu vậy, nói rõ trong
-`DEPLOY_REPORT.md`/`README.md` vẫn lấy được phần lớn điểm mà không cần
+`docs/reports/deploy/docs/reports/deploy/DEPLOY_REPORT.md`/`README.md` vẫn lấy được phần lớn điểm mà không cần
 xây mô hình mới.)*
 
 ### 5. Covariance, Correlation, Portfolio Risk — hiện 8/12, cần +4
@@ -164,7 +164,7 @@ xây mô hình mới.)*
 | Việc cần làm | Điểm ước tính |
 |---|---|
 | Thêm `random_state` cho `generate_random_weights`/`generate_random_portfolios` (hiện không seed, khác với module song sinh `src/models/monte_carlo.py` đã seed đúng) | +1 |
-| Sửa cách trình bày "best random Sharpe" trong notebook 14 — báo cáo dải phân vị (percentile range) thay vì một con số "tối ưu" duy nhất từ hàng nghìn mẫu ngẫu nhiên trong mẫu (đã được chính `AUDIT_REPORT.md` H5 gắn cờ DEFERRED từ trước) | +1 |
+| Sửa cách trình bày "best random Sharpe" trong notebook 14 — báo cáo dải phân vị (percentile range) thay vì một con số "tối ưu" duy nhất từ hàng nghìn mẫu ngẫu nhiên trong mẫu (đã được chính `docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md` H5 gắn cờ DEFERRED từ trước) | +1 |
 
 ### 8. Backtesting and Validation — hiện 10/15, cần +5
 
@@ -178,18 +178,18 @@ xây mô hình mới.)*
 
 ### 9. Robustness, Overfitting, Statistical Validity — hiện 4/8, cần +4
 
-**CẬP NHẬT 2026-07-15 (GĐ5) — `ROBUSTNESS_REPORT.md`, commit range `fcafd05`..:**
+**CẬP NHẬT 2026-07-15 (GĐ5) — `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md`, commit range `fcafd05`..:**
 3/4 việc dưới đây đã làm (đo, không tune). Kết quả không phải toàn "đẹp" —
-DSR cho `alpha_score` v2 rất thấp (0.0083, xem `ROBUSTNESS_REPORT.md` mục 5),
+DSR cho `alpha_score` v2 rất thấp (0.0083, xem `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5),
 và một nghịch lý null-test percentile (71.0 vs 52.8) được giải: nguyên nhân là
 gate `minimal_eligible` của `final_watchlist.py`, không phải dữ liệu hay
-universe (`V2_STABILITY_NOTE.md`). Không sửa trọng số/tham số nào trong round
+universe (`docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md`). Không sửa trọng số/tham số nào trong round
 này — đúng ràng buộc.
 
 | Việc cần làm | Điểm ước tính | Trạng thái |
 |---|---|---|
 | Tính Deflated Sharpe Ratio cho điểm số sản xuất (`alpha_score` v2) | +1 | **XONG** — DSR=0.0083 (M=560 trials, ước lượng công khai cách đếm), tức hầu như không còn bằng chứng "kỹ năng thật" sau khi khấu trừ đa kiểm định. Báo cáo, không tự sửa. |
-| Áp dụng hiệu chỉnh đa kiểm định chính thức (Benjamini-Hochberg FDR hoặc Bonferroni) cho 192 tổ hợp nhân tố đã test trong `FACTOR_RETEST_V2_REPORT.md` — hiện chỉ có ngưỡng `\|t\|>3` không chính thức | +1 | **XONG** — BH-FDR (q=0.05) trên 214 test gộp (192 + 38 từ GĐ4 còn 34 hợp lệ): 38 sống sót, LỎNG HƠN ngưỡng `\|t\|>3` thủ công (27 sống sót) — không phải luôn chặt hơn như trực giác thường nghĩ. `CLAUDE.md` mục 9 mới: mọi bảng test đa nhân tố từ nay báo kèm q-value. |
+| Áp dụng hiệu chỉnh đa kiểm định chính thức (Benjamini-Hochberg FDR hoặc Bonferroni) cho 192 tổ hợp nhân tố đã test trong `docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` — hiện chỉ có ngưỡng `\|t\|>3` không chính thức | +1 | **XONG** — BH-FDR (q=0.05) trên 214 test gộp (192 + 38 từ GĐ4 còn 34 hợp lệ): 38 sống sót, LỎNG HƠN ngưỡng `\|t\|>3` thủ công (27 sống sót) — không phải luôn chặt hơn như trực giác thường nghĩ. `CLAUDE.md` mục 9 mới: mọi bảng test đa nhân tố từ nay báo kèm q-value. |
 | Dùng `src/simulation/bootstrap.py` (đã có, đã seed đúng) để tính khoảng tin cậy bootstrap cho CAGR/Sharpe chính, không chỉ để vẽ biểu đồ khách hàng | +1 | **XONG** — block bootstrap (block=20 ngày, N=1000, seed=42) cho cấu hình v2 chuẩn: CAGR CI=[−9.6%,+19.3%], Sharpe CI=[−0.59,+1.32] — cả hai khoảng đều chứa 0. |
 | Tách riêng dữ liệu holdout cho việc chọn tham số portfolio construction (size/sector cap), không dùng chung 5 fold với fold dùng để báo cáo hiệu suất | +1 | Chưa làm — ngoài phạm vi round này. |
 
@@ -200,7 +200,7 @@ này — đúng ràng buộc.
 | Pin chính xác phiên bản dependency (`requirements.txt` hiện chỉ `>=`) hoặc thêm lockfile | +0.3 |
 | Bổ sung ngày Tết âm lịch vào `config/vn_market_holidays.csv` (hiện tự nhận trong code là chỉ có ngày dương lịch cố định) | +0.3 |
 | Thêm cơ chế ghi file an toàn (temp-file + rename) thay vì ghi trực tiếp | +0.2 |
-| Xác minh lại `run_all_notebooks.sh` có báo lỗi đúng khi notebook thật sự lỗi hay không (đã nghi vấn từ `AUDIT_REPORT.md` J1, chưa kiểm chứng lại bằng cách chạy thật) | +0.2 |
+| Xác minh lại `run_all_notebooks.sh` có báo lỗi đúng khi notebook thật sự lỗi hay không (đã nghi vấn từ `docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md` J1, chưa kiểm chứng lại bằng cách chạy thật) | +0.2 |
 
 ---
 

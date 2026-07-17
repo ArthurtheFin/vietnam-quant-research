@@ -1,8 +1,8 @@
-"""One-off descriptive-stats generator for DISCLOSURE_BASELINE.md.
+"""One-off descriptive-stats generator for docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md.
 
 Descriptive only -- deliberately computes nothing involving price or return
 data (no join against data/full_history_v2 or any other price source). See
-DISCLOSURE_PIPELINE_DESIGN.md Round 5 for why that boundary matters here.
+docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md Round 5 for why that boundary matters here.
 """
 from __future__ import annotations
 

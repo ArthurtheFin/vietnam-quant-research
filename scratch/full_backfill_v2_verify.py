@@ -1,4 +1,4 @@
-"""Task 4b (BACKFILL_DESIGN_REPORT.md Round 2 Task 3, item 4): automated
+"""Task 4b (docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md Round 2 Task 3, item 4): automated
 post-fetch quality suite for the full 501-symbol backfill in
 data/full_history_v2/raw/, extending the pilot's 4 checks to the whole
 universe. Reads only; writes nothing back to existing data.

@@ -1,7 +1,7 @@
 """NV2 -- run the disclosure event study exactly as locked in
-DISCLOSURE_EVENT_STUDY_PREREG.md. One run, no parameter tuning after
+docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md. One run, no parameter tuning after
 seeing results. Writes data/disclosure/event_study_results.json for
-DISCLOSURE_EVENT_STUDY_REPORT.md to cite.
+docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md to cite.
 
 Do not edit thresholds/windows/criteria here without also updating the
 prereg first -- this script is meant to be a literal implementation of
@@ -39,7 +39,7 @@ def build_lineage() -> dict:
     return {
         "git_commit_hash": commit.stdout.strip() if commit.returncode == 0 else None,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "prereg_sha256": _sha256_and_rows("DISCLOSURE_EVENT_STUDY_PREREG.md")["sha256"],
+        "prereg_sha256": _sha256_and_rows("docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md")["sha256"],
         "inputs": {
             "data/disclosure/events.parquet": _sha256_and_rows("data/disclosure/events.parquet"),
             "data/processed/stock_features.parquet": _sha256_and_rows("data/processed/stock_features.parquet"),

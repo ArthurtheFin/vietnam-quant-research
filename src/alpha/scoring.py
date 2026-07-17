@@ -11,19 +11,19 @@ from src.validation.guards import assert_no_forward_columns
 
 def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Primary output `alpha_score` is the v2 composite (SCORE_V2_DESIGN.md /
-    SCORE_V2_REPORT.md), installed after the v1 composite (below) was found
+    Primary output `alpha_score` is the v2 composite (docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md /
+    docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md), installed after the v1 composite (below) was found
     to have no significant standalone IC anywhere it was tested
-    (SCORE_FORENSIC_REPORT.md NV3) and to have actively driven the 2026
+    (docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md NV3) and to have actively driven the 2026
     walk-forward disaster fold via a momentum/relative-strength reversal
-    (SCORE_FORENSIC_REPORT.md NV2):
+    (docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md NV2):
     - v2: 70% realized_vol_20d rank (lower vol = higher score; the one
       component with independently validated IC, t_NW=-5.41 both universes
-      at design time, recalibrated -5.48 on 2026-07-15 data -- ROBUSTNESS_REPORT.md
+      at design time, recalibrated -5.48 on 2026-07-15 data -- docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md
       NV2, stable) + 30% value_ma20 rank (lower/less-liquid = higher score,
       matching its own validated but narrower IC evidence, t_NW=-3.33 full
       universe only at design time, recalibrated -3.37, with a disclosed
-      survivorship-bias caveat -- DATA_BASELINE.md). Confirmation run:
+      survivorship-bias caveat -- docs/reports/data/docs/reports/data/DATA_BASELINE.md). Confirmation run:
       null-test avg percentile 71.0/2000 across 5 folds (no fold <5th), IC
       t_NW=+6.09 (full) / +5.67 (top150) residualized, same-signed all 3
       periods -- **this 71.0 is valid for v2 tested standalone only** (the
@@ -31,13 +31,13 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
       run_portfolio_backtest, nothing more). When v2 runs inside
       final_watchlist.py's full eligibility gate (strict_pass/fallback_eligible,
       not just liquidity/trend), the same null test gives 52.8, not 71.0 --
-      V2_STABILITY_NOTE.md traced the entire gap to that extra gate, not to
+      docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md traced the entire gap to that extra gate, not to
       data or universe. Do not cite 71.0 for v2-inside-final_watchlist
-      contexts. As of ROBUSTNESS_REPORT.md (GD5): v2 has a real, FDR-
+      contexts. As of docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md (GD5): v2 has a real, FDR-
       surviving ranking effect but no surviving profitability evidence once
       honestly deflated for the project's full multiple-testing history
       (DSR=0.0083 at M=560 trials, bootstrap CI crosses 0 for both CAGR and
-      Sharpe) -- SCORE_V2_REPORT.md's "Trạng thái sau GĐ5" section locks the
+      Sharpe) -- docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md's "Trạng thái sau GĐ5" section locks the
       operational decision: shadow log only, no real-capital allocation.
 
     The v1 composite is retained as `alpha_score_shadow_v1` for live,
@@ -148,7 +148,7 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
     # Group by date and calculate rankings cross-sectionally
     def compute_ranks(group):
         # 1. Momentum score: return_60d rank. return_20d removed per
-        # FACTOR_RETEST_V2_REPORT.md NV4: no significant IC in any of the 4 tested
+        # docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md NV4: no significant IC in any of the 4 tested
         # combinations (full/top150 x raw/residualized, max |t_NW|=1.24, raw sign
         # even flips between universes) on clean full-2020+ data.
         r60 = group["return_60d"].rank(pct=True, na_option="keep") * 100.0
@@ -177,7 +177,7 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
         group["liquidity_score"] = (liq_metric.rank(pct=True, na_option="keep") * 100.0).fillna(50.0).clip(0.0, 100.0)
         
         # 7. v1 composite -- kept as a shadow/comparison column only, not
-        # consumed downstream. See SCORE_FORENSIC_REPORT.md for why it was
+        # consumed downstream. See docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md for why it was
         # superseded.
         group["alpha_score_shadow_v1"] = (
             0.25 * group["momentum_score"]
@@ -189,7 +189,7 @@ def calculate_alpha_scores(stock_df: pd.DataFrame, benchmark_df: pd.DataFrame) -
         ).clip(0.0, 100.0)
 
         # 8. v2 composite -- the primary, deployed `alpha_score`
-        # (SCORE_V2_DESIGN.md / SCORE_V2_REPORT.md). Liquidity direction is
+        # (docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md / docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md). Liquidity direction is
         # intentionally inverted from the v1 liquidity_score column above
         # (lower value_ma20 = higher v2 score), matching the validated IC
         # sign -- see the function docstring.

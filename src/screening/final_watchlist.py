@@ -65,7 +65,7 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     "min_volume_ma20": 50_000.0,
     "max_atr_pct": 0.08,
     "max_relaxed_atr_pct": 0.12,
-    "max_distance_ma20": 0.23,  # loosened from 0.18 per FACTOR_RETEST_V2_REPORT.md NV4:
+    "max_distance_ma20": 0.23,  # loosened from 0.18 per docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md NV4:
     # distance_ma20 shows no significant IC on clean full-2020+ data (max |t_NW|=1.61);
     # reducing this gate's weight rather than removing it outright, since it separately
     # posts the 2nd-highest raw event-detection lift of 47 candidates tested (not yet
@@ -74,7 +74,7 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     "max_drawdown_60d": -0.30,
     "client_ready_threshold": 60.0,
     "trading_threshold": 55.0,
-    # WATCHLIST_VALIDATION_PREREG.md / WATCHLIST_VALIDATION_REPORT.md (GD4):
+    # docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md / docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md (GD4):
     # first-ever IC/null-test of this composite. RESULT: Nhanh C ("ca hai
     # khong dat") -- neither base_final_score (composite, null-test fold
     # 2026 percentile=0.15 vs the required >=10 floor; IC full/residualized
@@ -89,16 +89,16 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     # research use) but NONE of them drive `client_ready_watchlist`/
     # `trading_watchlist` selection or order anymore.
     #
-    # Per-component evidence on record (WATCHLIST_VALIDATION_REPORT.md IC
+    # Per-component evidence on record (docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md IC
     # table, full universe/residualized target unless noted):
     # - liquidity: t_NW=-4.19, ACTIVELY WRONG-SIGNED (current direction
     #   rewards high value_ma20; also contaminated either direction by
-    #   survivorship bias per SURVIVORSHIP_BIAS_ESTIMATE.md) -- excluded
+    #   survivorship bias per docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md) -- excluded
     #   from base_final_score's sum unconditionally (see _score()), the one
     #   component removal not contingent on the Nhanh C outcome above.
     # - risk: t_NW=+4.72, same-signed positive in all 3 periods (though
     #   period 1 alone is weak at +1.49) -- unvalidated for RANKING purposes
-    #   under Nhanh C's blanket no-alpha-ranking rule. CLOSED (ROBUSTNESS_REPORT.md
+    #   under Nhanh C's blanket no-alpha-ranking rule. CLOSED (docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md
     #   GD5 mục 3, decision round GD5.5): NOT an independent factor -- corr
     #   +0.822 with v2_score, its 3 real contributors are all volatility
     #   variants duplicating evidence v2 already uses. No standalone prereg;
@@ -114,7 +114,7 @@ DEFAULT_FINAL_WATCHLIST_CONFIG: dict[str, Any] = {
     # a real redundancy in the deployed formula, confirmed by their IC
     # numbers matching exactly in every row of the test; noted for any future
     # redesign, not changed here (not part of this round's locked scope).
-    "ranking_mode": "no_alpha_liquidity_sort",  # WATCHLIST_VALIDATION_REPORT.md Nhanh C.
+    "ranking_mode": "no_alpha_liquidity_sort",  # docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md Nhanh C.
     # "score" (final_score-driven ranking) is the pre-GD4 behavior, kept as a
     # code path for tests/rollback, not used in production as of this round.
     "weights": {
@@ -451,7 +451,7 @@ def _merge_latest_alpha(df: pd.DataFrame, alpha_scores: pd.DataFrame | None, as_
     alpha = _latest_by_symbol(alpha_scores, as_of_date=as_of_date)
     # NOTE: NONE of the v1 shadow's per-component scores are merged in here
     # (momentum_score, rs_score, trend_score, volume_score, volatility_score,
-    # liquidity_score). SCORE_FORENSIC_REPORT.md found the v1 composite had
+    # liquidity_score). docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md found the v1 composite had
     # no significant standalone IC anywhere tested, and specifically that
     # rs_score's IC flipped from +0.0141 (2023-2025) to -0.1060 in 2026 --
     # the largest negative-IC component in that fold, one of the primary
@@ -502,7 +502,7 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     ).mean(axis=1)
     out["trend_score"] = (trend_raw * weights["trend"]).round(2)
 
-    # alpha_score removed from this average: since SCORE_V2_REPORT.md,
+    # alpha_score removed from this average: since docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md,
     # alpha_score (from data/signals/alpha_scores.parquet) is the v2
     # composite (70% realized_vol_20d + 30% value_ma20, rewarding LOW vol
     # and LOW liquidity) -- a volatility/liquidity signal, not a momentum
@@ -510,11 +510,11 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     # from before v2 was installed.
     #
     # alpha_momentum_score (the v1 shadow composite's own momentum_score)
-    # is also removed from this average, not just alpha_score: SCORE_FORENSIC_REPORT.md
+    # is also removed from this average, not just alpha_score: docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md
     # found this factor's IC was ~0 over 2023-2025 and -0.1050 in 2026 --
     # the single largest negative IC of any component in that fold, and a
     # direct hypothesis test confirmed the cohort it ranked highest went on
-    # to underperform (see SCORE_FORENSIC_REPORT.md's momentum/RS section).
+    # to underperform (see docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md's momentum/RS section).
     # v1 remains available as a shadow score for ongoing comparison; it is
     # not a validated input for the live product screen.
     momentum_raw = pd.concat(
@@ -527,7 +527,7 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     out["momentum_score"] = (momentum_raw * weights["momentum"]).round(2)
 
     # alpha_rs_score removed from this average (audit P0-4 / gate #17):
-    # SCORE_FORENSIC_REPORT.md found the v1 shadow's rs_score IC flipped to
+    # docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md found the v1 shadow's rs_score IC flipped to
     # -0.1060 in 2026, one of the primary drivers of a real -59.7% backtest
     # loss. Mirrors the momentum_score fix (commits 517a3d0/327b8d4) applied
     # to its sibling component earlier -- this was the missed twin.
@@ -550,7 +550,7 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     ).mean(axis=1)
     out["volume_score"] = (volume_raw * weights["volume"]).round(2)
 
-    # ROBUSTNESS_REPORT.md (GD5) mục 3 / WATCHLIST_VALIDATION_REPORT.md mục 2:
+    # docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md (GD5) mục 3 / docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md mục 2:
     # risk_score's 3 real contributors (atr_pct_14 t_NW=-5.70, realized_vol_20d
     # -5.48, volatility_percentile -3.16) are all volatility variants -- corr
     # +0.822 with v2_score, i.e. duplicate evidence of the same underlying
@@ -560,7 +560,7 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     # bằng chứng của risk_score. risk_penalty_score: unvalidated, giữ vì hiển
     # thị tham khảo -- luôn NaN->0.5 trung lập trong lịch sử (data/signals/
     # meta_ranking.parquet là snapshot hiện tại, không phải chuỗi lịch sử, xem
-    # WATCHLIST_VALIDATION_REPORT.md mục 2 phát hiện #4), không đóng góp biến
+    # docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md mục 2 phát hiện #4), không đóng góp biến
     # thiên cross-sectional nào.
     risk_raw = pd.concat(
         [
@@ -583,7 +583,7 @@ def _score(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
         axis=1,
     ).mean(axis=1)
     out["signal_score"] = (signal_raw * weights["signal"]).round(2)
-    # liquidity_score excluded from the ranking sum (WATCHLIST_VALIDATION_PREREG.md /
+    # liquidity_score excluded from the ranking sum (docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md /
     # _REPORT.md, GD4) -- computed above for informational display only, no
     # validated direction. The other 6 weights are pre-scaled (see `weights`
     # above) so this still sums to 100.
@@ -813,7 +813,7 @@ _SECTOR_MAP_CACHE: dict[str, str] | None = None
 
 
 def _load_sector_map(path: Path = SECTOR_MAP_PATH) -> dict[str, str]:
-    """WATCHLIST_VALIDATION_PREREG.md (GD4): sector mapping is NOT mandatory
+    """docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md (GD4): sector mapping is NOT mandatory
     for eligibility (96.4% coverage, current impact only 4 research-tier
     symbols per audit/SECTOR_MAPPING_COVERAGE_REPORT.md NV7) but IS mandatory
     for the sector cap below -- unmapped symbols fall into their own "UNKNOWN"
@@ -891,7 +891,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         "is_weak_market_regime": False,
     }
     if no_alpha_mode and "reason" in out.columns:
-        # WATCHLIST_VALIDATION_REPORT.md Nhanh C: label this plainly in the
+        # docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md Nhanh C: label this plainly in the
         # one free-text column every output row already carries, since
         # FINAL_WATCHLIST_COLUMNS is a fixed schema (adding a new column
         # would just get stripped by _ensure_watchlist_output_columns).
@@ -899,7 +899,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         # in one pipeline invocation (build_watchlist_tiers, then
         # apply_post_cashflow_overlay re-reading the saved output) -- guard
         # against double-prepending.
-        disclaimer = "[Không xếp hạng alpha, chỉ sắp theo thanh khoản -- xem WATCHLIST_VALIDATION_REPORT.md] "
+        disclaimer = "[Không xếp hạng alpha, chỉ sắp theo thanh khoản -- xem docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md] "
         reason_col = out["reason"].fillna("").astype(str)
         out["reason"] = np.where(reason_col.str.startswith(disclaimer), reason_col, disclaimer + reason_col)
 
@@ -917,7 +917,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
     out["warning"] = out["warning"].fillna("").astype(str)
 
     if no_alpha_mode:
-        # WATCHLIST_VALIDATION_REPORT.md (GD4), Nhanh C: neither base_final_score
+        # docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md (GD4), Nhanh C: neither base_final_score
         # nor the v2-ranked "watchlist toi gian" cleared the pre-registered bar
         # (composite: null-test fold 2026 percentile=0.15 < the 10 floor; minimal
         # watchlist: null avg 52.8 < 60, IC period 1 t_NW=2.90 just under the 3.0
@@ -998,7 +998,7 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         if str(row.get("eligibility_status", "")) == "REJECTED":
             return str(row.get("eligibility_reason", "REJECTED"))
         if no_alpha_mode:
-            return "Outside liquidity rank cutoff (no validated alpha ranking -- see WATCHLIST_VALIDATION_REPORT.md)"
+            return "Outside liquidity rank cutoff (no validated alpha ranking -- see docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md)"
         if pd.to_numeric(row.get("final_score"), errors="coerce") < trading_threshold:
             return "Below trading threshold"
         if str(row.get("cashflow_data_status", "OK")) != "OK":

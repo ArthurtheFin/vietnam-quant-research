@@ -368,7 +368,7 @@ def score_meta_ranking(
     ).clip(0.0, 100.0)
 
     # meta_score: walk-forward-validated mean-reversion 3-factor score (see
-    # STRATEGY_RESEARCH_REPORT.md sections 3-6 and META_RANKING_VALIDATION_REPORT.md),
+    # docs/reports/scoring/docs/reports/scoring/STRATEGY_RESEARCH_REPORT.md sections 3-6 and docs/reports/scoring/docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md),
     # replacing the previous breakout/stealth/momentum/execution blend below --
     # that blend was validated (full formula, real trade_cards, walk-forward
     # reconstructed) to show NO alpha and a weak but significant NEGATIVE IC
@@ -466,7 +466,7 @@ def merge_alpha_score_v2(ranked: pd.DataFrame, alpha_scores: pd.DataFrame) -> pd
 
     Does NOT merge any v1 shadow per-component score (momentum_score,
     rs_score, trend_score, volume_score, volatility_score, liquidity_score).
-    SCORE_FORENSIC_REPORT.md found the v1 composite had no significant
+    docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md found the v1 composite had no significant
     standalone IC anywhere tested, and specifically that rs_score's IC
     flipped to -0.1060 in 2026 (a primary driver of a real -59.7% backtest
     loss). This function previously merged all 6 v1 fields in as

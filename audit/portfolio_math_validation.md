@@ -102,7 +102,7 @@ rows) — i.e., some of these 10 symbols have measurably *more* historical
 rows now than a 1317-row matrix would imply. Since the maximum date is
 unchanged but the total count grew, the most likely explanation is that
 `data/processed/stock_features.parquet` — which several other reports in
-this repo (`PUSH_REVIEW.md`, `DATA_BASELINE.md`) already describe as
+this repo (`PUSH_REVIEW.md`, `docs/reports/data/docs/reports/data/DATA_BASELINE.md`) already describe as
 being refreshed by a **separate, ongoing background process not
 associated with any commit in this session** — has had *more historical*
 data backfilled into it for at least one of these symbols between the

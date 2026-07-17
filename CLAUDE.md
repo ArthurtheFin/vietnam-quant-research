@@ -21,7 +21,7 @@
 4. Commit theo từng nhiệm vụ, message rõ ràng. Xong việc lớn: cập
    nhật PUSH_REVIEW.md.
 5. FIREWALL: không join dữ liệu disclosure với dữ liệu giá/return
-   cho đến khi DISCLOSURE_EVENT_STUDY_PREREG.md được commit và chạy
+   cho đến khi docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md được commit và chạy
    theo đúng spec.
 6. Mọi claim phủ định ("không còn chỗ nào khác") phải kèm bằng chứng
    liệt kê. Mọi artifact tự sinh phải có lineage metadata.
@@ -32,7 +32,7 @@
 9. Mọi bảng test đa nhân tố (nhiều tổ hợp factor × universe × target
    trong một lần chạy) phải báo kèm q-value FDR (Benjamini-Hochberg)
    bên cạnh t-stat/p-value thô, không chỉ ngưỡng thủ công (vd. |t|>3).
-   Lý do: `ROBUSTNESS_REPORT.md` (GĐ5/NV4) — đã xảy ra trường hợp
+   Lý do: `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` (GĐ5/NV4) — đã xảy ra trường hợp
    BH-FDR (q=0.05) trên 214 test gộp từ `FACTOR_RETEST_V2` +
    `WATCHLIST_VALIDATION` cho ra ngưỡng LỎNG HƠN |t|>3 thủ công (38
    sống sót qua FDR so với 27 qua |t|>3) — quy ước cũ không tự động

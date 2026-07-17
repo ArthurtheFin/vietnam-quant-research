@@ -1,8 +1,8 @@
-"""SCORE_FORENSIC_REPORT.md NV2: forensic on fold 2026, the disaster fold
-(CONCENTRATION_ANALYSIS_REPORT.md null test: percentile 0.4/2000 -- the
+"""docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md NV2: forensic on fold 2026, the disaster fold
+(docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md null test: percentile 0.4/2000 -- the
 score actively picked worse than a random draw from the same eligible
 universe). Uses portfolio_size=5 explicitly (matching the exact
-configuration that was diagnosed there and in FOLD_AUTOPSY_REPORT.md),
+configuration that was diagnosed there and in docs/reports/scoring/docs/reports/scoring/FOLD_AUTOPSY_REPORT.md),
 NOT the new size=10 default just applied in NV1 of this round -- this
 investigation is about why THAT diagnosed result happened.
 

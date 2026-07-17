@@ -21,7 +21,7 @@ BASE_URL = "https://cafef.vn/du-lieu/Ajax/PageNew/DataHistory/GDCoDong.ashx"
 USER_AGENT = (
     "VietnamQuantResearchBot/1.0 (+non-commercial research; "
     "single-threaded, >=2.5s between requests, backs off on 429/403; "
-    "see DISCLOSURE_PIPELINE_DESIGN.md)"
+    "see docs/reports/data/docs/reports/data/DISCLOSURE_PIPELINE_DESIGN.md)"
 )
 
 DEFAULT_MIN_DELAY_SECONDS = 2.5

@@ -177,7 +177,7 @@ def compute_coverage_ratio(
     closures are never counted against a symbol) over the last
     `window_sessions` sessions ending at latest_trading_date. A day with no
     row is a day with no matched trade -- valid for a genuinely
-    low-liquidity name per the v2 fetch convention (DATA_BASELINE.md caveat
+    low-liquidity name per the v2 fetch convention (docs/reports/data/docs/reports/data/DATA_BASELINE.md caveat
     #3), so this is a liquidity signal, not by itself a suspension one.
 
     Expensive (scans every symbol's full raw price history) -- call this

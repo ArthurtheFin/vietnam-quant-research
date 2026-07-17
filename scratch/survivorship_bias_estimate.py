@@ -1,11 +1,11 @@
 """EXPLORATORY -- estimate a survivorship-drift floor from
-DISCLOSURE_EVENT_STUDY_REPORT.md's finding that S3 (sell, the H2 placebo)
+docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md's finding that S3 (sell, the H2 placebo)
 shows positive CAR similar in magnitude to S1/S2 (buy). Reuses the exact
 CAR/block-bootstrap machinery already validated in
 scratch/disclosure_event_study.py -- no new statistical methodology, no
 re-run of the locked H1/H2 test itself.
 
-Output: SURVIVORSHIP_BIAS_ESTIMATE.md's numbers, plus
+Output: docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md's numbers, plus
 data/disclosure/survivorship_bias_estimate.json for lineage.
 """
 from __future__ import annotations
@@ -140,7 +140,7 @@ def main():
         "car_cluster_gap_days": CAR_CLUSTER_GAP_DAYS,
         "eligible_panel_rows": int(len(eligible)),
         "eligible_symbols": int(eligible["symbol"].nunique()),
-        "note": "EXPLORATORY estimate, not a confirmatory test -- see SURVIVORSHIP_BIAS_ESTIMATE.md",
+        "note": "EXPLORATORY estimate, not a confirmatory test -- see docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md",
     }
     results["lineage"] = build_lineage()
 

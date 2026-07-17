@@ -20,9 +20,9 @@ data/full_history_v2/raw/{symbol}.parquet through the latest actual trading
 date (detected from VNINDEX, same pattern as scripts/update_daily_data.py),
 using ONLY the single-call `get_daily_ohlc` method -- the exact mechanism
 proven immune to the historical raw/adjusted-close mixing bug in
-BACKFILL_DESIGN_REPORT.md (that bug lives only in the chunked
+docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md (that bug lives only in the chunked
 `fetch_symbol_history`/`get_daily_ohlc_chunked` fallback path, which this
-script never calls; see DATA_BASELINE.md). Never re-fetches or overwrites
+script never calls; see docs/reports/data/docs/reports/data/DATA_BASELINE.md). Never re-fetches or overwrites
 history before the symbol's existing max(date) -- new rows are merged in,
 existing rows outside the re-fetched window are left untouched.
 

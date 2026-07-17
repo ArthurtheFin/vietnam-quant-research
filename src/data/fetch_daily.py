@@ -129,7 +129,7 @@ def _normalize_daily_ohlc_response(response, symbol: str) -> pd.DataFrame:
     # Mixing the two without reconciling produces a piecewise-adjusted
     # series (confirmed on HPG/TCB: raw closeprice silently mapped to
     # "close" via the old rename_map entry, causing a ~29-day-chunk-aligned
-    # step pattern -- see BACKFILL_DESIGN_REPORT.md Round 2). Detect a
+    # step pattern -- see docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md Round 2). Detect a
     # daily_stock_price-shaped response (uniquely identified by
     # closepriceadjusted's presence -- get_daily_ohlc never has this column)
     # and derive a consistently-adjusted OHLC before the generic rename_map
@@ -365,7 +365,7 @@ def _fetch_chunk_with_fallback(
 
 def _check_chunk_boundary_jumps(result: pd.DataFrame, boundary_dates: list, market_hint: str | None = None) -> pd.DataFrame:
     """
-    Guard against exactly the class of bug found in BACKFILL_DESIGN_REPORT.md
+    Guard against exactly the class of bug found in docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md
     Round 2: a return across a CHUNK boundary that exceeds the symbol's
     exchange price band is a strong signal of an adjustment-basis mismatch
     (or a genuine, very large corporate action) at that seam. Flags into

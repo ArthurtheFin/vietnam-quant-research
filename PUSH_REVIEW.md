@@ -26,7 +26,7 @@ Work already on this branch before this session began.
 | `936e513` | docs: design + pilot 20-symbol backfill; fix flawed statistical claim in audit |
 | `685f269` | docs: root-cause HPG/TCB junction anomaly, finalize full-backfill design |
 | `d12a6ac` | fix(data): use adjusted close in fetch_daily.py fallback, not raw closeprice |
-| `2ebd2b0` | docs: add session handoff note to BACKFILL_DESIGN_REPORT.md |
+| `2ebd2b0` | docs: add session handoff note to docs/reports/data/docs/reports/data/BACKFILL_DESIGN_REPORT.md |
 
 **Summary**: found the data pipeline was stale/undersized (only ~6
 symbols with full history) and 44 candidate technical factors showed no
@@ -41,7 +41,7 @@ setting up the full backfill this session executed.
 | `7f35c57` | test(data): verify Task-3 re-pilot against a bug-immune oracle |
 | `ee248f2` | feat(data): full 501-symbol backfill to data/full_history_v2 |
 | `d8ee06b` | test(data): quality suite for the full 501-symbol backfill |
-| `1566f29` | docs: Round 3/4 write-up + DATA_BASELINE.md baseline documentation |
+| `1566f29` | docs: Round 3/4 write-up + docs/reports/data/docs/reports/data/DATA_BASELINE.md baseline documentation |
 | `e9a815f` | feat(data): make full_history_v2 the official pipeline source |
 
 **Summary**: re-fetched full 2020–2026 history for all 501 current
@@ -58,7 +58,7 @@ and made it the pipeline's official data source, quarantining the old
 | `4762d81` | docs: Round 5 write-up + first clean-data factor re-test report |
 | `4aaf36e` | test(alpha): examine the volatility cluster before touching deployed scoring |
 | `cff5f33` | fix(alpha): apply NV4 factor recommendations to deployed scoring |
-| `6f452b2` | docs: before/after comparison for the scoring change + SCORING_UPDATE_REPORT.md |
+| `6f452b2` | docs: before/after comparison for the scoring change + docs/reports/scoring/docs/reports/scoring/SCORING_UPDATE_REPORT.md |
 
 **Summary**: re-ran the full 44-factor test on clean data for the first
 time (21/192 combinations now significant, concentrated in a volatility
@@ -73,7 +73,7 @@ backtest that nothing broke.
 | `a67c792` | docs: fold autopsy for the walk-forward backtest's left tail |
 | `bef0de6` | fix(backtest): remove silent benchmark fallback, raise a clear error instead |
 | `7c791d7` | test(backtest): portfolio-construction sensitivity (size 5/10/20 + sector cap) |
-| `88a97f7` | docs: concentration null test + CONCENTRATION_ANALYSIS_REPORT.md |
+| `88a97f7` | docs: concentration null test + docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md |
 | `3b8c4a8` | fix(backtest): apply approved portfolio config -- size=10, sector cap=2 |
 | `e61c65a` | docs: forensic 2026 fold + composite score tested directly for the first time |
 
@@ -89,8 +89,8 @@ variance but doesn't fix the underlying signal problem.
 
 | Hash | Message |
 |---|---|
-| `6cf15a0` | docs: pre-register SCORE_V2_DESIGN.md before any v2 comparison is run |
-| `066014e` | test(alpha): confirmation run for SCORE_V2_DESIGN.md -- all 3 criteria pass |
+| `6cf15a0` | docs: pre-register docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md before any v2 comparison is run |
+| `066014e` | test(alpha): confirmation run for docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md -- all 3 criteria pass |
 | `deed572` | feat(alpha): install v2 as the deployed score, v1 kept as live shadow |
 | `327b8d4` | fix(screening): stop feeding alpha_score into final_watchlist's momentum_score |
 
@@ -146,7 +146,7 @@ point-in-time rule (it took `min(disclosure_date, ingested_at)` and
 called that "stricter" — backwards; now `max()` for live rows, a
 conservative `+1 trading day` placeholder for backfilled rows, flagged
 `is_backfilled`); removed the v1 shadow's `momentum_score` from
-`final_watchlist.py`'s live scoring (`SCORE_FORENSIC_REPORT.md` found
+`final_watchlist.py`'s live scoring (`docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md` found
 it IC ~0 over 2023-2025 and -0.1050 in 2026, the worst component in that
 fold) — full test suite passes, one pre-existing unrelated failure
 confirmed via `git stash` to predate this change; and ran a manual,
@@ -203,7 +203,7 @@ inference. Full-universe crawl (501 symbols) NOT run -- estimated
 |---|---|
 | `7933e91` | feat(data): incremental daily disclosure update (live point-in-time branch) |
 | `bc56f50` | data(disclosure): full-universe crawl -- 500 symbols, 0 errors, 0 rate limits |
-| `40e928e` | docs(disclosure): DISCLOSURE_BASELINE.md -- descriptive stats only, Round 5 |
+| `40e928e` | docs(disclosure): docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md -- descriptive stats only, Round 5 |
 
 (3 commits shown; a 4th, the PUSH_REVIEW.md update itself, follows this one.)
 
@@ -223,7 +223,7 @@ anti-joining against existing events+errors so already-known rows are
 never silently reflagged. Not yet scheduled/run for real (script exists
 and is tested; installing a cron/launchd entry is a separate decision).
 
-Wrote `DISCLOSURE_BASELINE.md` (descriptive stats only -- composition,
+Wrote `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` (descriptive stats only -- composition,
 period distribution, role distribution, historical depth, execution/
 registration ratio, field completeness, rejected-row breakdown).
 **Deliberately contains zero price/return statistics anywhere** -- the
@@ -403,12 +403,12 @@ candidate (0/500 hợp lệ). Vòng này: chẩn đoán trước, sửa gốc ch
 đúng giả thuyết.
 
 1. **Chẩn đoán (commit `801d3b0`)** — kiểm tra giả thuyết "gate chưa
-   thích ứng quy ước bỏ dòng volume=0" nêu trong `DATA_BASELINE.md`
+   thích ứng quy ước bỏ dòng volume=0" nêu trong `docs/reports/data/docs/reports/data/DATA_BASELINE.md`
    caveat #3: **BÁC BỎ** cho vấn đề mass-rejection này. Kiểm tra trực
    tiếp raw parquet của VIC/FPT/VCB/HPG/VNM/MWG: không có dòng nào
    (kể cả volume=0) sau 2026-07-06 — tức thiếu dữ liệu thật, không
    phải "dòng hợp lệ bị lược". Nguyên nhân thật, đã ghi sẵn trong
-   `DATA_BASELINE.md:20-21` từ trước: `full_history_v2` được fetch 2
+   `docs/reports/data/docs/reports/data/DATA_BASELINE.md:20-21` từ trước: `full_history_v2` được fetch 2
    đợt — đợt chính đến 2026-07-06 (411/500 mã), đợt bổ sung 48 mã đến
    2026-07-10 (28 mã trong số đó chạm 07-09) — chưa từng đồng bộ lại.
    5 mã mẫu (VIC, FPT, DHA, VTO, APL) xác nhận: 4/5 mã có coverage
@@ -434,7 +434,7 @@ candidate (0/500 hợp lệ). Vòng này: chẩn đoán trước, sửa gốc ch
    hằng số hard-code khác có ghi nguồn gốc từ IC/dữ liệu:
    `src/alpha/scoring.py`'s tổ hợp `alpha_score` v2 (70%
    realized_vol_20d / 30% value_ma20, trích t-stat từ
-   `SCORE_FORENSIC_REPORT.md`/`SCORE_V2_REPORT.md`) là ứng viên rõ
+   `docs/reports/scoring/docs/reports/scoring/SCORE_FORENSIC_REPORT.md`/`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`) là ứng viên rõ
    ràng duy nhất khác — chưa xác minh được tính trên dữ liệu cũ hay
    mới, để vòng sau kiểm tra riêng.
 3. **Nghiệm thu** — full suite: 257 passed (không còn fail nào). Commit
@@ -456,7 +456,7 @@ có 2 đợt fetch chưa từng đồng bộ, không có cơ chế cập nhật 
    ngày (ASA/ART/AMD/KPF/PSH/ATB/TCD/BCG/BBC/SVI/ARM/LGC/APL/SSC/ACS/ATS/
    ADC/TTE) — xác nhận qua chính lần fetch trực tiếp hôm nay (không phải suy
    từ snapshot cũ) là không còn phiên khớp lệnh nào kể từ ngày cuối, khả
-   năng ngừng giao dịch thật. Cập nhật `DATA_BASELINE.md`.
+   năng ngừng giao dịch thật. Cập nhật `docs/reports/data/docs/reports/data/DATA_BASELINE.md`.
 2. **NV2 — `scripts/update_prices_daily.py` (commit tiếp theo)** — đối
    xứng `update_disclosure_daily.py`: fetch incremental từ max(date) từng
    mã, checkpoint qua `manifest.json`, quality-flag (|return|>20%, toàn
@@ -502,7 +502,7 @@ có 2 đợt fetch chưa từng đồng bộ, không có cơ chế cập nhật 
    trùng khóa), thêm `dedup_seq` (tiebreaker theo thứ tự dòng) cho 196 dòng
    còn lại — 0 va chạm còn sót trên parse thật. Parse lại từ tầng thô
    (không crawl lại), ingest lại toàn bộ: `events.parquet` 56.870 → 57.282
-   dòng (+412). `DISCLOSURE_BASELINE.md` cập nhật caveat #1 → RESOLVED.
+   dòng (+412). `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md` cập nhật caveat #1 → RESOLVED.
 2. **NV2 (commit `2f53cda`)** — lịch nghỉ Tết âm lịch 2020-2027 vào
    `config/vn_market_holidays.csv`, suy ra TRỰC TIẾP từ dữ liệu thật (ngày
    nào cả 501 mã đều không giao dịch = ngày nghỉ), đối chiếu 2 chiều với
@@ -565,7 +565,7 @@ rõ quy ước này vào `CLAUDE.md` mục 1 (commit `0673cea`).
    RESOLVED. Số "417 dòng vẫn bị gộp" trong đề bài gốc là số học tiền-fix
    (829−412), không khớp trạng thái code/dữ liệu hiện tại (thực tế 196 dòng/98
    nhóm phụ thuộc `dedup_seq`) — đã ghi rõ chênh lệch này kèm bằng chứng vào
-   `DISCLOSURE_BASELINE.md`.
+   `docs/reports/data/docs/reports/data/DISCLOSURE_BASELINE.md`.
 2. **NV0b (commit `9c0773b`)** — web search lịch nghỉ HOSE: phát hiện thiếu
    2026-08-31 + 2026-09-01 (chỉ có 2026-09-02) trong `config/vn_market_holidays.csv`
    — Quốc khánh 2026 nghỉ giao dịch 3 ngày (Hai 31/8 → Tư 2/9), xác nhận CHÍNH
@@ -576,7 +576,7 @@ rõ quy ước này vào `CLAUDE.md` mục 1 (commit `0673cea`).
    chỉ củng cố trích dẫn (Giỗ Tổ Hùng Vương 2027 xác nhận độc lập 16/4 Thứ Sáu;
    ngày nghỉ bù 1/5 rơi Thứ Bảy trích dẫn cơ sở pháp lý Điều 111 Bộ luật Lao động
    2019). 90 dòng, 0 trùng ngày, test suite phụ thuộc lịch nghỉ vẫn 41/41 pass.
-3. **NV1 (commit `7381185`)** — `DISCLOSURE_EVENT_STUDY_PREREG.md`, khóa TRƯỚC
+3. **NV1 (commit `7381185`)** — `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`, khóa TRƯỚC
    khi viết code join disclosure×giá (FIREWALL hiệu lực từ Round 5 tới giờ, đây
    là lần đầu tiên hai nguồn được nhìn cùng nhau). Khóa: định nghĩa S1/S2/S3 (chỉ
    pha REGISTRATION, cấm tuyệt đối field RESULT/tỷ lệ thực hiện), quy tắc
@@ -585,7 +585,7 @@ rõ quy ước này vào `CLAUDE.md` mục 1 (commit `0673cea`).
    dịch — độ nhạy +1/+3/+5 là bắt buộc, không phải phụ), rổ đủ điều kiện (3 tỷ +
    `trading_status`, quyết định rõ dùng snapshot hiện tại vì bảng point-in-time
    chỉ có lịch sử thật từ 2026-07-13), nhãn "bùng nổ" (tái dùng nguyên định nghĩa
-   `EVENT_DETECTION_REPORT.md` đã pre-register, không phát minh mới), lift +
+   `docs/reports/scoring/docs/reports/scoring/EVENT_DETECTION_REPORT.md` đã pre-register, không phát minh mới), lift +
    block bootstrap (khối 60 ngày, N=1000, seed=42), lát cắt 3 giai đoạn × 2 nhóm
    thanh khoản (tái dùng biên giai đoạn cũ), tiêu chí PASS/ỨNG VIÊN/âm tính 3 bậc,
    cách diễn giải riêng cho S3 (đối chứng H2, không dùng lại nguyên tiêu chí của
@@ -598,7 +598,7 @@ rõ quy ước này vào `CLAUDE.md` mục 1 (commit `0673cea`).
    `src/features/returns.py::add_returns`, chạy lại toàn bộ một lần nữa. Kết quả +
    lineage (git hash, sha256 + số dòng mọi input, hash prereg) trong
    `data/disclosure/event_study_results.json`.
-5. **NV3 (commit `b95cc37`)** — `DISCLOSURE_EVENT_STUDY_REPORT.md`. **Test chính
+5. **NV3 (commit `b95cc37`)** — `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`. **Test chính
    (lift bùng nổ): NEGATIVE cho cả S1/S2/S3 ở cả 3 lag**, ổn định qua độ nhạy lag
    (không cần gắn cờ "tín hiệu mong manh"). Mẫu hình mô tả đáng chú ý: lift(S1)
    giảm đơn điệu qua 3 giai đoạn (1.14 → 0.84 → 0.31), đảo chiều hẳn so với H1 ở
@@ -617,10 +617,10 @@ một lần, không nối vào pipeline; thay đổi duy nhất chạm productio
 ## GĐ3.5 — Khám nghiệm có ranh giới: định lượng bias + đóng hồ sơ nhánh (3 nhiệm vụ)
 
 Vòng theo dõi trực tiếp GĐ3, xuất phát từ phát hiện phụ "CAR(S3, bán) ≈ CAR(S1,
-mua)" ở `DISCLOSURE_EVENT_STUDY_REPORT.md`. Toàn bộ EXPLORATORY — không kiểm
+mua)" ở `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`. Toàn bộ EXPLORATORY — không kiểm
 định lại H1/H2 đã khóa, không mở prereg mới, không chạy test xác nhận nào.
 
-1. **NV1 (commit `7445ca9`)** — `SURVIVORSHIP_BIAS_ESTIMATE.md`: dùng S3 làm
+1. **NV1 (commit `7445ca9`)** — `docs/reports/scoring/docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`: dùng S3 làm
    placebo, đối chiếu chéo bằng excess return không điều kiện sự kiện của TOÀN
    BỘ `(mã, ngày)` trong rổ đủ điều kiện (N=325k–347k, độc lập hoàn toàn với
    việc chọn sự kiện disclosure). Ba ước lượng (placebo S3, gộp tất cả sự kiện,
@@ -629,9 +629,9 @@ mua)" ở `DISCLOSURE_EVENT_STUDY_REPORT.md`. Toàn bộ EXPLORATORY — không 
    chứng phân tách nguyên nhân (ghi rõ trong tài liệu). Đề xuất mức sàn hiệu
    chỉnh ~+0.4%/+1.2%/+2.9% ở cửa sổ 20/60/120 ngày cho mọi backtest long-only
    diễn giải excess return, hiệu lực đến khi có point-in-time universe thật
-   (Gate #3). Trích dẫn vào `DATA_BASELINE.md` caveat #2.
+   (Gate #3). Trích dẫn vào `docs/reports/data/docs/reports/data/DATA_BASELINE.md` caveat #2.
 2. **NV2 (commit `a140633`)** — mục "Exploratory addendum" cuối
-   `DISCLOSURE_EVENT_STUDY_REPORT.md`: autopsy mô tả thuần (không CI, không kết
+   `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`: autopsy mô tả thuần (không CI, không kết
    luận) CAR(S1) theo 4 lát cắt — quy mô đăng ký/ADV (không có dữ liệu free-float
    nên dùng `volume_ma20` theo đúng nhánh dự phòng đã nêu), vai trò người đăng
    ký, cụm nhiều người nội bộ cùng đăng ký trong 20 ngày, nhóm thanh khoản/quy
@@ -673,7 +673,7 @@ cùng `trading_status=ACTIVE`, "sạch" không có disclosure trong `[t−60,t+1
 thay vì so CAR với 0 — triệt tiêu phần lớn survivorship drift (~+2.9%/120 ngày,
 định lượng ở GĐ3.5/NV1) khỏi cả hai vế của phép so sánh.
 
-1. **NV1 (commit `8e47dfc`)** — `DISCLOSURE_PREREG_2_CLUSTER.md`, khóa TRƯỚC
+1. **NV1 (commit `8e47dfc`)** — `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md`, khóa TRƯỚC
    code. H1 (cụm mua, ≥2 người nội bộ khác nhau/20 ngày/cùng mã — tái dùng đúng
    `multi_insider_cluster` đã tính từ round trước), H2 (người liên quan gia
    đình — tái dùng đúng `role_group`), H0 nội bộ (đơn lẻ, không cụm không gia
@@ -689,7 +689,7 @@ thay vì so CAR với 0 — triệt tiêu phần lớn survivorship drift (~+2.9
    không tìm được đối chứng hợp lệ (báo cáo, không lặng lẽ bỏ qua); trung bình
    4.88/5 đối chứng dùng được mỗi sự kiện giữ lại. Cả ba nhóm vượt xa ngưỡng 30
    sự kiện tối thiểu ở mọi cửa sổ — không rơi vào nhánh N không đủ.
-3. **NV3 (commit `3b4986c`)** — `DISCLOSURE_PREREG_2_REPORT.md`. **Cả H1, H2,
+3. **NV3 (commit `3b4986c`)** — `docs/reports/disclosure/docs/reports/disclosure/DISCLOSURE_PREREG_2_REPORT.md`. **Cả H1, H2,
    H0 đều NEGATIVE ở cả 3 lag** — không nhóm nào đạt CI dương đồng thời ở +60
    VÀ +120. H0 âm tính xác nhận thiết kế đối chứng không rò rỉ false positive.
    Gần đạt nhất: H2 (gia đình) có CI dương riêng lẻ ở +20/+60 (lag +1/+5), nhưng
@@ -716,11 +716,11 @@ momentum 20 + relative_strength 20 + liquidity 10 + volume 5 + risk 10 +
 signal 10) chưa từng được kiểm định ở cấp độ tổng thể. Round này: thiết kế +
 cây quyết định A/B/C commit trước, chạy một lần, thi hành đúng nhánh trúng.
 
-1. **NV1 (commit `eb765e6`)** — `WATCHLIST_VALIDATION_PREREG.md`. Composite =
+1. **NV1 (commit `eb765e6`)** — `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md`. Composite =
    `base_final_score` (trước `warning_penalty` — đúng khung "75/100 điểm trọng
    số" của `PATH_TO_100.md`, không phải `final_score`). Universe =
    `trading_status ACTIVE`. Tái dùng nguyên máy móc IC Newey-West + null test
-   đã kiểm chứng ở `SCORE_V2_DESIGN.md`/`score_v2_ic_test.py`/`score_v2_null_test.py`
+   đã kiểm chứng ở `docs/reports/scoring/docs/reports/scoring/SCORE_V2_DESIGN.md`/`score_v2_ic_test.py`/`score_v2_null_test.py`
    — không viết công thức mới. Cây quyết định A/B/C khóa nguyên văn, kèm quy
    tắc "vùng xám → chọn nhánh thận trọng hơn". Hai quyết định khóa sẵn không
    phụ thuộc nhánh: gỡ `liquidity_score` khỏi ranking ở mọi nhánh (bằng chứng
@@ -771,7 +771,7 @@ cây quyết định A/B/C commit trước, chạy một lần, thi hành đúng
    (VIC) — đúng dự kiến khi đổi hẳn tiêu chí xếp hạng, không phải lỗi. Ghi rõ
    giới hạn: dữ liệu cũng mới hơn 2 ngày, không tách bạch được hiệu ứng code
    vs hiệu ứng data trong phép so sánh này.
-5. **NV5 (commit `b0ca2fb`)** — `WATCHLIST_VALIDATION_REPORT.md` đầy đủ; cập
+5. **NV5 (commit `b0ca2fb`)** — `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` đầy đủ; cập
    nhật `audit/PATH_TO_100.md` mục 3 (đóng khoảng trống kiểm định — kết quả âm
    tính, không phải điểm số học đạt được; `liquidity_score`/`assert_no_forward_columns`/
    trích dẫn bằng chứng trong config đều XONG; `tail_ratio_60d` trong
@@ -790,8 +790,8 @@ Toàn bộ round: KIỂM ĐỊNH LẠI, không nhân tố mới, không tune —
 Không đổi tham số/trọng số nào của v2 hay `final_watchlist.py` bất kể kết quả
 (đúng ràng buộc gốc).
 
-1. **NV1 (commit `fcafd05`)** — `V2_STABILITY_NOTE.md` giải nghịch lý
-   percentile 71.0 (`SCORE_V2_REPORT.md`) vs 52.8 (`WATCHLIST_VALIDATION_REPORT.md`
+1. **NV1 (commit `fcafd05`)** — `docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md` giải nghịch lý
+   percentile 71.0 (`docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`) vs 52.8 (`docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`
    GĐ4). 3 nghi phạm liệt kê trước: khác cỗ máy (loại ngay), dữ liệu mới, 2
    gate GĐ4 thêm (`trading_status==ACTIVE`, `minimal_eligible`). Chạy lại
    nguyên văn script gốc trên dữ liệu hiện hành: vẫn 71.0 → loại trừ dữ liệu.
@@ -826,7 +826,7 @@ Không đổi tham số/trọng số nào của v2 hay `final_watchlist.py` bấ
    seed=42, `src/simulation/bootstrap.py` không sửa): CAGR CI=[−9.6%,+19.3%],
    Sharpe CI=[−0.59,+1.32] — cả hai chứa 0. Chú thích cố định: mọi số
    long-only đọc kèm sàn survivorship (+0.4/+1.2/+2.9%).
-6. **NV6 (commit `d4a0c9c`)** — `ROBUSTNESS_REPORT.md` tổng hợp NV1-5; cập
+6. **NV6 (commit `d4a0c9c`)** — `docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md` tổng hợp NV1-5; cập
    nhật `audit/PATH_TO_100.md` mục 9 (3/4 việc xong: DSR, FDR, bootstrap CI —
    tách holdout cho tham số portfolio construction vẫn mở, ngoài phạm vi).
    Full test suite: 295 passed. Commit riêng từng nhiệm vụ vào `main`, không
@@ -842,7 +842,7 @@ test; (b) 71.0 không còn hợp lệ trích dẫn cho v2-trong-final_watchlist;
 
 Không đo thêm, không tune — chỉ thi hành 3 quyết định đã treo từ GĐ5.
 
-1. **NV1 (commit `1b87bae`)** — `SCORE_V2_REPORT.md` mục "Trạng thái sau GĐ5":
+1. **NV1 (commit `1b87bae`)** — `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md` mục "Trạng thái sau GĐ5":
    **giữ shadow, không dùng vốn thật.** Lý do: IC ổn định + sống sót FDR
    (bằng chứng nhân tố thật) nhưng DSR=0.0083 (M=560) + bootstrap CI chứa 0
    cho cả CAGR/Sharpe (chưa có bằng chứng chiến lược đáng cược), cả hai số
@@ -859,16 +859,16 @@ Không đo thêm, không tune — chỉ thi hành 3 quyết định đã treo t�
    docstring trích "71.0" không kèm ngữ cảnh — **SỬA**, bổ sung t_NW tái
    xác nhận GĐ5 + cảnh báo rõ "71.0 chỉ đúng cho v2 kiểm tra độc lập, dùng
    52.8 cho ngữ cảnh trong `final_watchlist.py`". `final_watchlist.py` tự nó
-   đã đúng từ GĐ4 (52.8), không cần sửa. `WATCHLIST_VALIDATION_REPORT.md`
-   mục 3a: thêm ghi chú trỏ sang `V2_STABILITY_NOTE.md`, không sửa số gốc
-   (đúng số đã đo tại thời điểm đó). `WATCHLIST_VALIDATION_PREREG.md` +
+   đã đúng từ GĐ4 (52.8), không cần sửa. `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md`
+   mục 3a: thêm ghi chú trỏ sang `docs/reports/scoring/docs/reports/scoring/V2_STABILITY_NOTE.md`, không sửa số gốc
+   (đúng số đã đo tại thời điểm đó). `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_PREREG.md` +
    comment trong `scratch/v2_stability_toggle.py`: giữ nguyên — prereg là hồ
    sơ lịch sử khóa cứng, sửa lại sẽ phá vỡ audit trail. Rà thêm
-   `META_RANKING_VALIDATION_REPORT.md`/`src/backtest/portfolio_backtest.py`/
-   `REMEDIATION_REPORT.md`: không liên quan đến cặp số 71.0/52.8 của v2,
+   `docs/reports/scoring/docs/reports/scoring/META_RANKING_VALIDATION_REPORT.md`/`src/backtest/portfolio_backtest.py`/
+   `docs/reports/codebase_audit/docs/reports/codebase_audit/REMEDIATION_REPORT.md`: không liên quan đến cặp số 71.0/52.8 của v2,
    không sửa.
 3. **NV3 (commit `040ef10`)** — đóng hồ sơ `risk_score` trong
-   `WATCHLIST_VALIDATION_REPORT.md` (cả mục phát hiện #3 lẫn "Kết luận & bước
+   `docs/reports/scoring/docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` (cả mục phát hiện #3 lẫn "Kết luận & bước
    tiếp theo" — trước đó vẫn còn nêu nó là ứng viên mở): bằng chứng trùng cụm
    vol (corr +0.822 với `v2_score`), không còn ứng viên nào mở cho prereg
    đơn-nhân-tố. `src/screening/final_watchlist.py`'s `_score()`: thêm comment
@@ -988,11 +988,11 @@ thành "shadow log ngừng cập nhật" sau vài tuần không ai chạy tay.
    `bash scripts/daily_run.sh` không bị ảnh hưởng (không qua launchd).
 3. **NV3 (commit `59a9d57`)** — ghi chú trung thực: KHÔNG dựng lại điểm số
    cho khoảng trống 07-09→07-16 (sẽ là look-ahead ngụy tạo vào một bản ghi
-   out-of-sample). Xác nhận trong `SCORE_V2_REPORT.md`: chuỗi liên tục thật
+   out-of-sample). Xác nhận trong `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md`: chuỗi liên tục thật
    bắt đầu từ **2026-07-16** (ngày tự động hóa có hiệu lực), không phải
    2026-07-09. Dời mốc "đủ 6 tháng" của điều kiện xem lại #1 (và do đó điều
    kiện #4) từ hạn danh nghĩa cũ 2027-01-09 sang **2027-01-16** trong
-   `SCORE_V2_REPORT.md` + `PROJECT_STATE.md`. 3 mốc thưa cũ giữ nguyên
+   `docs/reports/scoring/docs/reports/scoring/SCORE_V2_REPORT.md` + `PROJECT_STATE.md`. 3 mốc thưa cũ giữ nguyên
    trong file (dữ liệu thật, không xóa), chỉ không tính vào "6 tháng liên
    tục".
 4. **NV4 (commit `9db5586`, `6f5d506`, `d80434a`)** — chạy thật (không qua

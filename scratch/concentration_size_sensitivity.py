@@ -1,4 +1,4 @@
-"""CONCENTRATION_ANALYSIS_REPORT.md NV2: portfolio-construction sensitivity.
+"""docs/reports/scoring/docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md NV2: portfolio-construction sensitivity.
 One run per configuration, no tuning, no picking the prettiest result.
 Same folds/costs as scratch/fold_autopsy.py / scratch/scoring_before_after.py.
 """

@@ -33,7 +33,7 @@ in the project-context addendum, confirmed still accurate. Root cause:
 `derive_factor_weights` recomputes factor *signs* from live IC on the
 current `data/processed/stock_features.parquet`, and the test's hardcoded
 `DEFAULT_SIGNS` expectation for `distance_ma20`/`return_20d` no longer
-matches — consistent with `FACTOR_RETEST_V2_REPORT.md`'s own finding that
+matches — consistent with `docs/reports/scoring/docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md`'s own finding that
 neither factor clears the significance bar on the refreshed dataset (and
 `return_20d`'s raw sign is reported there as unstable across universes).
 Not a new regression; not fixed in this audit (per the read-only
@@ -129,5 +129,5 @@ procedure anywhere in the codebase or reports.
   the exact artifact Phase D needed to check *as committed*; running it
   would have overwritten the evidence being validated.
 - All 19 notebooks — not executed top-to-bottom this round (would be
-  needed to fully verify `AUDIT_REPORT.md`'s `run_all_notebooks.sh`
+  needed to fully verify `docs/reports/codebase_audit/docs/reports/codebase_audit/AUDIT_REPORT.md`'s `run_all_notebooks.sh`
   claim; flagged NOT_VERIFIABLE in the gap matrix instead of run).

@@ -106,7 +106,7 @@ def main():
         daily_returns = pd.Series(port_ret).dropna().to_numpy(dtype=float)
     print(f"Daily return series length: {len(daily_returns)}")
 
-    # Trial count estimate -- see ROBUSTNESS_REPORT.md for the itemized tally
+    # Trial count estimate -- see docs/reports/scoring/docs/reports/scoring/ROBUSTNESS_REPORT.md for the itemized tally
     # this number is drawn from (report-by-report counts already on record in
     # this repo's own docs, not a fresh count invented here).
     N_TRIALS_ESTIMATE = 560
