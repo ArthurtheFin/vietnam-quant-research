@@ -1160,3 +1160,80 @@ phản ánh trạng thái sau Vòng 2, mục 7 rút gọn thành pointer tới
 (miễn `daily_run.sh` tiếp tục chạy đều). Công thức/trọng số điểm chưa đổi
 một chữ nào. Vòng 3 (chạy `SDE_SCORING_PREREG.md`) chưa thực hiện — chờ
 phiên riêng theo đúng ràng buộc round này.
+
+## Phase 12 — SDE Vòng 3: chạy phiên tòa, kết luận Nhánh C (this session)
+
+**Bối cảnh**: tiếp nối Phase 11 — `SDE_SCORING_PREREG.md` đã khóa, round
+này chạy đúng một lần, thi hành nhánh trúng theo cây quyết định đã khóa
+trước. Không chỉnh tham số sau khi thấy số.
+
+**NV1**: xây bridge point-in-time re-scoring (chưa có trước round này) —
+vòng hóa `enrich()`+`bootstrap_monte_carlo()`+`score_decision()` (bản gốc)
+theo (symbol, ngày rebalance) trên toàn bộ universe `trading_status==ACTIVE`
+(462 mã), `lookback_days=756` đúng config, `backtest={"available": False}`
+mọi ngày lịch sử (trung thực, không phải sửa công thức). Phát hiện giữa
+chừng: `run_portfolio_backtest` tự tính lại lịch rebalance theo TỪNG FOLD
+(khác pha với lịch toàn cục) — phải build thêm panel thứ hai
+(`sde_round3_panel_foldaligned.parquet`) khớp đúng ngày null-test sẽ dùng,
+nếu không hầu hết quyết định sẽ âm thầm rơi vào fallback mean-reversion
+thay vì dùng `final_score` thật — cùng loại lỗi đã ghi trong
+`scratch/watchlist_validation_null.py`.
+
+Panel chính: 17.620 dòng, 438 mã, 204 ngày, **2023-01-16 → 2026-07-03**.
+2.708 lượt bị loại vì chưa đủ 756 phiên (finding #9) — không chấm cửa sổ
+cụt. Chỉ 43 ngày cross-section đạt ≥15 mã/ngày cho IC test.
+
+**Kết quả IC Newey-West + FDR (28 test, q=0.05)**: `final_score`
+t_NW(full,residualized)=**+1.28** (xa ngưỡng 3). Chỉ 2/28 sống sót FDR:
+`risk` (+3.96, dương — đối tượng duy nhất có bằng chứng riêng) và
+`liquidity` (−3.80, ÂM — bằng chứng để loại, không phải để giữ).
+**Null test** (2.000 danh mục/fold, seed=42): percentile trung bình
+**31.2** (không >60), fold 2023=**0.75** (<10) → thất bại cả hai vế OR
+của Nhánh A.
+
+**Phát hiện mới, không có trong prereg**: chia 43 ngày thành 3 giai đoạn
+cho ~15 ngày/giai đoạn — DƯỚI ngưỡng N≥30 mà `newey_west_tstat()` yêu
+cầu → **mọi t_NW theo giai đoạn đều là NaN, cho cả 7 đối tượng**. Tiêu chí
+"đồng dấu 3 giai đoạn" (bắt buộc cho cả Nhánh A và B) không thể xác nhận
+được cho bất kỳ đối tượng nào — giới hạn cấu trúc từ `lookback_days=756`
+cộng với backfill hoàn tất muộn (2026-07-10), không phải lỗi thực thi.
+
+**Áp cây quyết định**: Nhánh A không đạt (IC lẫn null đều fail rõ ràng).
+Nhánh B không xác nhận được đầy đủ (`risk` đạt bảng chính nhưng không xác
+nhận được 3-giai-đoạn; `liquidity` âm không phải ứng viên giữ). Theo quy
+ước "vùng xám → chọn nhánh thận trọng hơn, ưu tiên C trên B" đã khóa:
+**NHÁNH C.**
+
+Đối chiếu kỳ vọng đã ghi trước (`SDE_SCORING_PREREG.md` mục 5): kỳ vọng
+"trend/momentum/relative_strength không đạt" — ĐÚNG. Kỳ vọng "nếu risk có
+bằng chứng, khả năng trùng cụm vol" — khớp hướng (risk là đối tượng duy
+nhất sống sót). Điều KHÔNG được ghi trước: giả định ngầm 3-giai-đoạn tính
+được — thực tế không tính được cho bất kỳ đối tượng nào, khiến Nhánh B
+không bao giờ xác nhận đủ được với dữ liệu hiện tại của SDE.
+
+**NV2 — thi hành Nhánh C**: `stock-decision-engine/src/scoring.py` —
+`score_decision()` (WEIGHTS, hard_filters, decision label, confidence) gỡ
+bỏ hoàn toàn, không comment/deprecate. `build_facts_table()` thay thế: vẫn
+8 nhóm "reading" 0-100 (công thức đếm tiêu chí TA không đổi) nhưng không
+còn cộng trọng số thành một số quyết định, không còn nhãn BUY CANDIDATE/
+WATCH/WEAK SETUP/AVOID/GOOD STOCK BAD ENTRY. `report.py` (`facts_summary`
+thay `decision_summary`), `visualization.py` (`facts_breakdown.png` thay
+`score_breakdown.png`), notebook, `config.yaml` (gỡ `score_thresholds`
+chết) cập nhật theo. Regenerate cả 20 output cũ trên công thức mới, đúng
+as-of date như round trước — output cũ (dùng dữ liệu sạch nhưng công thức
+cũ) archive tại `outputs/archive_pre_round3_branchc_2026-07-17/` kèm
+README; bảng so sánh cuối: `ROUND3_BRANCHC_REGEN_COMPARISON.csv`. 16 file
+`*_score_breakdown.png` lỗi thời (đã có bản `*_facts_breakdown.png` thay
+thế) đã xóa khỏi git.
+
+**NV3**: `stock-decision-engine/SDE_SCORING_REPORT.md` — kết quả đầy đủ,
+nhánh đã thi hành + lý do, đối chiếu kỳ vọng cả hai chiều, khuyến nghị sử
+dụng cuối cùng (SDE không còn là công cụ khuyến nghị mua/bán — chỉ còn
+bảng tra cứu chỉ số kỹ thuật/thống kê thô). `AUDIT_SDE_REPORT.md` finding
+#2 → RESOLVED (Nhánh C), finding #9 bổ sung hệ quả 3-giai-đoạn. `CLAUDE.md`
+mục 10 cập nhật: cấm thêm lại điểm tổng hợp/decision cho đến khi có bằng
+chứng IC/null-test mới đạt tiêu chí. Full suite: 295 passed, không đổi.
+
+**Trạng thái cuối round**: `stock-decision-engine` không còn sinh
+`final_score`/`decision` ở bất kỳ đâu — đã kiểm định và không đạt, không
+phải "chưa kiểm định" nữa. Notebook giờ là bảng dữ kiện tham khảo thuần.

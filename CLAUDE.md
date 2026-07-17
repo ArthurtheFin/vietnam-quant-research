@@ -38,15 +38,14 @@
    sống sót qua FDR so với 27 qua |t|>3) — quy ước cũ không tự động
    là "thận trọng hơn", cần cả hai con số để không tự đánh lừa mình
    theo hướng nào.
-10. `stock-decision-engine/` — **đã GỠ read-only từ 2026-07-17**. Trước
-    ngày đó là read-only tuyệt đối (audit thuần, không sửa code — xem
-    `stock-decision-engine/AUDIT_SDE_REPORT.md`, kết quả round audit-only
-    đầu tiên). Từ 2026-07-17, phạm vi sửa đổi đi theo kế hoạch khóa
-    trước trong chính report đó (mục 7, "Đề xuất kế hoạch Vòng 2") và
-    các round tiếp theo dựa trên nó: nối dữ liệu về `dataset_config.py`
-    của dự án chính, regenerate output cũ, viết prereg cho kiểm định
-    điểm số — **KHÔNG được đổi công thức/trọng số/ngưỡng điểm** cho đến
-    khi một prereg dạng `SDE_SCORING_PREREG.md` được commit và chạy
-    đúng spec (cùng kỷ luật mục 8 áp cho dự án chính). Đọc
-    `stock-decision-engine/AUDIT_SDE_REPORT.md` trước khi sửa bất cứ gì
-    trong thư mục này.
+10. `stock-decision-engine/` — **đã GỠ read-only từ 2026-07-17**.
+    `SDE_SCORING_PREREG.md` đã chạy (Vòng 3, 2026-07-17): `final_score`/
+    `decision` KHÔNG có bằng chứng dự báo (IC Newey-West + null-test đều
+    không đạt) → **Nhánh C thi hành** — `final_score`/`decision` đã GỠ BỎ
+    khỏi `src/scoring.py` (không phải comment/deprecate), chỉ còn bảng
+    facts thô có ngữ cảnh. Đọc `stock-decision-engine/SDE_SCORING_REPORT.md`
+    (kết quả cuối) trước `AUDIT_SDE_REPORT.md` (lịch sử 3 vòng) trước khi
+    sửa bất cứ gì trong thư mục này. **Không thêm lại một điểm tổng hợp/
+    decision label nào** cho đến khi có bằng chứng IC/null-test mới đạt
+    tiêu chí tương đương — đây không còn là vùng "chưa kiểm định", mà là
+    "đã kiểm định và không đạt".

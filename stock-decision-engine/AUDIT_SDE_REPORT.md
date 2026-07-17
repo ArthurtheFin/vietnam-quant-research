@@ -20,6 +20,17 @@ CHƯA chạy) đã khóa tại `stock-decision-engine/SDE_SCORING_PREREG.md` (co
 `4b88631`). Công thức/trọng số điểm KHÔNG đổi trong vòng này
 (`CLAUDE.md` mục 10).
 
+**Cập nhật 2026-07-17 (Vòng 3 — chạy prereg, thi hành Nhánh C)**: **Finding
+#2 (mục 4) → RESOLVED.** IC Newey-West + null-test point-in-time (full
+universe, đúng phương pháp đã khóa cho `final_watchlist`) xác nhận
+`final_score` không đạt tiêu chí Nhánh A, không sub-score nào xác nhận đủ
+tiêu chí Nhánh B (3-giai-đoạn không tính được — phát hiện mới, xem mục 4
+finding #9 cập nhật) → **Nhánh C thi hành**: `final_score`/`decision` đã
+gỡ bỏ hoàn toàn khỏi `stock-decision-engine/src/scoring.py` (không chỉ
+ẩn), notebook/report/visualization cập nhật theo, 20 output cũ regenerate
+lần cuối. Chi tiết đầy đủ, đối chiếu kỳ vọng, khuyến nghị sử dụng:
+`stock-decision-engine/SDE_SCORING_REPORT.md` (commit `aa773a2`).
+
 **Bối cảnh**: `stock-decision-engine/` là một notebook quyết định độc lập,
 tách khỏi pipeline `alpha_score`/`final_watchlist` chính, người dùng đang
 dùng thật (20 lần chạy phân tích, 172 file output cho 16 mã: ACB, BID, BMP,
@@ -331,14 +342,14 @@ cho bất kỳ thành phần nào — chưa có thành phần nào từng qua IC
 | # | Severity | Phát hiện | Bằng chứng | Trạng thái |
 |---|---|---|---|---|
 | 1 | **HIGH** | 6/20 lần chạy (BID×2, HDB, HPG, TPB, VCB) dùng dữ liệu giá xác nhận dính raw/adjusted-close mixing bug trên phần lịch sử feed vào các chỉ báo rolling-window (MA/vol/RSI/ATR/percentile) | Mục 2.2-2.3, ladder test trực tiếp + đối chiếu mốc thời gian git | **RESOLVED 2026-07-17** — nối `dataset_config.py` (commit `8795764`), regenerate (commit `861654c`), test hồi quy `tests/test_dataset_config.py` phủ luôn `stock-decision-engine/src/` |
-| 2 | **HIGH** | 50% trọng số cuối (`trend`+`momentum`+`relative_strength`) rơi vào họ nhân tố mà chính dự án này đã 2 lần độc lập tìm thấy IC âm/không rõ ràng trên cùng loại dữ liệu, cùng giai đoạn 2026 | Mục 3.3, `SCORE_FORENSIC_REPORT.md` + `WATCHLIST_VALIDATION_REPORT.md` | OPEN — chờ Vòng 3 (`SDE_SCORING_PREREG.md`), không sửa công thức trước khi có kết quả kiểm định |
+| 2 | **HIGH** | 50% trọng số cuối (`trend`+`momentum`+`relative_strength`) rơi vào họ nhân tố mà chính dự án này đã 2 lần độc lập tìm thấy IC âm/không rõ ràng trên cùng loại dữ liệu, cùng giai đoạn 2026 | Mục 3.3, `SCORE_FORENSIC_REPORT.md` + `WATCHLIST_VALIDATION_REPORT.md` | **RESOLVED 2026-07-17 (Vòng 3)** — kỳ vọng xác nhận đúng: `trend`/`momentum`/`relative_strength` không đạt `\|t_NW\|>3` (+1.16/+0.72/+0.44, full residualized). `final_score` composite cũng không đạt IC (t_NW=+1.28) lẫn null-test (percentile TB 31.2, fold 2023=0.75<10). Nhánh C thi hành — `final_score`/`decision` gỡ bỏ hoàn toàn. Xem `SDE_SCORING_REPORT.md`, commit `aa773a2` |
 | 3 | **MEDIUM** | Không có lineage metadata trong bất kỳ output nào — vi phạm `CLAUDE.md` mục 6 | Mục 2.6 | **RESOLVED 2026-07-17** — `report.py::save_outputs` nhúng `lineage_*` (dataset_version/features_sha256/git_commit_hash/...) vào mọi `*_metrics.csv` (commit `8795764`), tái dùng `src/utils/pipeline_io.py::build_lineage_metadata` |
 | 4 | **MEDIUM** | Toàn bộ ngưỡng/trọng số (`config.yaml` + hằng số trong `scoring.py`) hard-code không citation, không quy trình hiệu chỉnh nào được ghi lại | Mục 1.2 | OPEN — nằm ngoài phạm vi vòng này (không sửa công thức/trọng số, `CLAUDE.md` mục 10); Nhánh B của Vòng 3 sẽ buộc mỗi trọng số còn lại phải có citation hoặc bị gỡ |
 | 5 | **MEDIUM** | Chưa từng có test/backtest/validation nào cho chính công thức của `stock-decision-engine` trong lịch sử repo | Mục 3.1 | OPEN — đây chính là việc Vòng 3 (`SDE_SCORING_PREREG.md`) sẽ làm |
 | 6 | **LOW** | Fallback đọc `data/raw/daily_ohlcv/{TICKER}.parquet` — đường dẫn dự án chính đánh dấu "Forbidden" — không cảnh báo nếu kích hoạt; hiện không kích hoạt được vì thư mục rỗng | Mục 2.1 | **RESOLVED 2026-07-17** — fallback gỡ hoàn toàn khỏi `load_stock_ohlcv` (commit `8795764`), thiếu dữ liệu giờ raise lỗi rõ thay vì âm thầm đọc nguồn khác |
 | 7 | **LOW** | `data.py` hard-code lại đường dẫn thay vì import từ `src/data/dataset_config.py` — không được convention single-source-of-truth của dự án chính bảo vệ nếu đường dẫn chính thức đổi trong tương lai | Mục 2.1 | **RESOLVED 2026-07-17** — commit `8795764` |
 | 8 | **INFO** | Tên `_alpha_score` trùng nhưng khác khái niệm với `alpha_score` dự án chính — rủi ro nhầm lẫn khi trao đổi | Mục 3.1 | OPEN — chỉ là lưu ý đặt tên, không phải bug; không có hành động cụ thể nào được lên kế hoạch |
-| 9 | **HIGH** (mới, phát hiện khi regenerate NV2) | Trước khi backfill đầy đủ hoàn tất (2026-07-10), `clean_daily_ohlcv.parquet` chỉ có lịch sử NGẮN cho hầu hết các mã SDE (vd. POW 295 dòng, SSI 328, STB 332, ACB/GEX 345, VIX 295, VPL 288 — so với `lookback_days: 756` `config.yaml` yêu cầu) — độc lập với bug raw/adjusted-close (finding #1). Toàn bộ thống kê full-window (Sharpe/Sortino/Calmar/Jensen alpha/information ratio/max_drawdown/CVaR/skewness — hết `alpha` sub-score + 1 phần `risk`) bị tính trên mẫu ngắn hơn nhiều so với cấu hình dự định, cho 7/16 mã kể cả những mã KHÔNG dính bug giá (ACB, GEX, SSI, STB, POW, VIX, VPL). | `stock-decision-engine/GATE6_REGEN_COMPARISON.csv` cột `window_truncated`, `stock-decision-engine/outputs/archive_pre_gate6_fix_2026-07-17/README.md` | **RESOLVED 2026-07-17 cho dữ liệu hiện tại** (data đã đủ sâu từ 2026-07-10) — nhưng 20 output cũ (đã archive) mang defect này; không có sửa code (vốn dĩ chỉ là hệ quả gián tiếp của backfill, không phải bug trong `stock-decision-engine`) |
+| 9 | **HIGH** (mới, phát hiện khi regenerate NV2) | Trước khi backfill đầy đủ hoàn tất (2026-07-10), `clean_daily_ohlcv.parquet` chỉ có lịch sử NGẮN cho hầu hết các mã SDE (vd. POW 295 dòng, SSI 328, STB 332, ACB/GEX 345, VIX 295, VPL 288 — so với `lookback_days: 756` `config.yaml` yêu cầu) — độc lập với bug raw/adjusted-close (finding #1). Toàn bộ thống kê full-window (Sharpe/Sortino/Calmar/Jensen alpha/information ratio/max_drawdown/CVaR/skewness — hết `alpha` sub-score + 1 phần `risk`) bị tính trên mẫu ngắn hơn nhiều so với cấu hình dự định, cho 7/16 mã kể cả những mã KHÔNG dính bug giá (ACB, GEX, SSI, STB, POW, VIX, VPL). | `stock-decision-engine/GATE6_REGEN_COMPARISON.csv` cột `window_truncated`, `stock-decision-engine/outputs/archive_pre_gate6_fix_2026-07-17/README.md` | **RESOLVED 2026-07-17 cho dữ liệu hiện tại** (data đã đủ sâu từ 2026-07-10); 20 output cũ (đã archive) mang defect này. **Hệ quả sâu hơn phát hiện ở Vòng 3** (`SDE_SCORING_REPORT.md` mục 4): cùng nguyên nhân (backfill hoàn tất muộn + `lookback_days=756`) khiến universe kiểm định được hiện tại chỉ có ~3.5 năm/43 cross-section — QUÁ NGẮN để tính 3-giai-đoạn robustness (mỗi giai đoạn cần ≥30 ngày, thực tế chỉ ~15) cho BẤT KỲ đối tượng nào, không riêng SDE mà là giới hạn cấu trúc sẽ còn kéo dài cho đến khi có đủ ~1.5 năm dữ liệu nữa tích lũy tự nhiên |
 
 ## 5. Kết luận dữ liệu sạch/bẩn
 
@@ -364,43 +375,42 @@ vá — các vấn đề phương pháp ở mục 3 (chưa kiểm định, trùn
 án) vẫn áp dụng như nhau bất kể dữ liệu sạch hay bẩn, KHÔNG bị Vòng 2 giải
 quyết (đó là việc của Vòng 3, `SDE_SCORING_PREREG.md`).
 
-## 6. Khuyến nghị (đã cập nhật sau Vòng 2)
+## 6. Khuyến nghị (đã cập nhật sau Vòng 3 — bản cuối cùng)
 
-1. **20 output hiện tại (đã regenerate 2026-07-17) dùng dữ liệu sạch** — có
-   thể dùng để tham khảo mức độ nhạy cảm của điểm số với dữ liệu, KHÔNG dùng
-   để suy ra "điểm số đáng tin" (đó vẫn là câu hỏi mở, chờ Vòng 3). 60 file
-   cũ (dữ liệu nhiễm) đã archive tại
-   `stock-decision-engine/outputs/archive_pre_gate6_fix_2026-07-17/`, không
-   dùng cho bất kỳ quyết định nào.
-2. **`final_score`/decision label VẪN nên được đọc như một checklist TA có
-   tổ chức, không phải một điểm số đã kiểm định** — sửa chân dữ liệu (Vòng
-   2) không giải quyết finding #2 (mục 4): 50% trọng số nằm trên họ nhân tố
-   có tiền sử IC âm trong chính dữ liệu VN 2026. Không có cơ sở để nói
-   decision label ("BUY CANDIDATE" v.v.) tương quan với return thực tế
-   trong tương lai — kể cả trên dữ liệu sạch.
-3. Không dùng bất kỳ output nào của `stock-decision-engine` để so sánh/
-   backtest chéo với `alpha_score`/`final_watchlist` của dự án chính cho đến
-   khi Vòng 3 (`SDE_SCORING_PREREG.md`) chạy xong — không đồng nhất về
-   validation status.
-4. Đây vẫn là khuyến nghị tạm thời — Vòng 3 sẽ cho câu trả lời định lượng
-   thay vì suy luận gián tiếp qua họ nhân tố.
+**Vòng 3 đã chạy và kết luận Nhánh C — khuyến nghị dưới đây thay thế hoàn
+toàn khuyến nghị tạm thời trước đó (giữ nguyên văn bên dưới để tham khảo
+lịch sử, đọc mục 10 `SDE_SCORING_REPORT.md` cho bản khuyến nghị hiện hành,
+tiếng thường).**
 
-## 7. Kế hoạch Vòng 3 — đã khóa, xem `SDE_SCORING_PREREG.md`
+1. `final_score`/`decision` label đã **gỡ bỏ khỏi code**, không còn tồn
+   tại ở bất kỳ output nào từ 2026-07-17 trở đi. Không phải "nên đọc như
+   checklist tham khảo" nữa — nó không còn được sinh ra.
+2. Toàn bộ output cũ có `final_score`/`decision` (cả bản dữ liệu nhiễm lẫn
+   bản dữ liệu sạch-công-thức-cũ) đã archive, không dùng cho bất kỳ quyết
+   định nào — xem hai thư mục archive trong `stock-decision-engine/outputs/`.
+3. Không dùng bất kỳ output nào của `stock-decision-engine` (kể cả bảng
+   facts mới) để so sánh/backtest chéo với `alpha_score`/`final_watchlist`
+   của dự án chính — hai hệ thống không cùng trạng thái kiểm định
+   (`alpha_score` v2 đã qua kiểm định, SDE thì không).
 
-Bản đề xuất Vòng 2 gốc (mục này, trước 2026-07-17) đã được hiện thực hóa và
-khóa chi tiết tại **`stock-decision-engine/SDE_SCORING_PREREG.md`** — đối
-tượng test, bridge kỹ thuật cần xây, phương pháp IC/null-test (đúng bộ đã
-dùng cho `final_watchlist`), cây quyết định 3 nhánh, và danh sách cái gì
-KHÔNG kiểm định được kèm lý do (mục 3 của file đó: `simulation`, phần
-`backtest.profit_factor` của `alpha`, `market_regime`). File này không lặp
-lại nội dung đó — đọc `SDE_SCORING_PREREG.md` trực tiếp.
+**Khuyến nghị tạm thời gốc (trước Vòng 3, giữ để tham khảo lịch sử):**
+> 20 output hiện tại (đã regenerate 2026-07-17) dùng dữ liệu sạch — có thể
+> dùng để tham khảo mức độ nhạy cảm của điểm số với dữ liệu, KHÔNG dùng để
+> suy ra "điểm số đáng tin". `final_score`/decision label VẪN nên được đọc
+> như một checklist TA có tổ chức, không phải một điểm số đã kiểm định.
 
-**Vòng 3 (chạy prereg trên) CHƯA THỰC HIỆN** — nằm ngoài phạm vi vòng sửa
-dữ liệu 2026-07-17 này, theo đúng ràng buộc đã khóa.
+## 7. Vòng 3 — ĐÃ CHẠY, xem `SDE_SCORING_REPORT.md`
+
+`stock-decision-engine/SDE_SCORING_PREREG.md` (kế hoạch khóa trước) đã
+được thực thi đầy đủ — kết quả, nhánh đã thi hành, đối chiếu kỳ vọng, và
+khuyến nghị sử dụng cuối cùng nằm tại
+**`stock-decision-engine/SDE_SCORING_REPORT.md`**. File này không lặp lại
+nội dung đó.
 
 ---
 
 **Lịch sử phiên bản**: 2026-07-17 audit-only (bản gốc, không sửa code) →
 2026-07-17 Vòng 2 (sửa chân dữ liệu + regenerate 20 output + khóa prereg
-Vòng 3, commit `44204a6`/`8795764`/`861654c`/`4b88631`) — công thức/trọng số
-điểm KHÔNG đổi qua cả hai vòng (`CLAUDE.md` mục 10).
+Vòng 3, commit `44204a6`/`8795764`/`861654c`/`4b88631`) → 2026-07-17 Vòng 3
+(chạy prereg, kết luận Nhánh C, gỡ `final_score`/`decision` khỏi code,
+commit `aa773a2`).
