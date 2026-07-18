@@ -73,22 +73,23 @@ nhãn quyết định (`stock-decision-engine/SDE_SCORING_REPORT.md`).
 | Tự động hóa hằng ngày | LaunchAgent lên lịch 19:00 các ngày trong tuần (`scripts/daily_run.sh`) |
 | Điểm audit | Round 2: **78/100** (từ 58/100 Round 1), còn **1/4 critical gate mở** (Gate #3 — survivorship bias) (`audit/round2/delta_scorecard.md`, commit `03bb13d`) |
 
-**Cảnh báo cập nhật hơn PROJECT_STATE.md tại thời điểm viết**: log thật
-(`logs/daily_run.log`) cho thấy lần chạy tự động gần nhất **thành công**
-là tối 2026-07-16 (`SUMMARY: 4/4 steps OK`). Lần chạy theo lịch tiếp theo,
-tối 2026-07-17 19:00, đã **vượt qua được** rào cản TCC macOS từng chặn nó
-trước đó (không còn dòng `Operation not permitted` mới trong
-`logs/launchd_stderr.log`, vẫn dừng ở mốc 2026-07-16 19:42) — nhưng thất
-bại vì một nguyên nhân MỚI, khác hẳn: `ModuleNotFoundError: No module
-named 'pandas'` (và `requests`, `yaml`) — môi trường `launchd` gọi
-`/bin/bash` không có Python của conda (`/opt/anaconda3/bin/python3`, nơi
-các thư viện này được cài) trên PATH, nên rơi về Python hệ thống của
-macOS. Đây là một sự cố vận hành **mới phát sinh, chưa có trong
-`docs/DAILY_OPERATING_GUIDE.md` mục 5** (bảng xử lý sự cố ở đó vẫn chỉ mô
-tả nguyên nhân TCC) — xem ví dụ log thật ở Phần 1.4. Kết quả: **watchlist
-hiện tại (tính đến lúc viết) đã cũ 2 ngày** so với ngày viết tài liệu này.
-Đây là một phát hiện vận hành cần xử lý riêng, ngoài phạm vi lô tài liệu
-này (chỉ ghi nhận trung thực, không sửa code ở đây).
+**Cập nhật cùng ngày (2026-07-18, sau khi lô 1 được duyệt)**: log thật
+(`logs/daily_run.log`) cho thấy lần chạy tự động tối 2026-07-16 thành công
+(`SUMMARY: 4/4 steps OK`), nhưng lần chạy theo lịch tối 2026-07-17 19:00
+FAIL cả 4/4 bước vì `ModuleNotFoundError: No module named 'pandas'` (và
+`requests`, `yaml`) — môi trường `launchd` không kế thừa PATH của shell
+tương tác nên `python3` rơi về Python hệ thống macOS thay vì
+`/opt/anaconda3/bin/python3` (nơi cài các thư viện này); rào cản TCC từng
+chặn hoàn toàn trước đó đã tự hết (không phải nguyên nhân của lần fail
+này). **Đã chẩn đoán + sửa + kiểm chứng** cùng ngày: `scripts/daily_run.sh`
+giờ dùng đường dẫn tuyệt đối tới Python của dự án thay vì tra `PATH` (commit
+`bcd61d2`), kiểm chứng qua đúng cơ chế `launchd` (`launchctl kickstart`,
+không phải chạy tay `bash`) — `SUMMARY: 4/4 steps OK` tối 2026-07-18,
+`freshness_status: OK`. Khoảng trống shadow log ngày 2026-07-17 đã đóng,
+**0 ngày giao dịch bị mất** (chi tiết: `PROJECT_STATE.md` mục 4,
+`docs/reports/scoring/SCORE_V2_REPORT.md` mục "Cập nhật 2026-07-18",
+commit `3434bf2`) — xem ví dụ log FAIL thật (vẫn giữ nguyên trong lịch sử
+log, không xóa) ở Phần 1.4.
 
 ## 0.4. Hai cuộc hẹn
 
@@ -147,10 +148,11 @@ Nếu bước nào không đạt: dừng lại, đừng dùng dữ liệu hôm �
 (Xử lý sự cố). Chi tiết đầy đủ hơn (kèm khung nguyên tắc "hệ thống không
 chọn mã thay bạn"): `docs/DAILY_OPERATING_GUIDE.md` mục 1.
 
-**Ví dụ thật tại thời điểm viết (xem 0.3)**: bước 1 ở trên hiện **KHÔNG
-ĐẠT** — dòng cuối `logs/daily_run.log` là `###### SUMMARY: 4/4 step(s)
-FAILED ######` (tối 2026-07-17), không phải `4/4 steps OK`. Đây chính là
-tình huống mục này được thiết kế để bắt được.
+**Ví dụ thật, lịch sử gần nhất (xem 0.3)**: tối 2026-07-17, dòng cuối
+`logs/daily_run.log` từng là `###### SUMMARY: 4/4 step(s) FAILED ######`
+— chính xác tình huống mục này được thiết kế để bắt được. Đã chẩn đoán +
+sửa + chạy lại thành công cùng ngày 2026-07-18 (`PROJECT_STATE.md` mục 4);
+dòng `SUMMARY` cuối cùng tại thời điểm viết đã trở lại `4/4 steps OK`.
 
 ## 1.2. Cỗ máy tự động
 
@@ -185,17 +187,19 @@ launchctl unload ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plis
 launchctl load ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist     # nạp lại
 ```
 
-**Trạng thái thật của cơ chế này tại ngày viết**: đã **thoát khỏi** rào
-cản TCC (macOS chặn tiến trình `launchd` truy cập `~/Desktop`) từng ghi
-trong `PROJECT_STATE.md` mục 4 — không còn lỗi `Operation not permitted`
-mới kể từ 2026-07-16 19:42. Nhưng lần chạy 2026-07-17 19:00 thất bại vì
-một nguyên nhân khác: môi trường `launchd` không có `PATH` trỏ tới
-Python của conda (nơi cài `pandas`/`requests`/`pyyaml`), nên 4/4 bước đều
-báo `ModuleNotFoundError`. **Đây là một rào cản mới, riêng biệt với vấn
-đề TCC đã đóng trước đó** — chưa được sửa trong repo tại thời điểm viết
-tài liệu này (xem log thật ở mục 1.4). Trong lúc chờ xử lý: chạy tay theo
-mục 1.3 vẫn hoạt động bình thường (không qua `launchd` nên không dính vấn
-đề PATH này — terminal tương tác có `conda`/`anaconda3` sẵn trên PATH).
+**Trạng thái thật của cơ chế này, đã cập nhật sau khi xử lý (2026-07-18)**:
+cả 2 rào cản từng chặn cơ chế này đều đã đóng. TCC (macOS chặn tiến trình
+`launchd` truy cập `~/Desktop`) tự hết — không còn lỗi `Operation not
+permitted` mới kể từ 2026-07-16 19:42. Rào cản thứ hai, phát hiện tối
+2026-07-17 (môi trường `launchd` không có `PATH` trỏ tới Python của conda,
+nơi cài `pandas`/`requests`/`pyyaml`, nên 4/4 bước báo `ModuleNotFoundError`),
+đã sửa bằng cách hardcode đường dẫn tuyệt đối tới Python của dự án trong
+`daily_run.sh` thay vì tra `PATH` (commit `bcd61d2`) — không dựa vào PATH
+kế thừa shell nữa, đúng cho cả `launchd` lẫn chạy tay. **Đã kiểm chứng qua
+đúng cơ chế launchd** (`launchctl kickstart -k gui/501/com.vietnam-quant-research.dailyrun`,
+không phải chạy tay `bash`): `SUMMARY: 4/4 steps OK` tối 2026-07-18. Xem
+log FAIL thật của sự cố (giữ nguyên trong lịch sử, không xóa) ở mục 1.4,
+và chi tiết chẩn đoán/khoảng trống shadow log ở `PROJECT_STATE.md` mục 4.
 
 ## 1.3. Chạy tay
 
@@ -290,6 +294,12 @@ NGAY PHÍA TRÊN dòng FAIL (ở đây: `ModuleNotFoundError`) — đọc đúng
 Python, script còn chưa kịp làm gì" (khác với một bước fail giữa chừng
 sau khi đã chạy hàng chục giây — dấu hiệu đó thường là lỗi logic/dữ liệu
 thật, cần đọc kỹ hơn). Xem mục 1.2 để biết nguyên nhân gốc đã xác định.
+
+**Đã sửa cùng ngày 2026-07-18** (`scripts/daily_run.sh` commit `bcd61d2`,
+kiểm chứng qua `launchctl kickstart`: `SUMMARY: 4/4 steps OK` tối
+2026-07-18) — 2 block trên vẫn giữ nguyên làm ví dụ giáo dục thật cho
+"FAIL từng bước" trông như thế nào, không phản ánh trạng thái hiện tại
+của cơ chế (mục 1.2).
 
 **Phân biệt `NO_NEW_DATA` (bình thường, ngày nghỉ)**: nếu một bước
 `update_prices_daily`/`update_disclosure_daily` chạy xong với dòng `OK`
