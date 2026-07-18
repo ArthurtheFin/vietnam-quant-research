@@ -17,6 +17,20 @@ tổng hợp và `decision` label — chỉ còn bảng dữ kiện thô có ng�
 hành trong code (commit `aa773a2`), regenerate 20 output cũ, cập nhật
 README/notebook.
 
+**Cập nhật sau khi commit (điều tra bổ sung, KHÔNG chạy lại prereg,
+KHÔNG đổi phán quyết)**: theo yêu cầu xác minh con số "43 ngày", mục 4b
+mới truy đúng nguồn gốc (2 script: `sde_prereg_round3_panel.py`'s
+`rebalance_period=20` + `sde_prereg_round3_ic_null.py`'s
+`MIN_ELIGIBLE=15`, KHÔNG phải `sde_prereg_round3_panel_foldaligned.py` —
+script đó chỉ phục vụ null test) và sửa một câu giải thích sai trong bản
+gốc (mục 3 cũ ghi nhầm "hệ quả của universe hẹp" — universe thực ra
+400+ mã trên các ngày rebalance thật). Kết luận xác minh: **43 là ràng
+buộc chính đáng** (gần tối đa khả thi cho thiết kế `rebalance_period=20`
+đã khóa trước, không phải bug/artifact), nhưng mục 5 mới ("Giới hạn
+phiên tòa") ghi nhận trung thực: N=43 là mẫu mỏng, phần lớn sức nặng kết
+luận Nhánh C đến từ prior của dự án chính, không phải sức mạnh thống kê
+riêng của phiên tòa này. Phán quyết Nhánh C GIỮ NGUYÊN.
+
 ---
 
 ## 1. Bridge kỹ thuật đã xây (mục 1 prereg)
@@ -79,8 +93,9 @@ tối đa 80/100 điểm nội bộ vì thiếu phần backtest).
 (Bảng đầy đủ 28 dòng: `data/full_history_v2/sde_round3_ic_main.csv`.)
 
 Chỉ 43 ngày cross-section đạt `MIN_ELIGIBLE≥15` mã/ngày trong toàn bộ
-2023-01→2026-07 (204 ngày panel thô, phần lớn bị loại vì cross-section quá
-mỏng — hệ quả trực tiếp của universe hẹp mục 2).
+2023-01→2026-07. **Sửa lại giải thích ban đầu ở đây (bản đầu tiên của file
+này ghi sai là "hệ quả trực tiếp của universe hẹp" — không đúng, xem mục
+4b để có bằng chứng và giải thích chính xác).**
 
 ## 4. 3-giai đoạn — KHÔNG TÍNH ĐƯỢC (phát hiện quan trọng, không có trong prereg)
 
@@ -98,7 +113,115 @@ sửa trong phạm vi round này (nới lookback xuống sẽ vi phạm "không 
 thức trước khi có bằng chứng"; đợi thêm dữ liệu tương lai là lựa chọn duy
 nhất hợp lý).
 
-## 5. BH-FDR (q=0.05, m=28)
+## 4b. Xác minh nguồn gốc con số 43 (điều tra bổ sung, không đổi phán quyết)
+
+**Yêu cầu xác minh sau khi report này đã commit**: con số 43 đến từ đâu
+chính xác, và có phải là ràng buộc chính đáng hay chỉ là artifact của
+cách join/lấy mẫu. Điều tra dưới đây, KHÔNG chạy lại prereg.
+
+**Sửa một chỗ ghi sai trong bản đầu của report này**: mục 3 (bản gốc) ghi
+"204 ngày panel thô, phần lớn bị loại vì cross-section quá mỏng — hệ quả
+trực tiếp của universe hẹp". Đây là SAI — universe không hề hẹp (xem bằng
+chứng dưới, các ngày rebalance thật có 400+ mã). Nguyên nhân thật ở ngay
+dưới đây.
+
+**Con số 43 đến từ đâu, chính xác (2 script, không phải
+`sde_prereg_round3_panel_foldaligned.py` như câu hỏi xác minh ban đầu nêu —
+script đó chỉ phục vụ null test, không đóng góp gì vào bảng IC 28 dòng)**:
+
+1. `scratch/sde_prereg_round3_panel.py` dòng 71-72:
+   ```python
+   all_dates = sorted(all_stock["date"].unique())
+   rebalance_dates = all_dates[::REBALANCE_PERIOD]   # REBALANCE_PERIOD = 20
+   ```
+   Đây là quyết định đã **khóa trước trong chính `SDE_SCORING_PREREG.md`
+   mục 1** ("không cần mọi ngày giao dịch — dùng `rebalance_period=20` như
+   null-test của `final_watchlist` để chi phí tính toán hợp lý trên 501
+   mã") — KHÔNG phải điều chỉnh tùy tiện trong lúc chạy. Trên toàn lịch sử
+   2020-2026 (1.630 phiên), điều này cho ra 82 ngày rebalance toàn cục.
+
+2. `scratch/sde_prereg_round3_ic_null.py` dòng 39, 100-108 (hàm
+   `daily_ic_series`):
+   ```python
+   MIN_ELIGIBLE = 15
+   ...
+   counts = sub.groupby("date").size()
+   valid_dates = counts[counts >= MIN_ELIGIBLE].index
+   ```
+   Lọc cross-section: chỉ giữ ngày có ≥15 mã đủ điều kiện (target không
+   NaN + factor không NaN).
+
+**Phân phối thật của panel chính** (`sde_round3_panel.parquet`, kiểm tra
+lại): 204 ngày phân biệt, nhưng phân phối **lưỡng cực rõ rệt** — 44 ngày
+có **237-430 mã mỗi ngày** (đây là các ngày rebalance TOÀN CỤC thật rơi
+vào cửa sổ hợp lệ 2023-01→2026-07), còn lại **160 ngày chỉ có 1-3 mã**
+(nhiễu, không phải dữ liệu thật bị bỏ lỡ).
+
+**Vì sao có 160 ngày "nhiễu" 1-3 mã**: `metrics['date']` ghi trong panel
+là ngày giao dịch GẦN NHẤT của TỪNG MÃ tính đến ngày rebalance `rd`
+(`hist.tail(756)`'s ngày cuối), không phải `rd` chính nó. Kiểm tra lịch sử
+giao dịch 462 mã ACTIVE trong `full_history_v2`: 129/462 mã có <1.500/1.630
+phiên giao dịch tổng (nhiều mã mới niêm yết — vd. VPL chỉ 296 phiên — hoặc
+thanh khoản thưa), nên ngày giao dịch gần nhất của các mã này tính đến
+cùng một `rd` lệch khỏi 44 ngày "cụm chính" (nơi 272/462 mã có ≥1.600
+phiên, gần như trùng khớp lịch giao dịch). `MIN_ELIGIBLE=15` đúng chức
+năng của nó: loại bỏ 160 ngày nhiễu này, giữ lại các ngày rebalance thật.
+
+**Vì sao 43, không phải 44**: `stock_features.parquet` (nguồn target
+`forward_return_20d`) hiện chỉ có dữ liệu đến 2026-07-16. Ngày rebalance
+cuối cùng trong cửa sổ hợp lệ là 2026-07-03 — cần ~20 phiên sau đó
+(≈2026-08-01) để tính `forward_return_20d`, chưa tồn tại. Ngày này bị
+`daily_ic_series`'s `target_col.notna()` loại tự động — 44 − 1 = **43**,
+khớp chính xác với con số trong bảng IC.
+
+**Kết luận xác minh — (a) ràng buộc chính đáng, không phải artifact/bug**:
+panel-building và bộ lọc cross-section hoạt động ĐÚNG như thiết kế; 43 là
+gần như tối đa khả thi cho panel đã pre-register (44 ngày rebalance khả
+dụng, trừ 1 ngày cuối thiếu target). Không có join quá chặt, không có bug
+lấy mẫu. **Tuy nhiên, cần một lưu ý trung thực không có trong prereg gốc**
+(mục "Giới hạn phiên tòa" dưới đây): việc chọn `rebalance_period=20`
+(thay vì chấm điểm hằng ngày như phương pháp IC mục 2/3 mô tả cho các
+nhân tố khác của dự án chính, vd. `score_v2_ic_test.py` dùng panel HẰNG
+NGÀY có sẵn từ trước, không cần tính lại) là đánh đổi chi phí tính toán
+hợp lý (SDE phải gọi `enrich()`/`score_decision()` thật cho từng
+(mã, ngày), tốn ~0.04s/lệnh gọi — chấm hằng ngày trên 462 mã × ~880 phiên
+sẽ mất ~4-5 giờ thay vì ~12 phút) — nhưng đánh đổi này khiến N=43 thay vì
+N có thể lên tới ~700-800 nếu chấm hằng ngày. Đây LÀ một giới hạn thật của
+sức mạnh thống kê phiên tòa này, dù không phải lỗi hay bug.
+
+## 5. Giới hạn phiên tòa
+
+**Phán quyết Nhánh C GIỮ NGUYÊN** — không đổi bởi điều tra này. Nhưng ghi
+nhận trung thực giới hạn sức mạnh của chính phiên tòa:
+
+- N=43 quan sát cross-section cho IC test là gần tối đa khả thi với thiết
+  kế đã khóa (`rebalance_period=20`, xem mục 4b), không phải lỗi thực
+  thi — nhưng vẫn RẤT GẦN sàn tối thiểu N≥30 mà `newey_west_tstat()` yêu
+  cầu để tính được, khiến ước lượng t_NW từ mẫu này nhiễu hơn đáng kể so
+  với các phép IC khác của dự án chính (thường N=1.500+ ngày, tính hằng
+  ngày trên panel có sẵn không cần tính lại từng điểm).
+- Vì N nhỏ, **3-giai-đoạn hoàn toàn không tính được** (mục 4) — tiêu chí
+  robustness quan trọng nhất của cây quyết định không thể áp dụng cho
+  SDE với dữ liệu/thiết kế hiện tại.
+- **Phần lớn sức nặng của kết luận Nhánh C KHÔNG đến từ sức mạnh thống kê
+  riêng của phiên tòa này** (N=43 là mẫu mỏng, `final_score`'s t_NW=+1.28
+  và null-test percentile=31.2 tự nó chỉ là bằng chứng vừa phải, không áp
+  đảo) — **mà đến từ sự khớp hướng với bằng chứng độc lập, mạnh hơn, đã
+  có sẵn trong dự án chính** (mục 3.3 `AUDIT_SDE_REPORT.md`, mục 9 báo cáo này và
+  `SCORE_FORENSIC_REPORT.md`/`WATCHLIST_VALIDATION_REPORT.md`): cùng họ
+  nhân tố (momentum/RS/trend) đã bị hai kiểm định độc lập khác, trên N
+  hàng nghìn ngày, kết luận IC âm/đóng hồ sơ. Phiên tòa Vòng 3 của SDE
+  đóng vai trò XÁC NHẬN HƯỚNG (không mâu thuẫn với prior), không phải
+  bằng chứng đứng riêng đủ mạnh để tự nó bác bỏ `final_score`.
+- **Nếu tương lai muốn mở lại câu hỏi này** (vd. sau khi có thêm dữ liệu
+  tích lũy tự nhiên, universe hợp lệ dài hơn ~3.5 năm hiện tại, hoặc sau
+  khi xây được một phiên bản vector hóa của `enrich()`/`score_decision()`
+  đủ rẻ để chấm điểm hằng ngày thay vì mỗi 20 phiên): cần một
+  `SDE_SCORING_PREREG.md` MỚI, khóa trước, không tái sử dụng kết quả
+  round này như một phần của cùng phép kiểm định — đây sẽ là một phiên
+  tòa mới, không phải chạy lại phiên tòa cũ.
+
+## 6. BH-FDR (q=0.05, m=28)
 
 **k=2 sống sót**, cả hai đều KHÔNG phải `final_score`:
 
@@ -109,7 +232,7 @@ nhất hợp lý).
 
 `final_score` (rank 6/28, p=0.20) không sống sót FDR.
 
-## 6. Null test (final_score, 2.000 danh mục/fold, seed=42)
+## 7. Null test (final_score, 2.000 danh mục/fold, seed=42)
 
 | Fold | real_cagr | percentile | n_scored |
 |---|---|---|---|
@@ -131,7 +254,7 @@ một hiện tượng tương tự "gate loại gần hết universe" đã ghi t
 `PROJECT_STATE.md` mục 4 cho dự án chính — không điều tra sâu hơn trong
 round này, ghi lại làm quan sát.)
 
-## 7. Áp cây quyết định (mục 4 prereg)
+## 8. Áp cây quyết định (mục 4 prereg)
 
 - **Nhánh A** (`final_score`): IC criterion = **False** (t_NW=1.28≠>3, kể
   cả bỏ qua yêu cầu 3-giai-đoạn không tính được). Null criterion =
@@ -147,7 +270,7 @@ round này, ghi lại làm quan sát.)
 - **Vùng xám → chọn nhánh thận trọng hơn, ưu tiên C trên B** (mục 4
   prereg, khóa trước): **NHÁNH C.**
 
-## 8. Đối chiếu với kỳ vọng đã ghi trước (mục 5 prereg) — cả hai chiều
+## 9. Đối chiếu với kỳ vọng đã ghi trước (mục 5 prereg) — cả hai chiều
 
 1. **Kỳ vọng #2 (mục 5.2)**: "`trend`/`momentum`/`relative_strength` nhiều
    khả năng KHÔNG đạt `|t_NW|>3` dương ổn định" — **ĐÚNG như kỳ vọng**:
@@ -169,7 +292,7 @@ round này, ghi lại làm quan sát.)
    bất kỳ sub-score nào của SDE với dữ liệu hiện tại, bất kể bằng chứng
    trên bảng chính mạnh đến đâu.
 
-## 9. Nhánh đã thi hành: NHÁNH C
+## 10. Nhánh đã thi hành: NHÁNH C
 
 `stock-decision-engine/src/scoring.py`: `score_decision()` (WEIGHTS,
 `_hard_filters`, `_decision_label`, `_confidence`) đã **gỡ bỏ hoàn toàn**,
@@ -188,7 +311,7 @@ regenerate trên công thức mới, cùng ngày as-of như trước
 kèm README. Bảng đối chiếu:
 `stock-decision-engine/ROUND3_BRANCHC_REGEN_COMPARISON.csv`.
 
-## 10. Khuyến nghị sử dụng SDE từ nay
+## 11. Khuyến nghị sử dụng SDE từ nay
 
 **stock-decision-engine không còn là công cụ khuyến nghị mua/bán.** Sau ba
 vòng (audit → sửa dữ liệu → kiểm định điểm số), kết luận là: công thức

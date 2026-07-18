@@ -1237,3 +1237,47 @@ chứng IC/null-test mới đạt tiêu chí. Full suite: 295 passed, không đ�
 **Trạng thái cuối round**: `stock-decision-engine` không còn sinh
 `final_score`/`decision` ở bất kỳ đâu — đã kiểm định và không đạt, không
 phải "chưa kiểm định" nữa. Notebook giờ là bảng dữ kiện tham khảo thuần.
+
+## Phase 13 — xác minh con số "43 ngày" trong SDE_SCORING_REPORT (this session)
+
+**Bối cảnh**: người dùng yêu cầu xác minh riêng con số "43 ngày cross-section"
+trong `SDE_SCORING_REPORT.md` — chỉ điều tra + ghi chú, KHÔNG chạy lại
+prereg, KHÔNG đổi phán quyết Nhánh C.
+
+**Điều tra**: câu hỏi ban đầu chỉ vào `sde_prereg_round3_panel_foldaligned.py`
+— xác minh cho thấy đó là quy kết SAI, script đó chỉ phục vụ null-test.
+Con số 43 thật ra đến từ 2 nơi khác: (1)
+`scratch/sde_prereg_round3_panel.py`'s `rebalance_dates =
+all_dates[::REBALANCE_PERIOD]` (`REBALANCE_PERIOD=20`) — quyết định đã
+khóa trước trong `SDE_SCORING_PREREG.md` mục 1 (đánh đổi chi phí tính
+toán, không phải tùy tiện); (2)
+`scratch/sde_prereg_round3_ic_null.py::daily_ic_series`'s `MIN_ELIGIBLE=15`
+— bộ lọc cross-section.
+
+Kiểm tra phân phối thật của `sde_round3_panel.parquet` (204 "ngày" phân
+biệt): **lưỡng cực rõ rệt** — 44 ngày có 237-430 mã (các ngày rebalance
+TOÀN CỤC thật, universe KHÔNG hề hẹp), 160 ngày chỉ có 1-3 mã (nhiễu, do
+129/462 mã ACTIVE có lịch giao dịch gappy — nhiều mã mới niêm yết, vd. VPL
+chỉ 296/1.630 phiên — khiến `metrics['date']` của riêng chúng lệch khỏi 44
+ngày cụm chính). `MIN_ELIGIBLE=15` lọc đúng chức năng, loại 160 ngày nhiễu.
+44 − 1 = 43: ngày rebalance cuối (2026-07-03) thiếu `forward_return_20d`
+vì `stock_features.parquet` chỉ có dữ liệu đến 2026-07-16 (cần thêm ~20
+phiên nữa, chưa tồn tại) — bị `target_col.notna()` loại tự động.
+
+**Kết luận xác minh — lựa chọn (a) trong 2 phương án đã cho**: 43 là
+**ràng buộc chính đáng**, không phải artifact/bug — panel-building và bộ
+lọc hoạt động đúng thiết kế, gần tối đa khả thi cho phạm vi đã pre-register.
+Sửa một câu giải thích SAI trong bản gốc report (đổ lỗi "universe hẹp" —
+không đúng, universe rộng, vấn đề là tần suất lấy mẫu + nhiễu lịch giao
+dịch). **Phán quyết Nhánh C giữ nguyên.**
+
+**Cập nhật `SDE_SCORING_REPORT.md`**: thêm mục 4b (bằng chứng xác minh đầy
+đủ, trích code + số liệu) và mục 5 "Giới hạn phiên tòa" (ghi nhận trung
+thực: N=43 gần sàn tối thiểu N≥30 cho Newey-West, khiến 3-giai-đoạn không
+tính được; phần lớn sức nặng kết luận Nhánh C đến từ prior đã có sẵn của
+dự án chính — `SCORE_FORENSIC_REPORT.md`/`WATCHLIST_VALIDATION_REPORT.md`
+— không phải sức mạnh thống kê riêng của phiên tòa Vòng 3; nếu tương lai
+muốn mở lại câu hỏi, cần một prereg MỚI trên panel đầy đủ hơn, không tái
+dùng kết quả round này). Đánh số lại mục 5-10 cũ thành 6-11, sửa các
+cross-reference nội bộ theo. Không sửa code, không chạy lại script nào.
+Full suite: 295 passed, không đổi (đúng như kỳ vọng — không đụng code).
