@@ -144,6 +144,28 @@ thưa 07-09/07-13/07-15 vẫn giữ nguyên trong file (không xóa — dữ li�
 đã ghi nhận), chỉ không tính vào "6 tháng liên tục" vì không đại diện cho
 một chuỗi đều đặn.
 
+**Cập nhật 2026-07-18 — sự cố tự động hóa 1 đêm, 0 ngày giao dịch bị mất
+khỏi chuỗi liên tục.** Lần chạy `daily_run.sh` theo lịch tối Thứ Sáu
+2026-07-17 19:00 FAIL toàn bộ 4/4 bước (`ModuleNotFoundError` — nguyên
+nhân kỹ thuật + fix: `PROJECT_STATE.md` mục 4, commit `bcd61d2`), nên
+KHÔNG có dòng nào được append vào `alpha_score_shadow_log.parquet` cho
+`date=2026-07-17` tối hôm đó. Sau khi sửa, chạy khắc phục tối Thứ Bảy
+2026-07-18 qua đúng cơ chế `launchd` (`launchctl kickstart`, không phải
+chạy tay) — `update_prices_daily.py` fetch được đúng dữ liệu giá THẬT của
+phiên Thứ Sáu 2026-07-17 (Thứ Bảy không phải phiên giao dịch, không có gì
+mới hơn để lấy), và `run_alpha_scoring.py` append 440 dòng vào shadow log
+với `date=2026-07-17` — dùng `scored["date"].max()` (ngày dữ liệu thật),
+KHÔNG phải ngày chạy thực tế 2026-07-18. Đây **không phải** trường hợp
+"dựng lại điểm cho ngày đã bỏ lỡ bằng thông tin nhìn-về-sau" mà mục trên
+cảnh báo — không có ngày nào bị bỏ lỡ theo nghĩa dữ liệu, chỉ là lấy dữ
+liệu của phiên Thứ Sáu chậm hơn dự kiến ~28 giờ, dùng đúng dữ liệu đã tồn
+tại tại đúng thời điểm đó. Kết quả: chuỗi ngày trong
+`alpha_score_shadow_log.parquet` hiện liên tục `..., 2026-07-16, 2026-07-17`
+(2 ngày làm việc liền kề, không có ngày nghỉ lễ xen giữa) — **0 ngày giao
+dịch nào thực sự vắng mặt khỏi chuỗi out-of-sample**. Mốc "6 tháng"
+(2027-01-16) giữ nguyên, không dời — khuyến nghị, chờ người dùng xác nhận
+nếu muốn áp một tiêu chuẩn chặt hơn cho các sự cố tự động hóa tương lai.
+
 **Known side effect, disclosed and not fixed this round**:
 `src/screening/final_watchlist.py`'s own `_score()` function averages
 `rank(alpha_score)` as one of several inputs to *its own*, differently-
