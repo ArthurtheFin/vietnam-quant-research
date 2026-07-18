@@ -1,0 +1,66 @@
+{
+  "audit_status": "COMPLETED",
+  "audit_round": 2,
+  "audit_date": "2026-07-18",
+  "previous_audit_date": "2026-07-12",
+  "framework_source": "~/Downloads/claude_code_quantitative_finance_audit_prompt.md (identical framework re-applied, same 100-point scorecard, same 17 critical failure gates)",
+  "overall_score": 78,
+  "previous_score": 58,
+  "delta": 20,
+  "maximum_score": 100,
+  "readiness_classification": "Strong foundation (70-79 band): important validation gaps remain",
+  "previous_readiness_classification": "Experimental (40-59 band)",
+  "critical_failure_count": 1,
+  "previous_critical_failure_count": 4,
+  "critical_gates_resolved_this_round": ["gate_6_stale_data", "gate_12_reproducibility", "gate_17_unvalidated_model_reported_as_validated"],
+  "critical_gates_still_open": ["gate_3_survivorship_bias"],
+  "p0_count": 1,
+  "previous_p0_count": 4,
+  "p1_count": 13,
+  "previous_p1_count": 14,
+  "category_scores": {
+    "data_quality": {"score": 13, "max_score": 15, "previous_score": 9, "delta": 4},
+    "universe_eligibility": {"score": 7, "max_score": 8, "previous_score": 6, "delta": 1},
+    "signal_alpha": {"score": 9, "max_score": 12, "previous_score": 4, "delta": 5},
+    "expected_return": {"score": 2, "max_score": 8, "previous_score": 1, "delta": 1},
+    "covariance_risk": {"score": 11, "max_score": 12, "previous_score": 8, "delta": 3},
+    "portfolio_optimization": {"score": 10, "max_score": 12, "previous_score": 9, "delta": 1},
+    "monte_carlo": {"score": 3, "max_score": 5, "previous_score": 3, "delta": 0},
+    "backtesting_validation": {"score": 11, "max_score": 15, "previous_score": 10, "delta": 1},
+    "robustness_overfitting": {"score": 7, "max_score": 8, "previous_score": 4, "delta": 3},
+    "engineering_production": {"score": 5, "max_score": 5, "previous_score": 4, "delta": 1}
+  },
+  "verification_taxonomy_counts": {
+    "note": "Derived from quantitative_finance_gap_matrix.csv's verification_status column (77 rows). Each row independently classified this round -- KNOWN_OPEN and NEW required no trust of prior reports; RESOLVED_VERIFIED required a fresh check (test run, grep, or independent recompute) performed this round, not a re-read of a remediation report's own claim; RESOLVED_UNVERIFIED means a code change was confirmed but the specific outcome claim (e.g. '0 collisions') was not independently re-run.",
+    "resolved_verified": 51,
+    "resolved_unverified": 3,
+    "known_open": 20,
+    "new": 3
+  },
+  "top_critical_findings": [
+    "P0-1 (STILL OPEN, unchanged): No point-in-time universe exists anywhere in the codebase; every backtest and factor-IC test still runs on today's listed 500-symbol universe projected backward to 2020. Re-confirmed this round via fresh grep (check_survivorship_bias has zero call sites) and a live query of the partial-mitigation trading_status.py table (462 ACTIVE / 19 STALE_SHORT / 20 INACTIVE_LONG), which is explicitly documented as not a substitute for a real point-in-time universe.",
+    "RESOLVED, independently re-verified this round: Gate #6 (stale data). build_portfolio_stack.py now reads via src/data/dataset_config.py's OFFICIAL_FEATURES_PATH; tests/test_dataset_config.py (6 tests) re-run fresh this round, all pass.",
+    "RESOLVED, independently re-verified this round with the strongest evidence produced in this audit: Gate #12 (reproducibility). An independent recompute of the committed portfolio_risk_report.json's return matrix, using the exact documented method and the report's own stated cutoff, reproduced the exact row count (1626=1626) and all 4 headline metrics (annual_return, annual_volatility, sharpe_ratio, max_drawdown) to 1e-9 -- versus round 1's 1621-vs-1317-row mismatch and 0/3 metrics matching.",
+    "RESOLVED, independently re-verified this round: Gate #17 (unvalidated model reported as validated). alpha_rs_score confirmed removed from relative_strength_score via direct code read and 3 fresh regression-test runs; the live final_watchlist.parquet artifact was inspected directly and contains zero shadow-field columns. The broader pattern is now structurally prevented: final_watchlist.py no longer claims to rank by alpha at all (Nhánh C, a pre-registered, validated-negative research conclusion honestly reflected in production behavior).",
+    "NEW finding this round: portfolio_return_series (src/risk/management.py) silently treats a symbol's no-trade day as a 0% return (fillna(0.0)) rather than excluding it from volatility/covariance calculation -- surfaced during this round's independent Phase D math validation when a naive w^T Sigma w recompute did not match the committed report until this convention was matched exactly. For the current sample portfolio, 3/10 symbols have 12-15% NaN-day rates. Not a bug (internally consistent once the convention is known), but undocumented and could understate realized volatility for thinly-traded names."
+  ],
+  "recommended_next_phase": "Do not proceed to a real-capital pilot -- Gate #3 (survivorship bias) remains the sole blocking critical failure, unchanged from round 1 despite the overall score rising from 58 to 78. The highest-leverage next phase is acquiring or constructing a point-in-time delisting/suspension data source (the single largest remaining item in the entire audit). Secondary items (Ledoit-Wolf shrinkage, transaction-cost decomposition, Monte Carlo seeding, board-lot enforcement, portfolio-construction-parameter holdout separation) are real but do not block production-readiness the way Gate #3 does. Shadow/paper-trading operation (alpha_score v2, alpha_score_shadow_v1) may reasonably continue in parallel, as it commits no capital.",
+  "protected_paths_modified": false,
+  "protected_paths_note": "stock-decision-engine/ was protected at round 1 (2026-07-12) and confirmed untouched by that audit. The user explicitly lifted this protection on 2026-07-17 (CLAUDE.md rule 10), independently of and prior to this audit round -- this audit did not lift the protection and did not modify stock-decision-engine/ itself (audit is read-only/inventory-only throughout). Per this round's explicit scope instruction, stock-decision-engine/ is audited under the identical 10-category framework as a SEPARATE appendix (see sde_appendix_scorecard.md, sde_appendix_report.md) and is NOT included in overall_score/category_scores above.",
+  "inventory_only_constraints_honored": {
+    "no_files_created_or_modified_outside_audit_round2": true,
+    "no_pipeline_writes": true,
+    "no_external_service_calls": true,
+    "no_new_ic_or_null_test_or_prereg_run": true,
+    "bugs_found_logged_not_fixed": true
+  },
+  "sde_appendix": {
+    "note": "stock-decision-engine/ scored separately under the identical 10-category framework, NOT counted in overall_score above. See sde_appendix_scorecard.md and sde_appendix_report.md. First-ever score for SDE -- no prior baseline to delta against.",
+    "overall_score": 43,
+    "maximum_score": 100,
+    "readiness_classification": "Experimental (40-59 band)",
+    "critical_failure_count": 1,
+    "critical_gate_still_open": "gate_3_survivorship_bias (inherited from the same universe as the main project)",
+    "critical_gates_resolved_this_week": ["gate_6_stale_data", "gate_12_reproducibility", "gate_17_unvalidated_model_reported_as_validated"]
+  }
+}

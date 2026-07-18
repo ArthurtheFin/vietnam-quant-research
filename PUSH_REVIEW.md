@@ -1281,3 +1281,69 @@ muốn mở lại câu hỏi, cần một prereg MỚI trên panel đầy đủ 
 dùng kết quả round này). Đánh số lại mục 5-10 cũ thành 6-11, sửa các
 cross-reference nội bộ theo. Không sửa code, không chạy lại script nào.
 Full suite: 295 passed, không đổi (đúng như kỳ vọng — không đụng code).
+
+## Phase 14 — Audit lại toàn dự án theo khung gốc (Round 2), đo delta so với 58/100
+
+**Bối cảnh**: audit lại đúng khung `claude_code_quantitative_finance_audit_prompt.md`
+(tìm thấy ở `~/Downloads/`, đọc lại toàn bộ) — cùng scorecard 100 điểm, 17
+critical gate, severity/confidence levels — để đo tiến độ thật kể từ audit
+gốc 2026-07-12 (58/100). INVENTORY-ONLY: không sửa/tạo/xóa file ngoài
+`audit/round2/`, không chạy pipeline ghi trạng thái, không gọi dịch vụ
+ngoài. `stock-decision-engine/` không còn read-only nhưng chấm thành phụ
+lục riêng, không cộng vào 100 điểm chính, để bảng điểm chính so sánh được
+với lần trước.
+
+**Kết quả: 78/100 (từ 58/100), "Strong foundation" (từ "Experimental").**
+Mọi claim "đã sửa" đều được **tự kiểm chứng độc lập** round này (verify-
+not-rediscover + nhãn KNOWN_OPEN/RESOLVED_VERIFIED/RESOLVED_UNVERIFIED/NEW
+cho cả 77 dòng gap matrix), không chỉ đọc lại report cũ:
+
+- **Gate #6** (dữ liệu cũ) — RESOLVED_VERIFIED: grep xác nhận
+  `build_portfolio_stack.py` đọc qua `dataset_config.OFFICIAL_FEATURES_PATH`,
+  chạy lại `tests/test_dataset_config.py` (6/6 pass).
+- **Gate #12** (không tái lập được) — RESOLVED_VERIFIED, bằng chứng mạnh
+  nhất round này: tính lại độc lập từ đầu (đúng công thức, đúng 10 mã,
+  đúng trọng số, đúng ngày cắt đã ghi trong lineage) ra khớp CHÍNH XÁC
+  đến 1e-9 cho cả 4 chỉ số (`annual_return`/`annual_volatility`/
+  `sharpe_ratio`/`max_drawdown`) VÀ khớp đúng số dòng (1626=1626) — round
+  1 từng cho 1621 vs 1317, không khớp gì cả.
+- **Gate #17** (model chưa kiểm định nhưng báo như đã kiểm định) —
+  RESOLVED_VERIFIED: grep xác nhận `alpha_rs_score` đã gỡ, chạy lại 3
+  test hồi quy, kiểm tra trực tiếp artifact `final_watchlist.parquet`
+  sống — 0 cột shadow.
+- **Gate #3** (survivorship bias) — VẪN MỞ, xác nhận lại: grep
+  `check_survivorship_bias` — 0 nơi gọi.
+
+**Delta lớn nhất**: Signal/Alpha 4→9/12 (+5) — composite `final_watchlist`
+lần đầu tiên được IC/null-test toàn bộ, kết quả ÂM TÍNH, hệ thống đã đổi
+hành vi sống theo đúng kết luận (Nhánh C) — coi là điểm CỘNG (kết luận
+nghiên cứu có bằng chứng), không phải MISSING, đúng chỉ dẫn round này.
+Robustness 4→7/8 (+3) — DSR/BH-FDR/bootstrap CI đều mới, xác nhận có thật
+trong `ROBUSTNESS_REPORT.md`. Covariance/Risk 8→11/12 (+3) — Gate #12.
+Engineering 4→5/5 (full điểm) — pin dependency, atomic write, lịch Tết âm
+lịch, 1 test lỗi cũ đều xác nhận đã sửa.
+
+**Phát hiện MỚI (không có trong 75 dòng gốc)**: `portfolio_return_series`
+âm thầm coi ngày không giao dịch là return 0% (fillna(0.0)) thay vì loại
+trừ — phát hiện khi tự tính `w^T Sigma w` độc lập không khớp (0.2404 vs
+0.2315) cho đến khi khớp đúng convention này; 3/10 mã trong sample
+portfolio hiện tại có 12-15% ngày NaN. Không phải bug (công thức tự nhất
+quán khi áp đúng convention) nhưng chưa được ghi tài liệu. Cũng ghi nhận:
+daily automation (LaunchAgent) bị chặn TCC macOS, cần người dùng thao tác
+tay (đã biết từ Phase 11-12, không phải phát hiện code mới nhưng chưa có
+trong 75 dòng gốc vì automation chưa tồn tại lúc đó).
+
+**Phụ lục stock-decision-engine**: 43/100, Experimental, 1 critical gate
+mở (survivorship kế thừa từ cùng universe). 3 gate khác (dữ liệu cũ, tái
+lập, model chưa kiểm định) đã sửa TUẦN NÀY và xác nhận độc lập — thực ra
+sửa triệt để hơn dự án chính (gỡ hẳn composite thay vì chỉ vá).
+
+**Kết luận không đổi dù điểm tăng 20**: theo đúng luật "high score không
+override critical failure" của khung audit — vẫn KHÔNG được xếp
+production-grade, vẫn KHÔNG dùng vốn thật, vì Gate #3 (point-in-time
+universe) vẫn mở. Đây là việc lớn nhất còn lại, không đổi so với round 1.
+
+**Deliverables**: `audit/round2/` — 9 file gốc theo khung + `delta_scorecard.md`
+(mới, theo yêu cầu round này) + 2 file phụ lục SDE. `audit_summary.json`
+thêm `previous_score`/`delta`. Full suite 295 passed (không đụng code).
+Một commit duy nhất, không push.
