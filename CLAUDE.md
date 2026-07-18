@@ -15,9 +15,13 @@
 3. Đầu session: đọc PROJECT_STATE.md (cửa ngõ — trạng thái hiện tại,
    quy trình vận hành, bản đồ hồ sơ) TRƯỚC, rồi PUSH_REVIEW.md (nhật
    ký tiến độ) và audit/PATH_TO_100.md (lộ trình) trước khi làm gì.
-   Nếu người dùng hỏi về vận hành hằng ngày (không phải phát triển
-   code): trỏ tới docs/DAILY_OPERATING_GUIDE.md (cẩm nang cho chủ dự
-   án, không cần đọc code) thay vì giải thích lại từ đầu.
+   Nếu người dùng hỏi về vận hành hằng ngày, đọc hiểu một output cụ
+   thể, hay bất cứ điều gì KHÔNG phải phát triển code: trỏ tới
+   docs/PROJECT_HANDBOOK.md (sổ tay toàn thư — tài liệu GỐC cho chủ dự
+   án/người ngoài từ nay, không cần đọc code; docs/PROJECT_HANDBOOK.pdf
+   là bản xuất kèm) thay vì giải thích lại từ đầu.
+   docs/DAILY_OPERATING_GUIDE.md vẫn còn, đã hợp nhất nội dung vào sổ
+   tay Phần 0-3 — giữ làm bản rút gọn/lịch sử, không phải nguồn chính.
 4. Commit theo từng nhiệm vụ, message rõ ràng. Xong việc lớn: cập
    nhật PUSH_REVIEW.md.
 5. FIREWALL: không join dữ liệu disclosure với dữ liệu giá/return

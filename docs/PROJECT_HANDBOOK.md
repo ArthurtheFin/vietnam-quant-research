@@ -1,16 +1,85 @@
 # SỔ TAY DỰ ÁN — vietnam-quant-research
 
-**Lô 1/3** (Phần 0 + 1 + 2). Markdown là bản gốc; PDF sẽ xuất ở lô 3.
-Viết cho 3 người đọc: chủ dự án tra nhanh mỗi sáng, chủ dự án tự đọc lại
-sau 6 tháng, và người ngoài muốn hiểu vì sao hệ thống ở trạng thái hiện
-tại. Mọi khẳng định về bằng chứng trích đúng report + commit hash; số
-liệu/tên cột/tên file lấy trực tiếp từ repo tại commit `03bb13d` (nhánh
-`main`, 2026-07-18) — không viết từ trí nhớ. Chỗ nào không xác minh được
-ghi rõ **[chưa xác minh]**.
+Sổ tay toàn thư của dự án — hoàn thành đủ 3 lô (Phần 0-7 + Phụ lục A-D).
+Markdown (`docs/PROJECT_HANDBOOK.md`) là **bản gốc**; `docs/PROJECT_HANDBOOK.pdf`
+là bản xuất đi kèm, tự động từ đúng file Markdown này. Viết cho 3 người
+đọc: chủ dự án tra nhanh mỗi sáng, chủ dự án tự đọc lại sau 6 tháng, và
+người ngoài muốn hiểu vì sao hệ thống ở trạng thái hiện tại. Mọi khẳng
+định về bằng chứng trích đúng report + commit hash; số liệu/tên cột/tên
+file lấy trực tiếp từ repo tại thời điểm viết (commit gần nhất trích dẫn
+trong Phần 0.3) — không viết từ trí nhớ. Chỗ nào không xác minh được ghi
+rõ **[chưa xác minh]**; chỗ nào phải suy luận ngoài hồ sơ đã có ghi rõ
+**[suy luận]** (xem Phần 4.8, 7.2, 7.3 cho ví dụ).
 
 ---
 
+<a id="muc-luc" name="muc-luc"></a>
+
+# MỤC LỤC
+
+- **[PHẦN 0 — TRANG ĐẦU TIÊN](#phan-0)**
+  - [0.1. Hệ thống LÀ gì](#sec-0-1)
+  - [0.2. Hệ thống KHÔNG là gì](#sec-0-2)
+  - [0.3. Trạng thái tại ngày viết (bảng chốt tại 2026-07-18, commit `03bb13d`; sổ tay hoàn thành 3 lô tính đến 2026-07-19)](#sec-0-3)
+  - [0.4. Hai cuộc hẹn](#sec-0-4)
+  - [0.5. Bản đồ đọc — hôm nay bạn là ai?](#sec-0-5)
+- **[PHẦN 1 — VẬN HÀNH HẰNG NGÀY](#phan-1)**
+  - [1.1. Checklist buổi sáng (5 dòng)](#sec-1-1)
+  - [1.2. Cỗ máy tự động](#sec-1-2)
+  - [1.3. Chạy tay](#sec-1-3)
+  - [1.4. Giải phẫu `logs/daily_run.log` — một block thật, chú thích từng dòng](#sec-1-4)
+  - [1.5. Nhịp tuần/tháng](#sec-1-5)
+  - [1.6. Những việc KHÔNG cần làm hằng ngày](#sec-1-6)
+- **[PHẦN 2 — ĐỌC HIỂU TỪNG SẢN PHẨM ĐẦU RA](#phan-2)**
+  - [2.1. `final_watchlist` (CSV + XLSX)](#sec-2-1)
+  - [2.2. SDE — bảng dữ kiện (`facts_summary.txt` + `metrics.csv` + `facts.csv`)](#sec-2-2)
+  - [2.3. Từng loại chart PNG của SDE](#sec-2-3)
+  - [2.4. Shadow log v2/v1 (`alpha_score_shadow_log.parquet`)](#sec-2-4)
+  - [2.5. `trading_status` — 3 trạng thái](#sec-2-5)
+  - [2.6. Disclosure events (`data/disclosure/events.parquet`)](#sec-2-6)
+  - [2.7. `DATA_BASELINE` + `daily_alpha_ranking`](#sec-2-7)
+  - [2.8. Notebook nào còn dùng được](#sec-2-8)
+- **[PHẦN 3 — WORKFLOW RA QUYẾT ĐỊNH ĐẦU TƯ](#phan-3)**
+  - [3.1. Cây 4 bước](#sec-3-1)
+  - [3.2. Checklist 5 câu tự vấn trước lệnh](#sec-3-2)
+  - [3.3. Chốt chặn đỏ](#sec-3-3)
+  - [3.4. Hai ví dụ đầu-cuối bằng mã thật](#sec-3-4)
+  - [3.5. Nhật ký quyết định](#sec-3-5)
+- **[PHẦN 4 — KIẾN THỨC NỀN](#phan-4)**
+  - [4.1. Adjusted vs. raw close & corporate action](#sec-4-1)
+  - [4.2. Point-in-time & look-ahead bias](#sec-4-2)
+  - [4.3. Survivorship bias](#sec-4-3)
+  - [4.4. IC Spearman & Newey-West HAC](#sec-4-4)
+  - [4.5. Null test / percentile trong 2,000 danh mục ngẫu nhiên](#sec-4-5)
+  - [4.6. Đa kiểm định: |t|>3, BH-FDR, DSR](#sec-4-6)
+  - [4.7. Pre-registration & cây quyết định khóa trước](#sec-4-7)
+  - [4.8. Shadow testing / out-of-sample thật](#sec-4-8)
+  - [4.9. Low-volatility anomaly](#sec-4-9)
+  - [4.10. Momentum crash](#sec-4-10)
+  - [4.11. Chi phí giao dịch VN & vì sao cần giải quyết trước vốn thật](#sec-4-11)
+- **[PHẦN 5 — BIÊN NIÊN SỬ & HỒ SƠ ĐÃ ĐÓNG](#phan-5)**
+  - [5.1. Timeline 1 trang](#sec-5-1)
+  - [5.2. Bảng hồ sơ đã đóng](#sec-5-2)
+  - [5.3. Bảng bug lớn đã sửa](#sec-5-3)
+- **[PHẦN 6 — XỬ LÝ SỰ CỐ](#phan-6)**
+- **[PHẦN 7 — TƯƠNG LAI & ĐIỀU KIỆN THAY ĐỔI](#phan-7)**
+  - [7.1. Bốn điều kiện xem lại v2 (chép nguyên văn từ `SCORE_V2_REPORT.md`)](#sec-7-1)
+  - [7.2. Kịch bản sau 2027-01-16](#sec-7-2)
+  - [7.3. Lộ trình Gate #3 (survivorship bias / point-in-time universe)](#sec-7-3)
+  - [7.4. Danh sách "chưa test, để ngỏ"](#sec-7-4)
+  - [7.5. Quy tắc bất biến khi thay đổi bất cứ gì](#sec-7-5)
+- **[PHỤ LỤC A — BẢN ĐỒ REPO](#phuluc-a)**
+- **[PHỤ LỤC B — 15 REPORT QUAN TRỌNG](#phuluc-b)**
+- **[PHỤ LỤC C — THUẬT NGỮ ANH-VIỆT](#phuluc-c)**
+- **[PHỤ LỤC D — LỆNH HAY DÙNG (copy-paste được)](#phuluc-d)**
+
+---
+
+<a id="phan-0" name="phan-0"></a>
+
 # PHẦN 0 — TRANG ĐẦU TIÊN
+
+<a id="sec-0-1" name="sec-0-1"></a>
 
 ## 0.1. Hệ thống LÀ gì
 
@@ -38,6 +107,8 @@ hằng ngày. Cụ thể, hệ thống:
    âm tính), thay vì chọn tham số sau khi nhìn kết quả
    (`CLAUDE.md` mục 8).
 
+<a id="sec-0-2" name="sec-0-2"></a>
+
 ## 0.2. Hệ thống KHÔNG là gì
 
 **Hệ thống này không khuyến nghị mua/bán, và không xếp hạng "mã tốt
@@ -63,7 +134,9 @@ Công cụ chấm điểm mã riêng lẻ (`stock-decision-engine/`) cũng đã 
 cùng số phận sau vòng kiểm định thứ 3 và gỡ bỏ hoàn toàn điểm tổng hợp/
 nhãn quyết định (`stock-decision-engine/SDE_SCORING_REPORT.md`).
 
-## 0.3. Trạng thái tại ngày viết (2026-07-18, commit `03bb13d`)
+<a id="sec-0-3" name="sec-0-3"></a>
+
+## 0.3. Trạng thái tại ngày viết (bảng chốt tại 2026-07-18, commit `03bb13d`; sổ tay hoàn thành 3 lô tính đến 2026-07-19)
 
 | Thành phần | Trạng thái |
 |---|---|
@@ -91,6 +164,21 @@ không phải chạy tay `bash`) — `SUMMARY: 4/4 steps OK` tối 2026-07-18,
 commit `3434bf2`) — xem ví dụ log FAIL thật (vẫn giữ nguyên trong lịch sử
 log, không xóa) ở Phần 1.4.
 
+**⚠️ Dòng theo dõi, chưa đóng hẳn (viết trung thực, không che)**: lần
+`SUMMARY: 4/4 steps OK` tối 2026-07-18 nói trên đến từ `launchctl
+kickstart` (kích hoạt THỦ CÔNG qua đúng cơ chế `launchd` để kiểm chứng
+fix, không phải một lần lịch tự nhiên — 2026-07-18 là Thứ Bảy, ngoài lịch
+`StartCalendarInterval` Thứ Hai-Sáu của agent). **Tính đến lúc viết lô
+này, agent CHƯA có một lần kích hoạt TỰ NHIÊN nào (không kickstart) kể từ
+khi fix `bcd61d2` được áp dụng** — cơ hội đầu tiên là tối **Thứ Hai
+2026-07-20 19:00**. Việc cần làm khi đến ngày đó (hoặc bất kỳ ai đọc dòng
+này sau 2026-07-20): mở `logs/daily_run.log`, xác nhận có một block mới
+bắt đầu đúng `19:00:0x` KHÔNG do lệnh `kickstart` gây ra, và `SUMMARY` là
+`4/4 steps OK` — chỉ khi đó fix mới được coi là kiểm chứng đầy đủ trong
+điều kiện vận hành thật (không chỉ kiểm chứng bằng kích hoạt thủ công).
+
+<a id="sec-0-4" name="sec-0-4"></a>
+
 ## 0.4. Hai cuộc hẹn
 
 **2027-01-16 — "phiên tòa" shadow v2.** Đây là mốc 6 tháng shadow-live
@@ -115,9 +203,10 @@ ngược về 2020", làm phồng hiệu suất biểu kiến của mọi chiế
 (`audit/PATH_TO_100.md` mục "Gate #3", `PROJECT_STATE.md` mục 3). Mức sàn
 hiệu chỉnh ước tính hiện dùng: +0.4%/+1.2%/+2.9% ở cửa sổ 20/60/120 ngày
 (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`). *(Chi tiết đầy đủ
-về gate này — bước tiếp theo, chi phí, các phương án nguồn dữ liệu — dự
-kiến mở rộng ở Phần 7.3 khi các lô sau của sổ tay này hoàn thành; ở lô
-này chỉ nêu để người đọc biết gate tồn tại.)*
+về gate này — bước tiếp theo, chi phí, các phương án nguồn dữ liệu, tiêu
+chí "gate đã đóng" — xem [Phần 7.3](#sec-7-3).)*
+
+<a id="sec-0-5" name="sec-0-5"></a>
 
 ## 0.5. Bản đồ đọc — hôm nay bạn là ai?
 
@@ -132,7 +221,11 @@ này chỉ nêu để người đọc biết gate tồn tại.)*
 
 ---
 
+<a id="phan-1" name="phan-1"></a>
+
 # PHẦN 1 — VẬN HÀNH HẰNG NGÀY
+
+<a id="sec-1-1" name="sec-1-1"></a>
 
 ## 1.1. Checklist buổi sáng (5 dòng)
 
@@ -153,6 +246,8 @@ chọn mã thay bạn"): `docs/DAILY_OPERATING_GUIDE.md` mục 1.
 — chính xác tình huống mục này được thiết kế để bắt được. Đã chẩn đoán +
 sửa + chạy lại thành công cùng ngày 2026-07-18 (`PROJECT_STATE.md` mục 4);
 dòng `SUMMARY` cuối cùng tại thời điểm viết đã trở lại `4/4 steps OK`.
+
+<a id="sec-1-2" name="sec-1-2"></a>
 
 ## 1.2. Cỗ máy tự động
 
@@ -201,6 +296,16 @@ không phải chạy tay `bash`): `SUMMARY: 4/4 steps OK` tối 2026-07-18. Xem
 log FAIL thật của sự cố (giữ nguyên trong lịch sử, không xóa) ở mục 1.4,
 và chi tiết chẩn đoán/khoảng trống shadow log ở `PROJECT_STATE.md` mục 4.
 
+**⚠️ Dòng theo dõi, chưa đóng hẳn**: lần `SUMMARY: 4/4 steps OK` trên đến
+từ kích hoạt THỦ CÔNG (`kickstart`), không phải lịch tự nhiên (2026-07-18
+là Thứ Bảy, ngoài `Weekday 1-5` của agent). **Chưa có xác nhận bằng một
+lần lịch tự nhiên nào kể từ khi fix `bcd61d2` được áp dụng** — cơ hội đầu
+tiên: tối Thứ Hai **2026-07-20 19:00**. Kiểm bằng cách mở
+`logs/daily_run.log`, tìm block bắt đầu đúng giờ đó không do lệnh
+`kickstart` kích hoạt.
+
+<a id="sec-1-3" name="sec-1-3"></a>
+
 ## 1.3. Chạy tay
 
 Hai lệnh (đúng thứ tự — chạy giá trước disclosure, theo quy ước
@@ -229,6 +334,8 @@ kiểm chứng 3 lần liên tiếp trong cùng một vòng phát triển — l�
 quả `n_updated: 0, total_new_rows: 0`, tức no-op sạch, không nhân đôi dữ
 liệu (`PUSH_REVIEW.md`, mục "Đồng bộ full_history_v2 + cơ chế cập nhật
 giá hằng ngày — 2026-07-13 (vòng 3)", NV2).
+
+<a id="sec-1-4" name="sec-1-4"></a>
 
 ## 1.4. Giải phẫu `logs/daily_run.log` — một block thật, chú thích từng dòng
 
@@ -309,6 +416,8 @@ không có phiên giao dịch mới kể từ lần chạy trước (ngày ngh�
 tuần, hoặc chạy hai lần cùng ngày). Chỉ dòng `###### FAIL ######` mới là
 dấu hiệu cần xử lý.
 
+<a id="sec-1-5" name="sec-1-5"></a>
+
 ## 1.5. Nhịp tuần/tháng
 
 - **2-4 tuần/lần — liếc tính liên tục của shadow log** (đo cho "phiên
@@ -328,6 +437,8 @@ dấu hiệu cần xử lý.
   ```
   git bundle create ~/Desktop/vietnam-quant-research-backup-$(date +%Y%m%d).bundle --all
   ```
+
+<a id="sec-1-6" name="sec-1-6"></a>
 
 ## 1.6. Những việc KHÔNG cần làm hằng ngày
 
@@ -349,7 +460,11 @@ dấu hiệu cần xử lý.
 
 ---
 
+<a id="phan-2" name="phan-2"></a>
+
 # PHẦN 2 — ĐỌC HIỂU TỪNG SẢN PHẨM ĐẦU RA
+
+<a id="sec-2-1" name="sec-2-1"></a>
 
 ## 2.1. `final_watchlist` (CSV + XLSX)
 
@@ -438,6 +553,8 @@ bố dự báo (`docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 4-5)
 > - **`final_score`/`risk_score` cao ≠ nên mua** — các cột này chỉ tham
 >   khảo/nghiên cứu (xem bảng trên), không phải căn cứ ra quyết định.
 
+<a id="sec-2-2" name="sec-2-2"></a>
+
 ## 2.2. SDE — bảng dữ kiện (`facts_summary.txt` + `metrics.csv` + `facts.csv`)
 
 **(i) Là gì & sinh từ đâu**: `stock-decision-engine/notebooks/stock_buy_decision.ipynb`,
@@ -501,11 +618,16 @@ theo ATR (biên độ biến động lịch sử), không phải điểm vào/ra
 nghị; xác suất Monte Carlo (`simulation`) **chưa kiểm định calibration**
 (tự văn bản gốc ghi rõ "chưa kiểm định calibration").
 
+<a id="sec-2-3" name="sec-2-3"></a>
+
 ## 2.3. Từng loại chart PNG của SDE
 
 Sinh bởi `stock-decision-engine/src/visualization.py::save_all_charts`,
 mỗi lần chạy notebook cho một mã tạo đúng 7 file `{TICKER}_{tên}.png`
-(đọc trực tiếp từ code, không phải suy đoán từ tên file):
+(đọc trực tiếp từ code, không phải suy đoán từ tên file). Ảnh minh họa
+dưới đây là chart THẬT từ lần chạy ACB gần nhất
+(`stock-decision-engine/outputs/ACB_*.png`, 2026-07-17) — không phải ảnh
+dựng mẫu.
 
 1. **`{TICKER}_price_structure.png`** (`plot_price_structure`) — đường
    giá đóng cửa (đen) + MA20 (xanh dương)/MA50 (xanh lá)/MA200 (đỏ) nếu
@@ -514,6 +636,8 @@ mỗi lần chạy notebook cho một mã tạo đúng 7 file `{TICKER}_{tên}.p
    chiếu; đường đứt xanh lá = target 1; đường chấm xanh lá đậm = target 2.
    **Bẫy đọc sai**: dải/đường này là tính theo ATR lịch sử, không phải
    điểm vào/ra hệ thống khuyến nghị.
+
+   ![ACB price structure — chart thật 2026-07-17](../stock-decision-engine/outputs/ACB_price_structure.png)
 2. **`{TICKER}_relative_strength.png`** (`plot_relative_strength`) —
    trục trái: lợi nhuận tích lũy của mã (đen) và benchmark (xám); trục
    phải (đường màu cam): đường RS (`relative_strength_line`, tỷ số giá
@@ -545,6 +669,9 @@ mỗi lần chạy notebook cho một mã tạo đúng 7 file `{TICKER}_{tên}.p
    (bootstrap), KHÔNG phải dự báo giá tương lai có kiểm định calibration
    — dải quạt rộng hay hẹp phản ánh biến động lịch sử được resample,
    không phản ánh độ tin cậy dự báo thật.
+
+   ![ACB Monte Carlo fan — chart thật 2026-07-17](../stock-decision-engine/outputs/ACB_monte_carlo_fan.png)
+
 7. **`{TICKER}_facts_breakdown.png`** (`plot_facts_breakdown`) — biểu đồ
    thanh ngang (màu xám đồng nhất, cố ý không dùng màu phân biệt
    tốt/xấu), trục 0-100, xếp theo giá trị `reading` tăng dần, đúng 8 nhóm
@@ -554,6 +681,10 @@ mỗi lần chạy notebook cho một mã tạo đúng 7 file `{TICKER}_{tên}.p
    chú thích ngoài lề). **Bẫy đọc sai**: dễ nhầm biểu đồ thanh ngang kiểu
    này với một "bảng điểm tổng hợp" quen thuộc — nó KHÔNG PHẢI, 8 thanh là
    8 chỉ số độc lập, không cộng dồn.
+
+   ![ACB facts breakdown — chart thật 2026-07-17](../stock-decision-engine/outputs/ACB_facts_breakdown.png)
+
+<a id="sec-2-4" name="sec-2-4"></a>
 
 ## 2.4. Shadow log v2/v1 (`alpha_score_shadow_log.parquet`)
 
@@ -579,6 +710,8 @@ Phần 0.2) — dùng nó để chọn mã hôm nay tương đương hành độ
 "chiến lược đáng cược" đã được xác nhận, trong khi kết luận chính thức
 hiện tại là ngược lại.
 
+<a id="sec-2-5" name="sec-2-5"></a>
+
 ## 2.5. `trading_status` — 3 trạng thái
 
 **Cấu trúc thật** (`data/full_history_v2/trading_status.parquet`): 5 cột
@@ -601,6 +734,8 @@ cả — kiểm tra `status` của mã đó trước khi nghi ngờ pipeline l�
 (mục 0.4), không phải giải pháp đầy đủ: nó chỉ thấy mã đã có trong
 universe 500 mã hiện tại rồi "im lặng dần", không thấy được mã đã hủy
 niêm yết/sáp nhập *trước khi* vào được danh sách 500 mã này.
+
+<a id="sec-2-6" name="sec-2-6"></a>
 
 ## 2.6. Disclosure events (`data/disclosure/events.parquet`)
 
@@ -632,6 +767,8 @@ lượng sàn survivorship bias ở mục 0.4/2.5. Dữ liệu vẫn cập nhậ
 vì có giá trị khác (dấu hiệu sớm cho hủy niêm yết, phục vụ Gate #3),
 không phải vì nhánh tín hiệu giá còn mở.
 
+<a id="sec-2-7" name="sec-2-7"></a>
+
 ## 2.7. `DATA_BASELINE` + `daily_alpha_ranking`
 
 **`docs/reports/data/DATA_BASELINE.md`**: tra khi cần biết dữ liệu giá
@@ -657,6 +794,8 @@ sản xuất chính thức. **Tra khi nào**: khi muốn xem điểm `alpha_scor
 hiện tại của một mã cụ thể (kể cả mã không lọt vào `final_watchlist` do
 thanh khoản thấp). **Tin mức nào**: đúng mức độ tin của `alpha_score` v2
 nói chung — có bằng chứng xếp hạng, chưa có bằng chứng chiến lược (mục 0.2).
+
+<a id="sec-2-8" name="sec-2-8"></a>
 
 ## 2.8. Notebook nào còn dùng được
 
@@ -687,7 +826,11 @@ có report chính thức về cùng câu hỏi.
 
 ---
 
+<a id="phan-3" name="phan-3"></a>
+
 # PHẦN 3 — WORKFLOW RA QUYẾT ĐỊNH ĐẦU TƯ
+
+<a id="sec-3-1" name="sec-3-1"></a>
 
 ## 3.1. Cây 4 bước
 
@@ -737,6 +880,8 @@ bạn đọc):
    tương tự), luôn trừ sàn survivorship trước
    (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`).
 
+<a id="sec-3-2" name="sec-3-2"></a>
+
 ## 3.2. Checklist 5 câu tự vấn trước lệnh
 
 > 1. **Ý tưởng này của tôi hay của hệ thống?** (Phải là của tôi.)
@@ -752,6 +897,8 @@ bạn đọc):
 (Nguyên văn từ `docs/DAILY_OPERATING_GUIDE.md` mục 3 — lặp lại ở đây để
 mục 3 của sổ tay này tự đủ, không phải một checklist khác.)
 
+<a id="sec-3-3" name="sec-3-3"></a>
+
 ## 3.3. Chốt chặn đỏ
 
 | Tình huống | Việc cần làm |
@@ -759,6 +906,8 @@ mục 3 của sổ tay này tự đủ, không phải một checklist khác.)
 | **Mã X không xuất hiện trong `client_ready`/`trading`/`research`** (nằm ở `data_review` hoặc không có trong bất kỳ file nào) | Mở `eligibility_reason` (Phần 2.1) hoặc tra trực tiếp `data/full_history_v2/trading_status.parquet` — đây là lý do máy móc, không phải đánh giá về chất lượng doanh nghiệp. Không tự suy diễn lý do. |
 | **`trading_status` = `INACTIVE_LONG` hoặc `STALE_SHORT` kèm cảnh báo thanh khoản** | **Không giao dịch mã này qua watchlist** — `INACTIVE_LONG` (gap >10 ngày) nghĩa là xác nhận không còn phiên khớp lệnh nào gần đây; `STALE_SHORT` (3-10 ngày) là thanh khoản thật nhưng rất mỏng, quy tắc sizing ở 3.1 càng quan trọng hơn với nhóm này. |
 | **Dữ liệu không tươi** (`freshness_status != "OK"`, hoặc `analysis_as_of` cũ hơn ngày giao dịch gần nhất — Phần 1.1 bước 2/3) | **Dừng lại, chạy tay `bash scripts/daily_run.sh` trước** (Phần 1.3) — không dùng bất kỳ số nào từ dữ liệu cũ để quyết định. |
+
+<a id="sec-3-4" name="sec-3-4"></a>
 
 ## 3.4. Hai ví dụ đầu-cuối bằng mã thật
 
@@ -815,6 +964,8 @@ liệu lấy trực tiếp từ file thật ngày viết (2026-07-18, dữ liệ
    máy móc, **không phải** một đánh giá "ATS là doanh nghiệp xấu" — hệ
    thống không đánh giá chất lượng doanh nghiệp (Phần 0.2/2.1).
 
+<a id="sec-3-5" name="sec-3-5"></a>
+
 ## 3.5. Nhật ký quyết định
 
 Thói quen đề xuất: **3 dòng mỗi lệnh**, ghi lại NGAY lúc quyết định (không
@@ -839,7 +990,11 @@ viết.
 
 ---
 
+<a id="phan-4" name="phan-4"></a>
+
 # PHẦN 4 — KIẾN THỨC NỀN
+
+<a id="sec-4-1" name="sec-4-1"></a>
 
 ## 4.1. Adjusted vs. raw close & corporate action
 
@@ -864,6 +1019,8 @@ kỳ cố định (không theo lịch sự kiện doanh nghiệp thật) — ngh
 basis raw/adjusted ở ranh giới batch fetch, không phải biến động thị
 trường.
 
+<a id="sec-4-2" name="sec-4-2"></a>
+
 ## 4.2. Point-in-time & look-ahead bias
 
 **Định nghĩa**: một phép kiểm định "point-in-time" chỉ được dùng thông
@@ -883,6 +1040,8 @@ dòng sống, cộng lag +1 ngày giao dịch cho dòng backfill
 thiết kế bất kỳ mốc "point-in-time" nào, tự hỏi hàm đó chọn giá trị SỚM
 HƠN hay MUỘN HƠN giữa 2 mốc thời gian — tên biến/comment "thận trọng hơn"
 không tự động đúng, phải kiểm bằng ví dụ cụ thể.
+
+<a id="sec-4-3" name="sec-4-3"></a>
 
 ## 4.3. Survivorship bias
 
@@ -909,6 +1068,8 @@ excess-return KHÔNG điều kiện của toàn bộ `(mã, ngày)` trong rổ h
 nơi khác dùng universe "500 mã đang niêm yết hôm nay") đều cần trừ sàn
 này trước khi tin phần "vượt trội" còn lại.
 
+<a id="sec-4-4" name="sec-4-4"></a>
+
 ## 4.4. IC Spearman & Newey-West HAC
 
 **Định nghĩa**: IC (Information Coefficient) đo mối tương quan hạng
@@ -929,6 +1090,8 @@ một trường hợp cá biệt. **Chỉ nhớ một điều**: khi thấy mộ
 cho một nhân tố đo trên chuỗi có cửa sổ dự báo chồng lấn, luôn hỏi "đây là
 t-stat naive hay đã hiệu chỉnh Newey-West" trước khi tin.
 
+<a id="sec-4-5" name="sec-4-5"></a>
+
 ## 4.5. Null test / percentile trong 2,000 danh mục ngẫu nhiên
 
 **Định nghĩa**: thay vì chỉ nhìn CAGR của danh mục thật, dựng 2,000 danh
@@ -945,6 +1108,8 @@ chọn (`docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md`) — và fold
 2026 cụ thể sụp xuống percentile **0.4** (99.6% danh mục ngẫu nhiên thắng
 composite). **Chỉ nhớ một điều**: CAGR dương không tự động chứng minh
 "chọn mã giỏi" — phải so với percentile trong đúng rổ ngẫu nhiên mới biết.
+
+<a id="sec-4-6" name="sec-4-6"></a>
 
 ## 4.6. Đa kiểm định: |t|>3, BH-FDR, DSR
 
@@ -969,6 +1134,8 @@ kỹ năng thật, không phải may mắn trong 560 lần thử
 điều**: một nhân tố "có ý nghĩa" theo `|t|>3` đơn lẻ vẫn có thể là ảo giác
 thống kê nếu không tính đến việc đã thử bao nhiêu lần trước đó.
 
+<a id="sec-4-7" name="sec-4-7"></a>
+
 ## 4.7. Pre-registration & cây quyết định khóa trước
 
 **Định nghĩa**: viết SẴN — trước khi chạy bất kỳ phép kiểm định nào —
@@ -987,6 +1154,8 @@ trọng hơn) đúng như đã khóa, không tự nới ngưỡng để "cứu" 
 (`docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 4). **Chỉ nhớ
 một điều**: nếu một tiêu chí bị nới lỏng SAU KHI đã thấy kết quả không đạt
 sát ngưỡng, kết luận đó không còn đáng tin — dù trực giác có vẻ đúng.
+
+<a id="sec-4-8" name="sec-4-8"></a>
 
 ## 4.8. Shadow testing / out-of-sample thật
 
@@ -1010,6 +1179,8 @@ sát cross-section đã được coi là "gần sàn tối thiểu" cho Newey-We
 5.2). **Chỉ nhớ một điều**: một backtest đẹp không thay thế được dữ liệu
 live thật — đó là lý do có shadow log thay vì triển khai thẳng vốn thật.
 
+<a id="sec-4-9" name="sec-4-9"></a>
+
 ## 4.9. Low-volatility anomaly
 
 **Định nghĩa**: một hiện tượng đã ghi nhận rộng rãi trong tài liệu tài
@@ -1030,6 +1201,8 @@ thông tin độc lập (`docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 3).
 **Chỉ nhớ một điều**: đây là nhân tố tốt NHẤT đã tìm được, nhưng "tốt
 nhất trong số đã test" không đồng nghĩa "đủ tốt để dùng vốn thật".
 
+<a id="sec-4-10" name="sec-4-10"></a>
+
 ## 4.10. Momentum crash
 
 **Định nghĩa**: hiện tượng các nhân tố "đuổi theo sức mạnh giá gần đây"
@@ -1048,6 +1221,8 @@ tiếp theo **−3.42%**, nhóm thấp nhất **+0.16%** — công cụ được
 **Chỉ nhớ một điều**: một nhân tố momentum có IC dương ổn định nhiều năm
 vẫn có thể đảo chiều đột ngột — không có gì đảm bảo "ổn định trong quá
 khứ" tiếp tục đúng mãi.
+
+<a id="sec-4-11" name="sec-4-11"></a>
 
 ## 4.11. Chi phí giao dịch VN & vì sao cần giải quyết trước vốn thật
 
@@ -1073,7 +1248,11 @@ nhắc bất kỳ quyết định vận hành nào.
 
 ---
 
+<a id="phan-5" name="phan-5"></a>
+
 # PHẦN 5 — BIÊN NIÊN SỬ & HỒ SƠ ĐÃ ĐÓNG
+
+<a id="sec-5-1" name="sec-5-1"></a>
 
 ## 5.1. Timeline 1 trang
 
@@ -1096,6 +1275,8 @@ nhắc bất kỳ quyết định vận hành nào.
 | 2026-07-17 | Audit thuần SDE (không sửa code) → Vòng 2 (sửa chân dữ liệu, khóa prereg) → **Vòng 3: Nhánh C, gỡ `final_score`/`decision`** khỏi SDE | `stock-decision-engine/SDE_SCORING_REPORT.md`, commit `4b88631`/`aa773a2` |
 | 2026-07-18 | Audit Round 2 theo đúng khung gốc: **78/100** (từ 58/100), 1/17 critical gate còn bật (#3 survivorship); sự cố + fix LaunchAgent PATH (Phần 1.2) | `audit/round2/delta_scorecard.md`, commit `03bb13d`/`bcd61d2` |
 
+<a id="sec-5-2" name="sec-5-2"></a>
+
 ## 5.2. Bảng hồ sơ đã đóng
 
 > **Không test lại thứ trong bảng này mà không có prereg mới + lý do
@@ -1114,6 +1295,8 @@ nhắc bất kỳ quyết định vận hành nào.
 | 7 | `risk_score` là một nhân tố độc lập tiềm năng (từng có `t_NW=+4.72`, đồng dấu 3 giai đoạn) | **Đóng — bằng chứng trùng lặp**, không phải nguồn thông tin mới: tương quan Spearman +0.822 với `v2_score`, −0.870 với `realized_vol_20d`; thành phần con duy nhất khác biệt (`tail_ratio_60d`) không có ý nghĩa (`t=+0.98`) | `docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 3 (commit `040ef10`) | Chỉ nếu tìm được một biến thể risk MỚI không tương quan cao với cụm biến động hiện có |
 | 8 | `liquidity_score` (thưởng `value_ma20` cao) dự báo lợi nhuận cao hơn theo chiều đã lập trình | **Chiều SAI, có ý nghĩa thống kê** — `t_NW=−4.19` (final_watchlist), `t_NW=−3.80` (SDE `liquidity`, độc lập) — cả hai đồng dấu âm | `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` mục 2 phát hiện #2 + `stock-decision-engine/SDE_SCORING_REPORT.md` mục 6 | Nếu muốn dùng thanh khoản như yếu tố dự báo (không chỉ vận hành), cần prereg theo đúng CHIỀU ÂM đã tìm thấy, không phải chiều dương cũ — chưa ai theo đuổi |
 
+<a id="sec-5-3" name="sec-5-3"></a>
+
 ## 5.3. Bảng bug lớn đã sửa
 
 | Bug | Triệu chứng | Bài học nhận diện họ hàng |
@@ -1128,12 +1311,15 @@ nhắc bất kỳ quyết định vận hành nào.
 
 ---
 
+<a id="phan-6" name="phan-6"></a>
+
 # PHẦN 6 — XỬ LÝ SỰ CỐ
 
 | Triệu chứng | Chẩn đoán nhanh | Lệnh | Khi nào mở phiên Claude Code mới |
 |---|---|---|---|
 | `daily_run.sh` fail một hoặc nhiều bước (`###### FAIL ######` trong `logs/daily_run.log`) | Đọc thông báo lỗi NGAY PHÍA TRÊN dòng FAIL (Phần 1.4) — phân biệt lỗi môi trường (fail trong <2s, kiểu `ModuleNotFoundError`) với lỗi logic/dữ liệu (fail sau hàng chục giây) | `python scripts/<bước lỗi>.py --universe` (chạy riêng bước đó) rồi `bash scripts/daily_run.sh --force` | Nếu lỗi không thuộc 2 loại đã biết (PATH/TCC — dưới đây) hoặc lặp lại sau khi đã thử lệnh trên |
 | **LaunchAgent im lặng** (không có dòng `SUMMARY` mới dù đã qua 19:00 hôm trước) | (a) TCC: `logs/launchd_stderr.log` có `Operation not permitted` → macOS chưa cấp Full Disk Access cho `/bin/bash`. (b) PATH/env: log có `ModuleNotFoundError` ngay trong `daily_run.log` dù TCC đã qua (mục 1.2/5.3-tương-đương: **"script chạy tay `bash` OK nhưng qua launchd fail → nghi khác biệt môi trường (PATH/tên biến môi trường), không phải logic script"**) | (a) System Settings → Privacy & Security → Full Disk Access → thêm `/bin/bash`. (b) Kiểm chứng đúng cơ chế: `launchctl kickstart -k gui/<uid>/com.vietnam-quant-research.dailyrun` — **không dùng `bash` tay để "kiểm tra"**, vì chạy tay kế thừa PATH của shell tương tác và sẽ luôn "work", che giấu đúng lỗi launchd đang gặp | Nếu đã thử cả (a) và (b) mà vẫn không có `SUMMARY` mới |
+| **"Chạy tay `bash` OK nhưng qua `launchd` fail"** (bất kỳ script nào, không chỉ `daily_run.sh`) | **Nghi ngay khác biệt môi trường (PATH/biến môi trường)**, không phải lỗi logic của script — `launchd` không kế thừa PATH của shell tương tác. **Tiền lệ đã xảy ra thật**: `bcd61d2` (Phần 1.2/5.3) | Kiểm bằng `launchctl kickstart -k gui/<uid>/<label>` — **không dùng `bash` tay để "kiểm tra"**, vì nó luôn "work" và che giấu đúng lỗi | Nếu `launchctl kickstart` cũng fail theo cách không khớp 2 nguyên nhân đã biết (TCC/PATH) |
 | **Gate loại gần hết/100% universe** (`client_ready=0` và `trading=0`, hoặc phần lớn rơi `data_review`) | **Bài học đã trả giá đắt (mục 5.3, hàng 4): kiểm độ TƯƠI dữ liệu trước khi nghi logic gate** — thường do giá và benchmark lệch mốc ngày (quên `update_index_data.py`) hoặc một nhóm nhỏ mã ngoại lệ kéo lệch mốc "ngày mới nhất" dùng để so `data_age_days` | `python scripts/update_index_data.py` rồi `bash scripts/daily_run.sh --force` | Nếu chạy lại vẫn gate loại hết, hoặc nghi ngờ gate chính nó có bug (không chỉ dữ liệu cũ) |
 | **Watchlist trống hoặc rõ ràng cũ** (`data/signals/final_watchlist.csv`'s `analysis_as_of` không phải ngày giao dịch gần nhất) | `freshness_status` trong `pipeline_metadata.json` khác `"OK"`, hoặc `daily_run.sh` chưa chạy thành công gần đây (Phần 1.1) | Chạy tay `bash scripts/daily_run.sh` (Phần 1.3) | Nếu chạy tay cũng fail cùng lỗi |
 | **`update_prices_daily`/`update_disclosure_daily` báo lỗi fetch một phần mã** (`n_fetch_errors > 0`, hoặc `n_updated` thấp bất thường so với ~440+ thường thấy) | Thường là lỗi mạng/API tạm thời (script tự soft-fail per-symbol, không chặn các mã khác), hoặc nhiều mã thật sự ngừng giao dịch cùng lúc (hiếm) | Chạy lại riêng script đó (tự nối tiếp từ `max(date)` đã có — Phần 1.3, không mất dữ liệu, an toàn chạy lại) | Nếu lỗi fetch lặp lại nhiều ngày liên tiếp cho CÙNG một nhóm mã lớn (nghi thay đổi phía nguồn dữ liệu, ngoài khả năng tự phục hồi của script) |
@@ -1142,5 +1328,471 @@ nhắc bất kỳ quyết định vận hành nào.
 
 ---
 
-*Hết Lô 2/3. Lô 3 sẽ hoàn thiện phần còn lại (nếu có) + xuất PDF theo cấu
-trúc đã thống nhất — dừng ở đây chờ duyệt.*
+<a id="phan-7" name="phan-7"></a>
+
+# PHẦN 7 — TƯƠNG LAI & ĐIỀU KIỆN THAY ĐỔI
+
+<a id="sec-7-1" name="sec-7-1"></a>
+
+## 7.1. Bốn điều kiện xem lại v2 (chép nguyên văn từ `SCORE_V2_REPORT.md`)
+
+**Hạn đến**: mọi điều kiện dưới đây được xem lại vào **2027-01-16** (điều
+kiện #1), hoặc NGAY LẬP TỨC nếu điều kiện #2/#3 xảy ra trước hạn đó.
+
+1. **Mốc thời gian (Time-based)**: xem lại sau **6 tháng shadow live liên
+   tục** (tức khi `alpha_score_shadow_log.parquet` phủ khoảng
+   2026-07-16 → 2027-01-16), bất kể đang thắng hay thua, đơn giản vì đó
+   là đủ dữ liệu live để nói điều gì đó về v2 so với v1 out-of-sample mà
+   backtest không nói được.
+2. **Drawdown-based**: xem lại NGAY LẬP TỨC nếu dữ liệu live (không phải
+   backtest) cho thấy drawdown **tệ hơn −25%** trên một danh mục xếp theo
+   v2 — một biên trên cả fold tệ nhất đã backtest (−19.7% năm 2022), nên
+   đây là một trường hợp xấu THẬT SỰ MỚI, không phải lặp lại nhiễu backtest.
+3. **Relative-performance-based**: xem lại nếu v2 kém hơn shadow v1 **quá
+   10 điểm phần trăm tích lũy** trong bất kỳ cửa sổ 60 phiên giao dịch
+   nào — tính trực tiếp được từ shadow log, đủ lớn để không phải nhiễu
+   ngày-qua-ngày giữa 2 danh mục cùng universe.
+4. **Out-of-sample Sharpe vs. bootstrap CI** (bổ sung ở GĐ5.5): khi đủ 6
+   tháng (trùng mốc #1), tính Sharpe ratio **thuần out-of-sample** (chỉ
+   dùng lợi nhuận thật ghi trong shadow log, không phải backtest) của danh
+   mục v2-scored, so với khoảng tin cậy bootstrap đã có
+   (`[−0.59, +1.32]`, năm hoá — `docs/reports/scoring/ROBUSTNESS_REPORT.md`
+   mục 5). Nằm trong/dưới nửa dưới CI → xác nhận thêm quyết định hiện tại,
+   không cần làm gì khác. Vượt hẳn lên trên (đặc biệt gần/vượt +1.32) →
+   tín hiệu đáng mở một round xem xét lại — **vẫn cần review có
+   pre-register riêng, không tự động nâng cấp lên vốn thật chỉ vì một mốc
+   số liệu tốt.**
+
+Điều kiện nào xảy ra TRƯỚC → đó là lúc mở một phiên làm việc mới để đánh
+giá bằng chứng, **không phải lúc tự ý đổi quyết định "không vốn thật" một
+mình** (`docs/reports/scoring/SCORE_V2_REPORT.md` mục "Conditions for
+review"/"Trạng thái sau GĐ5").
+
+<a id="sec-7-2" name="sec-7-2"></a>
+
+## 7.2. Kịch bản sau 2027-01-16
+
+**⚠️ Cả hai nhánh dưới đây là suy luận có cấu trúc từ các điều kiện đã
+khóa ở mục 7.1, KHÔNG phải một kế hoạch đã được viết sẵn trong bất kỳ
+report nào — đánh dấu [suy luận] xuyên suốt mục này.** Khi đến ngày, việc
+thật cần làm vẫn là mở một phiên làm việc mới và đánh giá bằng chứng, theo
+đúng nguyên tắc "không tự động quyết định chỉ vì một mốc số liệu".
+
+### Nếu THẮNG (Sharpe out-of-sample vượt hẳn CI trên, không có drawdown/
+    lệch shadow v1 vi phạm điều kiện #2/#3)
+
+**[suy luận] Thứ tự bắt buộc, không được đảo — mỗi bước là điều kiện tiên
+quyết cho bước sau, không phải các lựa chọn độc lập**:
+
+1. **Đóng các lỗ hổng mô hình hóa chi phí/thực thi TRƯỚC** (Phần 4.11):
+   hợp nhất 2 mô hình chi phí giao dịch đang lệch nhau (0.15% vs 0.4%),
+   đối chiếu biểu phí/thuế VN thật; áp dụng `lot_size=100` đã khai báo
+   trong `config/vn_market_rules.yaml` nhưng hiện **0 nơi dùng** vào bước
+   sizing của backtest; thêm giới hạn participation-rate/market-impact
+   (hiện **hoàn toàn chưa có** — `audit/quantitative_finance_gap_matrix.csv`
+   dòng "Board lot size enforcement"/"Market impact / participation-rate /
+   partial fills", cả hai MISSING). **Lý do phải làm trước, không phải
+   sau**: nếu "thắng" chỉ đo được bằng một mô hình chi phí lạc quan hơn
+   thực tế, phần thắng đó có thể biến mất khi tính đúng chi phí thật —
+   đây là rủi ro thật, không phải thủ tục hình thức.
+2. **Chỉ sau khi (1) xong**: bắt đầu bằng vốn **"học phí"** — số vốn mà
+   mất trắng không gây tổn hại tài chính thật, đúng khuyến nghị đã ghi sẵn
+   ở `docs/reports/scoring/SCORE_V2_REPORT.md` mục "Trạng thái sau GĐ5" —
+   không nhảy thẳng lên quy mô vốn đáng kể.
+3. **[suy luận] Tiêu chí tăng dần, không phải một lần nhảy vọt**: nếu vốn
+   "học phí" giai đoạn 2 tiếp tục cho kết quả out-of-sample nhất quán với
+   kỳ vọng (không có drawdown mới vi phạm điều kiện #2, Sharpe live không
+   tệ hơn CI dưới), CÓ THỂ cân nhắc tăng dần quy mô — nhưng đây là một đề
+   xuất về NGUYÊN TẮC chung (tăng dần, có điều kiện, không nhảy vọt), không
+   phải một lịch trình/con số cụ thể đã được dự án phê duyệt. Bất kỳ mốc
+   tăng vốn cụ thể nào cũng cần quyết định riêng của người dùng tại thời
+   điểm đó, không tự động theo công thức nào viết sẵn ở đây.
+
+### Nếu THUA (Sharpe live trong/dưới nửa dưới CI, hoặc drawdown/lệch v1
+    vi phạm điều kiện #2/#3 trước hạn)
+
+**v2 không "biến mất"** — vai trò của nó sau một kết quả THUA:
+
+- **Vẫn là dữ kiện tham khảo hợp lệ** trong `reports/daily_alpha_ranking.csv`/
+  `reports/top_watchlist.csv` (Phần 2.7) — bằng chứng xếp hạng (IC ổn
+  định, sống sót FDR) không tự động mất đi chỉ vì chiến lược không đủ
+  Sharpe live; chỉ là kết luận "chưa đủ bằng chứng CHIẾN LƯỢC" được củng
+  cố thêm bằng dữ liệu thật thay vì chỉ backtest.
+- **[suy luận] Có thể đóng hồ sơ chính thức vào bảng 5.2** (thêm một dòng
+  "alpha_score v2 — kết quả out-of-sample sau 6 tháng" nếu quyết định
+  không theo đuổi tiếp) — giữ đúng kỷ luật "không mở lại mà không có
+  prereg mới" đã áp dụng cho mọi hồ sơ khác trong bảng đó.
+- **`final_watchlist` không đổi gì** — nó đã ở Nhánh C (xếp theo thanh
+  khoản, không xếp hạng alpha) từ trước khi v2 được xem lại, nên một kết
+  quả THUA của v2 không làm watchlist "tệ đi", vì watchlist vốn đã không
+  dựa vào v2 để xếp hạng.
+- **Những gì vẫn giữ nguyên giá trị dù v2 thua**: hạ tầng shadow-log +
+  quy trình pre-register/cây quyết định (Phần 4.7) — đây là phương pháp
+  luận có thể tái dùng cho bất kỳ v3 nào trong tương lai, không gắn riêng
+  với v2; toàn bộ Phần 4 (kiến thức nền) không phụ thuộc kết quả v2 thắng
+  hay thua.
+
+<a id="sec-7-3" name="sec-7-3"></a>
+
+## 7.3. Lộ trình Gate #3 (survivorship bias / point-in-time universe)
+
+**Đã có (mitigations từng phần, KHÔNG phải giải pháp đầy đủ)**:
+- `data/full_history_v2/trading_status.parquet` (Phần 2.5) — chỉ thấy mã
+  ĐÃ CÓ trong universe 500 mã hôm nay rồi "im lặng dần", KHÔNG thấy được
+  mã đã hủy niêm yết/sáp nhập TRƯỚC KHI kịp vào danh sách 500 mã hiện tại.
+- Pipeline disclosure (Phần 2.6) giữ chạy live một phần vì lý do này: hoạt
+  động giao dịch nội bộ bất thường thường xảy ra TRƯỚC một đợt hủy niêm
+  yết/sáp nhập — một nguồn tín hiệu sớm tiềm năng, chưa khai thác theo
+  hướng này.
+
+**Việc cần làm, theo đúng thứ tự ưu tiên trong `audit/PATH_TO_100.md`**:
+1. **Việc nhỏ, có thể làm ngay**: chạy `src/validation/bias_checks.py::check_survivorship_bias`
+   — hàm đã viết sẵn, đã import ở `src/validation/__init__.py`, nhưng
+   **0 nơi gọi thật trong code sản xuất** (xác nhận qua grep, khớp phát
+   hiện của `audit/round2/delta_scorecard.md` gate #3) — ít nhất định
+   lượng được mức ảnh hưởng hiện tại trong lúc chờ dữ liệu đầy đủ.
+2. **Việc lớn nhất**: tìm/dựng một nguồn dữ liệu lịch sử niêm yết/hủy
+   niêm yết. Đã loại trừ: SSI FCData (`get_securities`/`get_securities_details`
+   chỉ trả về danh sách niêm yết HIỆN TẠI, không có tham số ngày, không
+   liệt kê được mã đã hủy niêm yết — `docs/reports/data/BACKFILL_DESIGN_REPORT.md`
+   Round 1 Task 2). Ứng viên còn lại, chưa khảo sát: bản tin chính thức
+   HOSE/HNX/UPCOM, hoặc nhà cung cấp dữ liệu thứ ba (có thể cần trả phí).
+3. **Sau khi có nguồn**: dựng lại universe tại từng thời điểm lịch sử, so
+   sánh kết quả ít nhất một backtest cốt lõi (vd. `alpha_score` v2) chạy
+   trên universe survivor-only (hiện tại) so với universe point-in-time
+   thật — định lượng chênh lệch thay vì chỉ ước lượng gián tiếp như
+   `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` đang làm.
+
+**[suy luận] Tiêu chí "gate đã đóng"**: (a) một nguồn lịch sử niêm yết/
+hủy niêm yết đã tích hợp và xác minh (không chỉ khảo sát); (b) universe
+point-in-time có thể dựng lại được cho bất kỳ ngày lịch sử nào; (c) ít
+nhất một backtest cốt lõi đã chạy lại trên universe đó và so sánh công
+khai với kết quả universe hiện tại (survivor-only). Đây là suy luận hợp
+lý dựa trên bản chất vấn đề, không phải một tiêu chí đã được dự án tự
+viết thành văn bản khóa cứng ở đâu.
+
+<a id="sec-7-4" name="sec-7-4"></a>
+
+## 7.4. Danh sách "chưa test, để ngỏ"
+
+**Xác nhận qua grep toàn bộ `docs/reports/` + `audit/`**: 3 hướng dưới
+đây **chưa từng xuất hiện trong bất kỳ report/prereg nào của dự án** —
+không phải "đã thử và thất bại" (khác với bảng 5.2), mà đơn giản là chưa
+ai chạm tới:
+
+1. **Khối ngoại (dòng tiền/tỷ lệ sở hữu nhà đầu tư nước ngoài)** — dữ liệu
+   này KHÔNG có trong `data/full_history_v2`/`data/disclosure` hiện tại;
+   cần khảo sát nguồn trước khi nghĩ đến prereg.
+2. **Margin / tự doanh** (dữ liệu cho vay ký quỹ, giao dịch tự doanh của
+   công ty chứng khoán) — tương tự, chưa có nguồn dữ liệu nào trong dự án.
+3. **Sự kiện chỉ số** (thêm/loại khỏi VNINDEX hoặc các rổ chỉ số khác,
+   hiệu ứng dòng tiền thụ động quanh ngày review) — `data/raw/index_ohlcv`/
+   `data/processed/benchmark_vnindex.parquet` chỉ có giá trị chỉ số, không
+   có lịch sử thành phần rổ.
+
+**Điều kiện bắt buộc nếu muốn mở bất kỳ hướng nào ở trên** (đúng kỷ luật
+đã áp dụng xuyên suốt dự án, Phần 4.7):
+1. Khảo sát nguồn dữ liệu trước (xác nhận có thể lấy được, độ phủ, chi phí
+   nếu có) — viết thành một tài liệu khảo sát riêng, không lẫn với kết quả
+   kiểm định.
+2. Viết pre-register khóa tiêu chí PASS/FAIL trước khi chạy bất kỳ join
+   nào với dữ liệu giá/return (đúng `CLAUDE.md` mục 5/8).
+3. Chạy đúng MỘT lần theo thiết kế đã khóa.
+4. **Đối chiếu kết quả với bảng 5.2** — nếu phát hiện dương, kiểm tra xem
+   có trùng với bất kỳ nhân tố đã đóng hồ sơ nào không (vd. nếu "khối
+   ngoại mua ròng" hóa ra tương quan cao với `value_ma20`/thanh khoản đã
+   biết chiều SAI, đó là bằng chứng trùng lặp, không phải phát hiện mới —
+   đúng bài học đã trả giá ở hàng "risk_score" của bảng 5.2).
+
+<a id="sec-7-5" name="sec-7-5"></a>
+
+## 7.5. Quy tắc bất biến khi thay đổi bất cứ gì
+
+**Bản dịch cho người đọc thường của `CLAUDE.md`** (quy ước bắt buộc mọi
+phiên làm việc code — bản gốc dùng cho lập trình viên/AI, đây là bản diễn
+giải ý nghĩa thực tế, không thay thế bản gốc):
+
+1. **Mọi thay đổi code luôn thực hiện tại thư mục gốc của dự án, lưu trực
+   tiếp vào nhánh chính (`main`)** — không có "bản nháp" nằm ở nơi khác
+   cho công việc thường xuyên.
+2. **Không bao giờ tự động đẩy thay đổi lên máy chủ chia sẻ (push)** —
+   mọi thay đổi chỉ lưu cục bộ trên máy này cho đến khi CHÍNH BẠN quyết
+   định đẩy lên.
+3. **Đầu mỗi phiên làm việc mới, luôn đọc `PROJECT_STATE.md` trước** —
+   đây là "cửa ngõ" tóm tắt trạng thái hiện tại, để không ai phải đoán lại
+   từ đầu hoặc lặp lại việc đã làm.
+4. **Mỗi việc xong đều ghi lại rõ ràng** (`PUSH_REVIEW.md` — nhật ký tiến
+   độ) — để 6 tháng sau, bạn hoặc một phiên làm việc khác biết chính xác
+   đã xảy ra chuyện gì, không phải đoán từ code.
+5. **Dữ liệu disclosure và dữ liệu giá không được trộn lẫn cho đến khi có
+   một thiết kế kiểm định đã khóa trước, được lưu lại chính thức** — tránh
+   việc "nhìn trước rồi mới thiết kế test", vốn dễ tự đánh lừa mình.
+6. **Không được nói "không tìm thấy gì khác" mà không liệt kê ra đã tìm ở
+   đâu** — và bất kỳ dữ liệu nào do hệ thống tự sinh ra đều phải ghi rõ nó
+   đến từ đâu (ngày sinh, phiên bản dữ liệu nguồn, phiên bản code) để có
+   thể truy ngược lại sau này.
+7. **Trước khi sinh bất kỳ watchlist/báo cáo nào, luôn cập nhật dữ liệu
+   giá và disclosure mới nhất trước** — không dùng dữ liệu cũ để ra một
+   báo cáo "trông như mới".
+8. **Không được chọn tham số SAU KHI đã nhìn thấy kết quả backtest đẹp
+   hơn** — mọi tiêu chí phải chốt TRƯỚC khi chạy thử nghiệm (Phần 4.7).
+9. **Khi kiểm định nhiều tổ hợp cùng lúc, luôn báo cả 2 con số** (ngưỡng
+   thủ công và ngưỡng đã hiệu chỉnh cho việc thử nhiều lần — Phần 4.6) —
+   không chỉ chọn con số nào "đẹp hơn" để báo cáo.
+10. **Công cụ chấm điểm cổ phiếu riêng lẻ (`stock-decision-engine/`) đã bị
+    cấm thêm lại bất kỳ điểm tổng hợp/nhãn quyết định nào** cho đến khi có
+    bằng chứng thống kê mới đạt tiêu chí tương đương những gì đã yêu cầu
+    trước đó — đây không phải một khu vực "chưa ai kiểm tra", mà là một
+    khu vực **đã kiểm tra và không đạt** (Phần 5.2, hàng 6).
+
+**Vì sao những quy tắc này quan trọng với BẠN, không chỉ với người viết
+code**: chúng là lý do sổ tay này có thể tồn tại và đáng tin — mọi con số
+trong Phần 0-6 đều truy ngược được về đúng report + commit vì quy tắc 4/6
+được tuân thủ; mọi kết luận "không đạt" đều đáng tin vì quy tắc 8/9 chặn
+việc tự đánh lừa mình bằng cách chọn tham số sau khi nhìn kết quả. Nếu một
+phiên làm việc tương lai (của bạn hoặc ai khác) phá vỡ các quy tắc này,
+toàn bộ chuỗi bằng chứng trong sổ tay này sẽ dần mất giá trị.
+
+---
+
+<a id="phuluc-a" name="phuluc-a"></a>
+
+# PHỤ LỤC A — BẢN ĐỒ REPO
+
+Cây thư mục gốc, chú thích 1 dòng/mục, bỏ qua cache/env
+(`.git`, `__pycache__`, `.ipynb_checkpoints`, `.pytest_cache`, `.DS_Store`,
+`.claude`, `.env*`):
+
+```text
+vietnam-quant-research/
+├── CLAUDE.md                 — quy ước bắt buộc mọi phiên làm việc code (Phần 7.5)
+├── PROJECT_STATE.md          — cửa ngõ điều hướng, trạng thái hiện tại (đọc đầu tiên)
+├── PUSH_REVIEW.md            — nhật ký đầy đủ mọi round/commit (Phần 5.1 tóm tắt)
+├── README.md                 — giới thiệu dự án chung (cấp thấp hơn sổ tay này)
+├── requirements.txt          — phiên bản thư viện Python đã pin (Phần 4.11/Phần 6)
+├── pytest.ini                — cấu hình test suite
+│
+├── config/                   — cấu hình dùng chung
+│   ├── strategy_config.yaml      — tham số chiến lược/backtest (rebalance, phí, ngưỡng)
+│   ├── vn_market_rules.yaml       — quy tắc thị trường VN (lot_size, biên độ giá theo sàn)
+│   ├── vn_market_holidays.csv     — lịch nghỉ giao dịch VN (suy từ dữ liệu thật, Phần 1.4)
+│   ├── sector_map.csv             — bản đồ mã → ngành (99.2% phủ)
+│   ├── core_universe.csv          — universe cốt lõi (dùng khi chưa có dữ liệu OHLCV thô)
+│   └── excluded_symbols.csv       — mã loại thủ công khỏi universe (vd. GEE)
+│
+├── data/                      — mọi dữ liệu (phần lớn gitignore trừ raw/tracked tiers)
+│   ├── full_history_v2/           — nguồn giá OHLCV chính thức (Phần 2.7, DATA_BASELINE.md)
+│   ├── processed/                 — feature đã tính (stock_features/market_features)
+│   ├── disclosure/                — dữ liệu công bố thông tin nội bộ/cổ đông lớn (Phần 2.6)
+│   ├── signals/                   — output tín hiệu/watchlist chính (final_watchlist.csv, Phần 2.1)
+│   ├── output/                    — output tier watchlist + lineage metadata (gitignore phần lớn)
+│   ├── quarantine_existing_v1/    — dữ liệu cũ đã biết lỗi, giữ lại để đối chiếu (Phần 4.1)
+│   ├── pilot_backfill/, pilot_backfill_v2/ — dữ liệu thử nghiệm backfill (lịch sử, Phần 5.3)
+│   └── reports/                   — báo cáo/chart tự sinh khác (không phải docs/reports/)
+│
+├── docs/                       — tài liệu vận hành/nghiên cứu
+│   ├── PROJECT_HANDBOOK.md         — sổ tay này (tài liệu gốc từ nay, Phần 0.5)
+│   ├── DAILY_OPERATING_GUIDE.md    — cẩm nang vận hành hằng ngày (đã hợp nhất vào sổ tay này)
+│   ├── OPERATIONS.md               — hướng dẫn vận hành CŨ, tiền-`daily_run.sh` (không cập nhật, xem sổ tay này thay)
+│   └── reports/                    — toàn bộ report kỹ thuật theo chủ đề (Phụ lục B)
+│       ├── data/                       — báo cáo chất lượng dữ liệu (Phần 2.7)
+│       ├── scoring/                    — báo cáo alpha_score/watchlist/robustness (Phần 4-5)
+│       ├── disclosure/                 — báo cáo prereg/event-study disclosure (Phần 2.6/5.2)
+│       ├── codebase_audit/             — audit kỹ thuật vòng đầu (2026-07-12)
+│       └── deploy/                     — tài liệu triển khai (chưa áp dụng — v2 shadow-only)
+│
+├── audit/                      — hồ sơ audit theo khung 100 điểm (Phần 0.3, 7.3)
+│   ├── PATH_TO_100.md              — lộ trình điểm số + 4 critical gate
+│   ├── critical_findings.md        — chi tiết findings audit lần 1
+│   ├── quantitative_finance_gap_matrix.csv — bảng gap chi tiết (nguồn Phần 4.11/7.2)
+│   ├── audit_summary.json          — điểm số máy đọc được, có remediation_log
+│   └── round2/                     — audit lần 2 (2026-07-18, 78/100) + phụ lục SDE
+│
+├── src/                        — code sản xuất (import được, có test)
+│   ├── data/                       — client fetch (SSI), fetch_daily.py (Phần 4.1), dataset_config.py
+│   ├── features/                   — tính feature (MA, RSI, volatility, returns.py)
+│   ├── alpha/                       — scoring.py (alpha_score v2, Phần 2.4)
+│   ├── screening/                   — final_watchlist.py (Phần 2.1), stealth_accumulation.py
+│   ├── analytics/                   — meta_ranking, cashflow_board
+│   ├── backtest/                    — portfolio_backtest.py, simulator.py (Phần 4.11 — 2 mô hình phí)
+│   ├── portfolio/                   — dựng danh mục, monte_carlo.py
+│   ├── risk/                        — rủi ro danh mục
+│   ├── capital/                     — phân bổ vốn
+│   ├── validation/                  — guards.py (chống look-ahead), bias_checks.py (Phần 7.3), trading_status.py (Phần 2.5)
+│   ├── simulation/                  — bootstrap.py (block bootstrap, Phần 0.2)
+│   ├── reporting/, visualization/    — sinh báo cáo/chart cho dự án chính (khác `stock-decision-engine/`)
+│   └── models/, utils/               — tiện ích dùng chung (pipeline_io.py — lineage, Phần 2.1)
+│
+├── scripts/                    — entry point chạy được trực tiếp
+│   ├── daily_run.sh                 — orchestrator 4 bước hằng ngày (Phần 1.2, đã sửa `bcd61d2`)
+│   ├── com.vietnam-quant-research.dailyrun.plist — bản gốc LaunchAgent (Phần 1.2)
+│   ├── update_prices_daily.py/update_disclosure_daily.py/update_index_data.py — 3 bước cập nhật (Phần 1.3)
+│   ├── run_daily_pipeline.py        — bước 4 (features → signals → scoring → watchlist)
+│   ├── run_alpha_scoring.py         — tính `alpha_score`, append shadow log (Phần 2.4)
+│   ├── run_meta_ranking.py          — xây `final_watchlist`
+│   ├── build_cashflow_board.py       — cashflow board + confirmation (Phần 2.1)
+│   └── (còn lại)                     — script hỗ trợ/audit một lần, không chạy hằng ngày
+│
+├── scratch/                    — script nghiên cứu MỘT LẦN (không phải pipeline sản xuất, Phần 5.1-5.3 trích dẫn nhiều)
+│
+├── stock-decision-engine/       — công cụ tra cứu chỉ số kỹ thuật cho 1 mã (Phần 2.2-2.3)
+│   ├── SDE_SCORING_REPORT.md        — kết quả Vòng 3 (Nhánh C, đọc trước AUDIT_SDE_REPORT.md)
+│   ├── AUDIT_SDE_REPORT.md          — lịch sử audit 3 vòng
+│   ├── config.yaml, src/, notebooks/, outputs/ — code + output đã sinh
+│
+├── notebooks/                   — notebook nghiên cứu thủ công (Phần 2.8)
+│   ├── README.md                    — mục đích từng thư mục con
+│   ├── notebook_inventory.md        — bảng phân loại KEEP/ARCHIVE/CONVERTED_TO_SCRIPT
+│   ├── 00_archive/                  — đóng băng, không dùng
+│   └── 01_data_pipeline/ … 05_client_report/ — theo chủ đề (Phần 2.8)
+│
+├── research_notes/              — ghi chú nghiên cứu tự sinh theo mã (generated/) + template
+│
+├── reports/                     — output báo cáo alpha ranking hằng ngày (Phần 2.7)
+│   ├── daily_alpha_ranking.csv, top_watchlist.csv — snapshot ngày hiện tại
+│   ├── final_watchlist.xlsx         — bản Excel của watchlist chính
+│   └── figures/, tables/            — chart/bảng tự sinh
+│
+├── logs/                        — log vận hành (Phần 1.4)
+│   ├── daily_run.log                — log chính, MỌI lần chạy `daily_run.sh`
+│   └── launchd_stderr.log/launchd_stdout.log — log riêng của launchd
+│
+└── tests/                       — test suite (295 passed tại thời điểm viết, Phần 6)
+```
+
+---
+
+<a id="phuluc-b" name="phuluc-b"></a>
+
+# PHỤ LỤC B — 15 REPORT QUAN TRỌNG
+
+Thứ tự nên đọc để hiểu SÂU một kết luận cụ thể (khác Phụ lục A — đây là
+thứ tự đọc, không phải vị trí file):
+
+| # | Report | Một dòng nội dung |
+|---|---|---|
+| 1 | `docs/reports/data/DATA_BASELINE.md` | Baseline dữ liệu giá `full_history_v2` — caveat bắt buộc đọc trước khi tin bất kỳ số nào |
+| 2 | `docs/reports/data/DISCLOSURE_BASELINE.md` | Baseline dữ liệu disclosure — thống kê mô tả thuần, không price/return |
+| 3 | `docs/reports/data/BACKFILL_DESIGN_REPORT.md` | Toàn bộ lịch sử bug raw/adjusted-close (Phần 4.1) — 5 vòng điều tra |
+| 4 | `docs/reports/scoring/SCORE_FORENSIC_REPORT.md` | Truy nguyên momentum crash 2026 (Phần 4.10) trong composite cũ |
+| 5 | `docs/reports/scoring/SCORE_V2_DESIGN.md` | Thiết kế `alpha_score` v2 — tiêu chí khóa TRƯỚC khi so sánh |
+| 6 | `docs/reports/scoring/SCORE_V2_REPORT.md` | Kết quả xác nhận v2 + trạng thái shadow-only (Phần 0.2, 7.1) |
+| 7 | `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` | Vì sao `final_watchlist` chuyển Nhánh C — không xếp hạng alpha |
+| 8 | `docs/reports/scoring/ROBUSTNESS_REPORT.md` | DSR/BH-FDR/bootstrap CI — con số cần trích khi đánh giá độ tin cậy bất kỳ nhân tố nào |
+| 9 | `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` | Sàn hiệu chỉnh survivorship (+0.4/+1.2/+2.9%) áp cho mọi CAGR/Sharpe long-only |
+| 10 | `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md` | Vòng prereg 1 — vì sao nhánh disclosure-làm-tín-hiệu đóng lần đầu |
+| 11 | `docs/reports/disclosure/DISCLOSURE_PREREG_2_REPORT.md` | Vòng prereg 3 — đối chứng khớp cặp cụm/gia đình, đóng vĩnh viễn |
+| 12 | `stock-decision-engine/SDE_SCORING_REPORT.md` | Kết quả Vòng 3 SDE — Nhánh C, gỡ `final_score`/`decision` |
+| 13 | `stock-decision-engine/AUDIT_SDE_REPORT.md` | Lịch sử audit 3 vòng của `stock-decision-engine/` |
+| 14 | `audit/round2/delta_scorecard.md` | Delta điểm số 58→78/100, xác minh độc lập từng gate |
+| 15 | `audit/PATH_TO_100.md` | Lộ trình đầy đủ 4 critical gate + 10 mục điểm số, kể cả Gate #3 (Phần 7.3) |
+
+`PROJECT_STATE.md` mục 5 có một danh sách 10-report tương tự (phiên bản
+ngắn hơn, tập trung vào dự án chính, không gồm `stock-decision-engine/`
+và audit round 2) — hai danh sách không mâu thuẫn, chỉ khác phạm vi.
+
+---
+
+<a id="phuluc-c" name="phuluc-c"></a>
+
+# PHỤ LỤC C — THUẬT NGỮ ANH-VIỆT
+
+| Thuật ngữ | Giải thích ngắn |
+|---|---|
+| **Alpha** | Phần lợi nhuận vượt trội so với thị trường/benchmark, sau khi đã trừ rủi ro hệ thống (beta) |
+| **ATR (Average True Range)** | Biên độ dao động giá trung bình — dùng để đặt vùng entry/stop/target tham chiếu (Phần 2.2-2.3) |
+| **Backtest** | Kiểm định một chiến lược bằng cách chạy lại trên dữ liệu lịch sử |
+| **BH-FDR (Benjamini-Hochberg False Discovery Rate)** | Phương pháp kiểm soát tỷ lệ phát hiện giả khi kiểm định nhiều tổ hợp cùng lúc (Phần 4.6) |
+| **Bootstrap CI (Confidence Interval)** | Khoảng tin cậy dựng bằng cách lấy mẫu lại (resampling) nhiều lần từ chính dữ liệu, thay vì công thức lý thuyết |
+| **CAGR (Compound Annual Growth Rate)** | Tốc độ tăng trưởng kép hằng năm |
+| **Cross-sectional** | Đo/so sánh giữa nhiều mã tại CÙNG một thời điểm (khác với "theo thời gian" của một mã) |
+| **CVaR (Conditional Value at Risk)** | Mức lỗ kỳ vọng trung bình trong nhóm kịch bản tệ nhất (vượt ngưỡng VaR) |
+| **Decile / Tertile** | Chia một tập số liệu thành 10 phần / 3 phần bằng nhau theo thứ hạng |
+| **Deflated Sharpe Ratio (DSR)** | Sharpe ratio đã khấu trừ cho việc đã thử nhiều tổ hợp/tham số trong lịch sử (Phần 4.6) |
+| **Drawdown / Max Drawdown** | Mức sụt giảm từ đỉnh gần nhất — Max Drawdown là mức sụt sâu nhất trong cả giai đoạn |
+| **Eligibility gate** | Lớp lọc "đủ điều kiện cơ bản" (thanh khoản, dữ liệu tươi, đang giao dịch) trước khi xếp hạng |
+| **IC (Information Coefficient)** | Tương quan hạng (thường Spearman) giữa điểm số nhân tố và lợi nhuận tương lai (Phần 4.4) |
+| **Lineage** | Dấu vết nguồn gốc một artifact — dữ liệu nào, code nào, ngày nào sinh ra nó |
+| **Liquidity / Thanh khoản** | Mức độ dễ mua/bán một mã mà không tự đẩy giá — đo qua `value_ma20` trong dự án này |
+| **Look-ahead bias** | Lỗi dùng thông tin từ tương lai (chưa thể biết tại thời điểm đó) vào một phép kiểm định (Phần 4.2) |
+| **Lot size** | Đơn vị khối lượng giao dịch tối thiểu trên sàn (VN: 100 cổ phiếu/lô) |
+| **Momentum crash** | Nhân tố "đuổi theo sức mạnh giá" đảo chiều đột ngột trong một giai đoạn cụ thể (Phần 4.10) |
+| **Newey-West HAC** | Cách hiệu chỉnh t-stat khi các quan sát chồng lấn/tự tương quan theo thời gian (Phần 4.4) |
+| **Null test** | So kết quả thật với phân phối kết quả của nhiều lựa chọn NGẪU NHIÊN từ cùng rổ (Phần 4.5) |
+| **Out-of-sample** | Dữ liệu/giai đoạn KHÔNG được dùng để xây dựng hay chọn tham số mô hình — phép kiểm định trung thực nhất |
+| **Participation rate** | Tỷ lệ khối lượng lệnh so với khối lượng giao dịch trung bình hằng ngày (ADV) — giới hạn để tránh tự đẩy giá |
+| **Point-in-time** | Chỉ dùng thông tin thực sự đã biết được TẠI đúng thời điểm đó, không dùng thông tin biết sau |
+| **Pre-registration (prereg)** | Khóa tiêu chí PASS/FAIL TRƯỚC khi chạy kiểm định, không đổi sau khi thấy kết quả (Phần 4.7) |
+| **Rebalance / Tái cân bằng** | Thời điểm định kỳ điều chỉnh lại danh mục (dự án này: mỗi 20 phiên giao dịch) |
+| **Residualized target** | Lợi nhuận đã trừ phần giải thích được bởi thị trường/ngành (beta, sector), chỉ còn phần đặc thù của mã |
+| **Sharpe ratio** | Lợi nhuận vượt trội trên một đơn vị biến động (rủi ro) |
+| **Shadow log / Shadow testing** | Chạy một chiến lược song song, không vốn thật, ghi lại kết quả để tích lũy bằng chứng out-of-sample (Phần 4.8) |
+| **Sortino ratio** | Biến thể của Sharpe, chỉ tính biến động ở chiều giảm (downside), không phạt biến động tăng |
+| **Spearman correlation** | Tương quan tính trên THỨ HẠNG của dữ liệu, không phải giá trị thô — ít nhạy với outlier hơn Pearson |
+| **Survivorship bias** | Bias từ việc chỉ nhìn thấy các đối tượng "còn sống sót" đến hôm nay (Phần 4.3) |
+| **t-stat / t_NW** | Thống kê kiểm định mức ý nghĩa; `t_NW` = đã hiệu chỉnh Newey-West (Phần 4.4) |
+| **Walk-forward** | Cách backtest chia nhiều giai đoạn (fold) liên tiếp theo thời gian, không xáo trộn thứ tự |
+
+---
+
+<a id="phuluc-d" name="phuluc-d"></a>
+
+# PHỤ LỤC D — LỆNH HAY DÙNG (copy-paste được)
+
+```bash
+# --- Vận hành hằng ngày (Phần 1) ---
+bash scripts/daily_run.sh                       # chạy 4 bước, bỏ qua nếu hôm nay đã chạy
+bash scripts/daily_run.sh --force                # chạy lại dù hôm nay đã chạy rồi
+python scripts/update_prices_daily.py --universe       # chỉ cập nhật giá
+python scripts/update_disclosure_daily.py --universe   # chỉ cập nhật disclosure
+python scripts/update_index_data.py                    # chỉ cập nhật benchmark/VNINDEX
+
+# --- Kiểm tra/tắt/bật LaunchAgent (Phần 1.2) ---
+launchctl list | grep vietnam-quant-research     # có dòng = đang nạp; PID nếu đang chạy, "-" nếu không
+launchctl kickstart -k gui/501/com.vietnam-quant-research.dailyrun   # kích hoạt chạy thật NGAY qua launchd (kiểm chứng, không phải bash tay)
+launchctl unload ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist   # tắt
+launchctl load ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist     # nạp lại
+
+# --- Kiểm tra nhanh shadow log (Phần 1.5, 2.4) ---
+python3 -c "import pandas as pd; d=pd.read_parquet('data/signals/alpha_score_shadow_log.parquet'); print(sorted(d['date'].unique())[-10:])"
+
+# --- Kiểm tra freshness/lineage của watchlist (Phần 1.1) ---
+python3 -c "import json; d=json.load(open('data/output/pipeline_metadata.json')); print(d['freshness_status'], d['lineage_generated_at'] if 'lineage_generated_at' in d else d.get('run_timestamp'))"
+
+# --- Tra một mã cụ thể (Phần 3.4) ---
+python3 -c "
+import pandas as pd
+w = pd.read_csv('data/signals/final_watchlist.csv')
+print(w[w['symbol']=='XXX'].to_string())
+"
+python3 -c "
+import pandas as pd
+t = pd.read_parquet('data/full_history_v2/trading_status.parquet')
+print(t[t['symbol']=='XXX'].to_string())
+"
+python3 -c "
+import pandas as pd
+d = pd.read_parquet('data/disclosure/events.parquet')
+print(d[d['symbol']=='XXX'].sort_values('disclosure_date', ascending=False).head(5).to_string())
+"
+
+# --- Backup định kỳ (Phần 1.5) ---
+git bundle create ~/Desktop/vietnam-quant-research-backup-$(date +%Y%m%d).bundle --all
+
+# --- Khôi phục từ bundle (Phần 6) ---
+git clone /đường/dẫn/tới/vietnam-quant-research-backup-YYYYMMDD.bundle vietnam-quant-research-restored
+cd vietnam-quant-research-restored && git checkout main
+bash scripts/daily_run.sh --force   # làm mới dữ liệu ngay sau khi khôi phục
+
+# --- Kiểm tra môi trường Python sau khi đổi máy/nâng cấp (Phần 6) ---
+which -a python3                                 # xác nhận python3 nào đang được PATH resolve
+/opt/anaconda3/bin/python3 -c "import pandas, requests, yaml; print('OK')"   # xác nhận env dự án còn đủ gói
+pip freeze | grep -E "pandas|numpy|scipy"        # đối chiếu với requirements.txt
+
+# --- Chạy full test suite (Phần 6) ---
+python3 -m pytest tests/ -q
+```
+
+---
+
+*Hết Lô 3/3.*

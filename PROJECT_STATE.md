@@ -1,8 +1,10 @@
 # PROJECT_STATE — cửa ngõ cho mọi phiên tương lai
 
 **Đọc file này ĐẦU TIÊN, trước `PUSH_REVIEW.md`/`audit/PATH_TO_100.md`.** Cập
-nhật lần cuối: 2026-07-18 (mục 4 — chẩn đoán/sửa `ModuleNotFoundError` chặn
-LaunchAgent, xác nhận qua chạy thật). Nếu thông tin ở đây và ở report gốc lệch nhau, tin
+nhật lần cuối: 2026-07-19 (mục 5 — trỏ về `docs/PROJECT_HANDBOOK.md` làm tài
+liệu gốc mới cho vận hành/đọc hiểu output; 2026-07-18 mục 4 — chẩn đoán/sửa
+`ModuleNotFoundError` chặn LaunchAgent, xác nhận qua chạy thật). Nếu thông
+tin ở đây và ở report gốc lệch nhau, tin
 report gốc (file này là bản tóm tắt điều hướng, không phải nguồn sự thật) và
 sửa lại file này.
 
@@ -174,11 +176,17 @@ launchctl load ~/Library/LaunchAgents/com.vietnam-quant-research.dailyrun.plist 
 
 ## 5. Bản đồ hồ sơ — 10 report nên đọc theo thứ tự này
 
-**Không phải dev, chỉ muốn vận hành hằng ngày?** Đọc
-`docs/DAILY_OPERATING_GUIDE.md` trước — cẩm nang một trang cho chủ dự án
-(checklist buổi sáng, đọc hiểu watchlist, khung ra quyết định đầu tư, xử lý
-sự cố, điều kiện xem lại v2), viết để không cần đọc code. 10 report dưới
-đây dành cho việc hiểu SÂU một kết luận cụ thể.
+**Không phải dev, chỉ muốn vận hành hằng ngày, đọc hiểu một output, hay hiểu
+toàn cảnh dự án?** Đọc `docs/PROJECT_HANDBOOK.md` trước (bản PDF đi kèm:
+`docs/PROJECT_HANDBOOK.pdf`) — sổ tay toàn thư, viết để không cần đọc code:
+Phần 0 (hệ thống là/không là gì, trạng thái hiện tại), Phần 1 (vận hành hằng
+ngày), Phần 2 (đọc hiểu từng output), Phần 3 (khung ra quyết định), Phần 4
+(kiến thức nền), Phần 5 (biên niên sử + hồ sơ đã đóng), Phần 6 (xử lý sự
+cố), Phần 7 (tương lai/điều kiện thay đổi) + Phụ lục A-D (bản đồ repo, 15
+report quan trọng, thuật ngữ, lệnh hay dùng). `docs/DAILY_OPERATING_GUIDE.md`
+(cẩm nang cũ, đã hợp nhất vào Phần 0-3 của sổ tay) vẫn còn, giữ làm bản rút
+gọn. 10 report dưới đây (đã trích dẫn xuyên suốt sổ tay) dành cho việc hiểu
+SÂU một kết luận cụ thể.
 
 1. **`PROJECT_STATE.md`** (file này) — điều hướng.
 2. **`PUSH_REVIEW.md`** — nhật ký đầy đủ mọi round, mọi commit.

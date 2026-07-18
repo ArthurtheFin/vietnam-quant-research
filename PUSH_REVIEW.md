@@ -1347,3 +1347,76 @@ universe) vẫn mở. Đây là việc lớn nhất còn lại, không đổi so
 (mới, theo yêu cầu round này) + 2 file phụ lục SDE. `audit_summary.json`
 thêm `previous_score`/`delta`. Full suite 295 passed (không đụng code).
 Một commit duy nhất, không push.
+
+## Phase 15 — sự cố LaunchAgent PATH + PROJECT_HANDBOOK.md (3 lô, this session)
+
+**Bối cảnh**: session mới yêu cầu viết `docs/PROJECT_HANDBOOK.md` — sổ tay
+toàn thư thay thế `docs/DAILY_OPERATING_GUIDE.md` làm tài liệu gốc cho chủ
+dự án/người ngoài. Giữa lô 1 và lô 2, phát hiện sự cố vận hành thật cần xử
+lý khẩn trước khi viết tiếp (theo đúng yêu cầu người dùng).
+
+**Lô 1** (Phần 0-2): hệ thống là/không là gì, trạng thái tại ngày viết, vận
+hành hằng ngày (checklist, cỗ máy tự động, giải phẫu log thật), đọc hiểu
+từng output (final_watchlist, SDE facts table, chart PNG, shadow log,
+trading_status, disclosure, notebook). Trong lúc xác minh log thật cho mục
+1.4, phát hiện phụ: LaunchAgent tối 2026-07-17 fail 4/4 bước
+(`ModuleNotFoundError`) — khác với chẩn đoán TCC cũ trong `PROJECT_STATE.md`.
+
+**Sự cố LaunchAgent PATH — chẩn đoán + sửa + kiểm chứng** (commit `bcd61d2`):
+`scripts/daily_run.sh`'s `PYTHON_BIN` mặc định tra `PATH`, trong `launchd`
+(không kế thừa PATH shell tương tác) rơi về Python hệ thống macOS (không có
+`pandas`/`requests`/`yaml`). Sửa: hardcode đường dẫn tuyệt đối
+`/opt/anaconda3/bin/python3`. Kiểm chứng qua đúng cơ chế `launchd`
+(`launchctl kickstart`, không phải chạy tay `bash`): `SUMMARY: 4/4 steps OK`
+tối 2026-07-18. Khoảng trống shadow log ngày 2026-07-17 đã đóng — **0 ngày
+giao dịch bị mất** (`run_alpha_scoring.py` stamp theo `date` thật của dữ
+liệu, không phải ngày chạy) — chi tiết: `PROJECT_STATE.md` mục 4,
+`docs/reports/scoring/SCORE_V2_REPORT.md` mục "Cập nhật 2026-07-18" (commit
+`3434bf2`). Data commit riêng cho lần catch-up: `3f71a32`. Tại thời điểm
+hoàn thành lô 3, agent vẫn CHƯA có một lần kích hoạt TỰ NHIÊN (không
+kickstart) kể từ fix — cơ hội đầu tiên: tối Thứ Hai 2026-07-20 19:00, ghi
+thành dòng theo dõi trong sổ tay (mục 0.3/1.2), không che giấu.
+
+**Lô 2** (Phần 3-6): workflow ra quyết định đầu tư (cây 4 bước, quy tắc
+sizing 5% value_ma20 đóng khung là heuristic không phải nghiên cứu, 2 ví dụ
+thật VHM/ATS, template nhật ký quyết định); kiến thức nền 11 khái niệm (mỗi
+khái niệm: định nghĩa → vì sao dự án cần → ví dụ thật trích report+commit →
+"chỉ nhớ một điều"); biên niên sử 1 trang + bảng 8 hồ sơ đã đóng + bảng 7
+bug lớn; xử lý sự cố 8 dòng (bao gồm bài học PATH/env vs launchd vừa xử lý).
+
+**Lô 3** (Phần 7 + Phụ lục + hoàn thiện + PDF): 4 điều kiện xem lại v2 chép
+nguyên văn; kịch bản THẮNG/THUA sau 2027-01-16 (đánh dấu [suy luận] rõ ràng
+những chỗ không có trong report gốc); lộ trình Gate #3; danh sách "chưa
+test" (khối ngoại/margin/index event — xác nhận qua grep chưa từng xuất
+hiện trong repo); dịch 10 quy tắc `CLAUDE.md` sang ngôn ngữ người thường.
+Phụ lục A (bản đồ repo), B (15 report), C (~30 thuật ngữ Anh-Việt), D (lệnh
+copy-paste). Mục lục tự động + đọc lại toàn bộ để nhất quán số liệu/tham
+chiếu chéo + grep cuối cùng không còn câu hàm ý khuyến nghị mua/bán.
+
+**Xuất PDF** (`docs/PROJECT_HANDBOOK.pdf`, `scratch/render_handbook_pdf.py`):
+không có pandoc/wkhtmltopdf/weasyprint trong môi trường; thay vì cài công cụ
+hệ thống nặng (LaTeX/cairo-pango/Chromium), dùng `markdown` + `xhtml2pdf`
+(thuần Python, đã có sẵn/pip-install nhẹ, xác nhận không đụng
+`pandas`/`numpy`/`scipy` đã pin). 2 vấn đề kỹ thuật thật gặp và sửa: (1)
+tiếng Việt hiện dấu thành ô vuông — do đăng ký font qua `pdfmetrics.registerFont`
+trực tiếp không tới được registry riêng của `xhtml2pdf` (đọc thẳng source
+`xhtml2pdf/context.py` xác nhận), sửa bằng `@font-face` CSS chuẩn trỏ tới
+`Arial Unicode.ttf` (copy sang đường dẫn không khoảng trắng); (2) bảng dài
+bị cắt ở lề trang — `word-break`/`table-layout:fixed`/zero-width-space đều
+KHÔNG có tác dụng trong engine này (xác nhận bằng test cô lập), chỉ khoảng
+trắng thật mới tạo điểm ngắt dòng — sửa bằng chèn khoảng trắng thật sau `/`
+trong nội dung `<td>` (không đụng `_` để không phá vỡ tên cột ngắn). Phát
+hiện + sửa thêm 1 bug tự gây ra: script chèn anchor mục lục ban đầu không
+theo dõi trạng thái fenced-code-block, biến 7 dòng comment bash trong Phụ
+lục D thành "heading" giả — sửa bằng script fence-aware, xóa 65 anchor cũ,
+dựng lại 55 anchor đúng. PDF cuối: 29 trang, ~822KB, mục lục có link nội bộ
+thật (xác nhận qua `PyMuPDF` link annotations), 3 chart PNG thật nhúng ở
+mục 2.3 (ACB, 2026-07-17).
+
+**Cập nhật tài liệu khác**: `CLAUDE.md` mục 3, `PROJECT_STATE.md` mục 5,
+`docs/DAILY_OPERATING_GUIDE.md` (banner "đã hợp nhất") đều trỏ về
+`docs/PROJECT_HANDBOOK.md` làm tài liệu gốc mới.
+
+**Nghiệm thu cuối**: xem báo cáo cuối trong phiên làm việc (số trang/từ, danh
+sách [chưa xác minh]/[suy luận] còn lại, 3 câu tự kiểm). Commit riêng từng
+lô + sự cố + PDF + cập nhật tài liệu khác, không push.

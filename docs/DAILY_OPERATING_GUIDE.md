@@ -1,5 +1,11 @@
 # CẨM NANG VẬN HÀNH HẰNG NGÀY
 
+> **⚠️ Đã hợp nhất vào `docs/PROJECT_HANDBOOK.md`** (Phần 0-3) — sổ tay đó
+> giờ là tài liệu GỐC cho vận hành hằng ngày, đọc hiểu output, và khung ra
+> quyết định (kèm bản PDF `docs/PROJECT_HANDBOOK.pdf`). File này giữ lại
+> làm **bản rút gọn/tham khảo nhanh**, không còn được cập nhật song song —
+> nếu nội dung ở đây và ở sổ tay lệch nhau, tin sổ tay.
+
 **Dành cho**: chủ dự án — người dùng cuối, không cần đọc code. Nếu bạn muốn
 hiểu sâu hơn một kết luận nào đó, mỗi mục dưới đây đều trích dẫn đúng report
 gốc để bạn (hoặc một phiên làm việc code sau này) tra lại.
