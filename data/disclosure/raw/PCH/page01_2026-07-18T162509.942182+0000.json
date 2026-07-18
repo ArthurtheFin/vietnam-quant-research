@@ -1,0 +1,1 @@
+{"symbol": "PCH", "url": "https://cafef.vn/du-lieu/Ajax/PageNew/DataHistory/GDCoDong.ashx?Symbol=PCH&StartDate=&EndDate=&PageIndex=1&PageSize=2000", "fetched_at": "2026-07-18T16:25:09.942182+00:00", "page_index": 1, "page_size": 2000, "status_code": 200, "raw_response": "{\"Data\":{\"TotalCount\":0,\"Data\":[]},\"Message\":null,\"Success\":true}"}
