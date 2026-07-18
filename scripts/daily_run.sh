@@ -23,9 +23,26 @@ set -uo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-PYTHON_BIN="${PYTHON_BIN:-python3}"
+# Absolute path, NOT a bare "python3" PATH lookup -- deliberate, do not
+# revert. Confirmed root cause of the 2026-07-17 19:00 run (all 4 steps
+# failed with ModuleNotFoundError for pandas/requests/yaml, see
+# logs/daily_run.log): launchd's minimal environment does not inherit the
+# interactive shell's PATH, so a bare "python3" resolved to the macOS
+# system Python (/usr/bin/python3), which has none of this project's
+# dependencies installed. Those are only installed in this anaconda3 base
+# env (pinned exactly in requirements.txt: pandas==2.3.3, numpy==1.26.4,
+# requests==2.32.3, PyYAML==6.0.2 -- verified matching this env, not the
+# vnquant/vnstock-report envs, which have a different numpy). Hardcoding
+# the absolute path makes this correct identically whether invoked via
+# launchd (no inherited PATH) or an interactive shell (PATH order could
+# vary) -- still overridable via PYTHON_BIN for local testing.
+PYTHON_BIN="${PYTHON_BIN:-/opt/anaconda3/bin/python3}"
 mkdir -p logs
 LOG_FILE="logs/daily_run.log"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] ###### FAIL ###### PYTHON_BIN not found or not executable: $PYTHON_BIN -- see comment above this check in daily_run.sh" | tee -a "$LOG_FILE"
+  exit 1
+fi
 
 _ts() { date '+%Y-%m-%d %H:%M:%S'; }
 
