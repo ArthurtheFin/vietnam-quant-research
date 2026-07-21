@@ -1608,3 +1608,34 @@ sau khi thấy kết quả; kết quả âm tính không kéo theo thử định
 trạng thái khác. Full suite sau vòng này: 306 passed (không đổi so với
 trước — vòng này không sửa code sản xuất, chỉ thêm 1 script nghiên cứu +
 tài liệu).
+
+## Ghi 2 phát hiện phụ từ MARKET_REGIME_STUDY vào đúng chỗ — 2026-07-21
+
+Hồ sơ #9 đã đóng ở vòng trước — vòng này KHÔNG phân tích thêm, KHÔNG mở
+lại câu hỏi đã đóng, chỉ đưa 2 phát hiện phụ đã có sẵn trong
+`docs/reports/scoring/MARKET_REGIME_STUDY_REPORT.md` vào đúng vị trí tài liệu. 2 nhiệm vụ,
+mỗi nhiệm vụ 1 commit, không push:
+
+1. **NV1 (commit `7ac5cc5`)** — `docs/PROJECT_HANDBOOK.md` mục 4.4 (IC
+   Spearman & Newey-West HAC) thêm "Ví dụ THẬT thứ hai": block bootstrap
+   là cùng họ vấn đề với Newey-West (naive stat nói dối khi dữ liệu tự
+   tương quan) nhưng sửa cho trường hợp khác — Newey-West chỉ sửa khi
+   TARGET chồng lấn, block bootstrap cần khi chính BIẾN NHÓM cũng tự
+   tương quan (regime). Ví dụ: `market_regime` "Risk-on − Risk-off", H1,
+   P1 — naive Mann-Whitney p=2.99e-08 (trông rất mạnh) vs CI
+   block-bootstrap `[-0.144, 0.017]` (chứa 0). Toàn nghiên cứu:
+   naive+FDR "tìm" 17/36, block-bootstrap chỉ giữ 6/36.
+2. **NV2 (commit `76ffad6`)** — thêm 1 khối QUAN SÁT dán nhãn rõ (không
+   phải kết luận, không đổi verdict FAIL của H2) vào
+   `docs/reports/scoring/MARKET_REGIME_STUDY_REPORT.md` mục 4: trạng thái cực trị
+   (Risk-on/Structured/Chaotic) rã về gần ngẫu nhiên trong vài tuần
+   (persistence lag=20 chỉ 29.0%/13.0%/14.5%), trạng thái trung tâm
+   (Neutral/Transitional) dính >60%+ ở phần lớn phạm vi. Ghi rõ: đây là
+   hình dạng dữ liệu nhận thấy SAU KHI xem kết quả (không phải giả thuyết
+   đã pre-register), gợi ý cho một overlay tương lai CHỈ hành động ở
+   trạng thái cực trị — CHƯA phải cơ sở để dùng, cần prereg riêng nếu
+   theo đuổi.
+
+Không có thay đổi code, không có phân tích/chạy script mới, không đổi bất
+kỳ kết luận PASS/FAIL nào của hồ sơ #9. Full suite không cần chạy lại
+(chỉ sửa 2 file tài liệu).
