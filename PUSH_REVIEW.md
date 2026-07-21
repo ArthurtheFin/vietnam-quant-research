@@ -1491,3 +1491,67 @@ truyền `benchmark=`; (2) thêm guard inf vào `build_market_proxy_benchmark`;
 `data/processed/`/`data/signals/` (xác nhận không consumer nào đọc lại);
 (5-8) prereg mới cho entropy/pair-divergence/monte-carlo out-of-sample/
 breadth-persistence overlay — việc lớn hơn, để vòng sau quyết định.
+
+## Sửa 3 bug kỹ thuật từ MARKET_REGIME_AUDIT + chặn tận gốc ghi đè production — 2026-07-21
+
+Vòng theo dõi trực tiếp round audit trên. **Chỉ sửa bug kỹ thuật cụ thể**
+((1) `06_market_regime.ipynb` thiếu `benchmark=`, (2) `-inf` trong
+`build_market_proxy_benchmark`, (3) ngưỡng entropy 0.35/0.70 không rõ
+nguồn gốc) — **không cải tiến model, không thêm chỉ báo regime mới, không
+kiểm định predictive power (IC/backtest)** cho bất kỳ công cụ nào, đúng
+ràng buộc đã cho. Chi tiết đầy đủ (bảng so sánh trước/sau, docstring trích
+dẫn): `docs/reports/codebase_audit/MARKET_REGIME_AUDIT.md` mục "Cập nhật
+2026-07-21". 4 commit, mỗi nhiệm vụ 1 commit riêng, không push:
+
+1. **NV1 (commit `36661b6` guard infra + notebook 04/08;
+   commit `d3b59d7` wiring 05/06/10)** — sửa bug gốc: notebook 06 giờ đọc
+   `benchmark_vnindex.parquet` và gọi
+   `add_market_regime(breadth, benchmark=benchmark)` đúng chữ ký (trước đó
+   thiếu tham số, âm thầm tái hiện bug `Risk-on` không đạt được đã sửa ở
+   `src/models/regime.py` 8 ngày sau khi notebook được viết). Xác nhận:
+   `market_regime` từ `Risk-off 1296/Neutral 335/Risk-on 0` →
+   `Neutral 857/Risk-off 503/Risk-on 272`.
+   **Quan trọng hơn cả bug fix**: thêm `src/data/production_guard.py` —
+   `guard_production_write(path)` chặn ghi vào 3 path chính thức
+   (`dataset_config.py`) trừ khi có xác nhận rõ ràng
+   (`ALLOW_PRODUCTION_WRITE=1` hoặc `allow=True`), áp dụng cho **cả 6**
+   notebook trong `02_market_research/` (không chỉ notebook 06): 04/08 đổi
+   hẳn sang ghi vào `notebooks/outputs/` (output mồ côi, không consumer,
+   không cần guard nữa); 05/06 (path production thật) gắn guard trước
+   `save_parquet()`. Test (`tests/test_production_guard.py`, 7 test) gồm cả
+   kịch bản "mock chạy notebook" xác nhận `save_parquet` không bao giờ
+   được gọi khi thiếu xác nhận. Xác nhận thật: chạy lại cả 5 notebook
+   (`nbconvert --execute --inplace`, không set env var) — mtime
+   `data/processed/{stock_features,market_features}.parquet` không đổi.
+2. **NV2 (commit `5b630b9`)** — `build_market_proxy_benchmark`
+   (`src/analytics/benchmark.py`) giờ NaN-out giá `<=0` trước
+   `pct_change()`, đúng convention đã có sẵn ở `add_returns`
+   (`src/features/returns.py`) cho cùng loại lỗi (387 dòng `close==0`,
+   warmup 2020-01/02). Test mới tái tạo đúng pattern lỗi. Chạy lại notebook
+   10: `mean_return_spread` từ `-inf` → `0.003895`.
+3. **NV3 (commit `b62c2df`)** — thêm `derive_entropy_regime_thresholds`
+   (hàm xác định percentile thuần, cùng loại "hiệu chỉnh xác định từ dữ
+   liệu, không phải tune" như `derive_factor_weights` của
+   `reversal_quality_score` trước đây). Hardcode kết quả từ
+   `market_entropy_21d` toàn lịch sử (2020-01→2026-07, N=1611,
+   `scratch/derive_entropy_regime_thresholds.py` tái lập được):
+   `low_threshold` 0.35→**0.692**, `high_threshold` 0.70→**0.818**. Cả 2
+   ngưỡng đều sửa, không chỉ ngưỡng thấp — đã thử chỉ sửa ngưỡng thấp,
+   giữ 0.70 cũ, kết quả "Transitional" sụp còn ~4% (0.70 thực ra chỉ nằm ở
+   percentile ~20 của phân phối thật, không hề "cao"). Kết quả trên dữ
+   liệu thật: `Structured 0→230`, `Chaotic 1316→228`,
+   `Transitional 295→1153` (~15/70/15, cân bằng). Dán nhãn "đã hiệu chỉnh,
+   CHƯA kiểm định predictive power" ở cả 3 nơi hiển thị: docstring nguồn,
+   annotation trên `entropy_regime_chart` (giờ dùng chung 1 hằng số với
+   classifier, trước đó hardcode riêng lẻ, có thể lệch nhau), và print rõ
+   trong `06_market_regime.ipynb`.
+4. **NV4 (nghiệm thu, commit tài liệu này)** — chạy
+   `python scripts/generate_features.py` (không dùng notebook cho bước
+   này, đúng bài học sự cố audit trước) để đảm bảo
+   `market_features.parquet` production phản ánh đúng cả NV1 và NV3. Full
+   suite: 306 passed (+11 test mới, `git diff abaa6a0 HEAD -- tests/`
+   xác nhận), 0 fail. Adjacent risk ghi nhận không sửa (ngoài phạm vi):
+   `build_market_entropy_profile` có cùng pattern thiếu guard `close<=0`
+   như NV2 từng sửa, nhưng nhánh đó hiện không bị kích hoạt bởi bất kỳ
+   caller thật nào (cả 2 caller đều truyền `features` đã có `return_1d`
+   sẵn) — cờ cho vòng sau nếu có caller mới.

@@ -1,5 +1,23 @@
 # MARKET_REGIME_AUDIT — audit `notebooks/02_market_research/`
 
+**Cập nhật 2026-07-21 — 3 finding kỹ thuật cụ thể đã RESOLVED** (xem mục
+riêng cuối file để biết chi tiết + commit; phần audit gốc bên dưới giữ
+nguyên làm hồ sơ vì các finding về phân loại VALIDATED/WEAK/NOT_VERIFIABLE/
+PLAUSIBLE_BUT_UNVALIDATED vẫn đúng nguyên trạng — vòng này chỉ sửa 3 bug kỹ
+thuật, không kiểm định predictive power của bất kỳ công cụ nào):
+1. `06_market_regime.ipynb` thiếu `benchmark=` → **RESOLVED**, `Risk-on`
+   giờ đạt được (272/1632 ngày).
+2. `mean_return_spread=-inf` trong notebook 10 → **RESOLVED**, giờ ra
+   `0.003895`.
+3. Ngưỡng `entropy_regime` 0.35/0.70 chết nhãn "Structured" → **RESOLVED**,
+   hiệu chỉnh lại theo phân vị thực tế (15th/85th percentile), "Structured"
+   giờ đạt được (230/1611 ngày).
+
+Cộng thêm: chặn tận gốc rủi ro ghi đè production từ mọi notebook trong thư
+mục này (không chỉ riêng notebook 06) — xem "Cập nhật" cuối file.
+
+---
+
 **Phạm vi**: audit thuần cho 6 file trong `notebooks/02_market_research/`
 (công cụ đo market regime/thị trường, VNINDEX-focused). **Không sửa logic,
 không backtest mới, không xóa gì** — đúng ràng buộc đã cho. Phương pháp:
@@ -271,8 +289,135 @@ mới, không cần backtest mới):
 
 ---
 
-*Audit thực hiện 2026-07-20/21. Không có thay đổi logic nào trong
-`02_market_research/` hay `src/`. Thay đổi dữ liệu duy nhất: khôi phục 2
-file production (`stock_features.parquet`, `market_features.parquet`) về
-đúng trạng thái sau khi bị notebook execution ghi đè ngoài ý muốn trong lúc
-audit — cả hai đều gitignored, không có gì cần commit cho phần đó.*
+## Cập nhật 2026-07-21 — sửa 3 bug kỹ thuật + chặn tận gốc rủi ro ghi đè
+
+Vòng theo dõi trực tiếp audit trên. **Chỉ sửa bug kỹ thuật cụ thể, không
+cải tiến model, không thêm chỉ báo regime mới, không kiểm định predictive
+power (IC/backtest) cho bất kỳ công cụ nào** — việc đó để dành cho vòng
+prereg riêng, sau khi nền đã sạch. 4 commit, mỗi nhiệm vụ 1 commit riêng
+trên `main`, không push:
+
+### NV1 (RESOLVED) — chặn ghi đè production + sửa bug `benchmark=`
+
+**Sửa bug gốc** (`36661b6`, `d3b59d7`): `06_market_regime.ipynb` giờ đọc
+`data/processed/benchmark_vnindex.parquet` và gọi
+`add_market_regime(breadth, benchmark=benchmark)` đúng chữ ký. Xác nhận
+bằng chạy thật (so trước/sau):
+
+| | Trước (thiếu `benchmark=`) | Sau (đã sửa) |
+|---|---|---|
+| `market_regime` | `Risk-off 1296 / Neutral 335 / Risk-on 0` | `Neutral 857 / Risk-off 503 / Risk-on 272` |
+| `crash_severity` | toàn `Unknown` | `Normal/Correction/Crash` thật |
+| `breakout_signal` | toàn `Normal` | giá trị thật |
+
+**Chặn tận gốc** (`36661b6`) — không chỉ sửa notebook 06, mà thêm
+`src/data/production_guard.py` dùng chung cho **mọi** notebook trong
+`02_market_research/`:
+- `guard_production_write(path)` raise `ProductionWriteBlocked` cho 3 path
+  chính thức trong `src.data.dataset_config` (`clean_daily_ohlcv.parquet`,
+  `stock_features.parquet`, `market_features.parquet`) trừ khi
+  `ALLOW_PRODUCTION_WRITE=1` được set hoặc `allow=True` truyền tay. No-op
+  cho mọi path khác (an toàn để gọi vô điều kiện).
+- Rà cả 6 notebook (không chỉ 05/06 — đúng yêu cầu): 04 và 08 ghi ra
+  `data/signals/`/`data/processed/` nhưng **không có consumer nào**
+  (xác nhận qua audit gốc) → đổi hẳn sang `notebooks/outputs/`, không cần
+  guard vì không còn là path production nữa. 05 và 06 (path production
+  thật, có consumer thật) → gắn `guard_production_write()` trước
+  `save_parquet()`, mặc định IN RA THÔNG BÁO RÕ và **không ghi**, thay vì
+  âm thầm ghi đè như trước. 10 và 13 xác nhận lại là read-only, không cần
+  sửa gì.
+- Test (`tests/test_production_guard.py`, 7 test): chặn mặc định, 2 cách
+  opt-in (env var / `allow=True`), no-op cho path không phải production,
+  và **mock chạy notebook** (`test_mock_notebook_run_does_not_write_production_file`)
+  xác nhận `save_parquet` không bao giờ được gọi khi thiếu xác nhận.
+- Xác nhận thật bằng chạy lại cả 5 notebook (`nbconvert --execute --inplace`,
+  không set `ALLOW_PRODUCTION_WRITE`): `data/processed/{stock_features,market_features}.parquet`
+  mtime **không đổi** sau khi chạy — guard hoạt động đúng trong điều kiện
+  thật, không chỉ trong test.
+
+### NV2 (RESOLVED) — guard `close==0` trong `build_market_proxy_benchmark`
+
+Commit `5b630b9`. Áp đúng convention đã dùng ở `add_returns`
+(`src/features/returns.py`): `valid_prices = out[price_col].where(out[price_col] > 0.0)`
+trước khi `pct_change()`, thay vì chia cho giá 0 ra `inf`. Test mới
+(`test_build_market_proxy_benchmark_ignores_zero_close_instead_of_inf`)
+tái tạo đúng pattern lỗi (mã có `close=0` rồi hồi phục) và xác nhận không
+còn `inf`. Chạy lại `10_benchmark_diagnostics.ipynb`:
+`mean_return_spread` **-inf → 0.003895**.
+
+### NV3 (RESOLVED) — hiệu chỉnh ngưỡng entropy theo phân vị thực tế
+
+Commit `b62c2df`. Thêm `derive_entropy_regime_thresholds(series,
+low_percentile, high_percentile)` — hàm xác định thuần (percentile của
+chuỗi entropy thật), cùng loại với `derive_factor_weights` của
+`reversal_quality_score` trước đây: **hiệu chỉnh xác định từ dữ liệu,
+không phải tune theo backtest**. Chạy trên `market_entropy_21d` (toàn bộ
+lịch sử 2020-01→2026-07, N=1611, tái lập được qua
+`scratch/derive_entropy_regime_thresholds.py`):
+
+| | Cũ (0.35/0.70, không rõ nguồn gốc) | Mới (percentile 15/85 của phân phối thật) |
+|---|---|---|
+| `low_threshold` ("Structured") | 0.35 | **0.692** |
+| `high_threshold` ("Chaotic") | 0.70 | **0.818** |
+| Kết quả trên dữ liệu thật | Structured 0 / Transitional 295 / Chaotic 1316 | Structured 230 / Transitional 1153 / Chaotic 228 |
+
+**Cả 2 ngưỡng đều được hiệu chỉnh lại, không chỉ ngưỡng "Structured" bị
+hỏng** — đã thử chỉ sửa ngưỡng thấp và giữ nguyên 0.70, kết quả là
+"Transitional" (0.692→0.70, dải hẹp 0.008) sụp xuống còn ~4% ngày, một dạng
+mất cân bằng mới thay vì sửa xong vấn đề cũ; ghi lại phép thử này trong
+docstring `derive_entropy_regime_thresholds` để không lặp lại nhầm lẫn
+tương tự. `src/reporting/chart_factory.py::entropy_regime_chart` (đường
+tham chiếu trên chart, trước đây hardcode riêng 0.35/0.70 độc lập với
+classifier) giờ import chung 2 hằng số này, kèm nhãn trực tiếp trên chart
+"recalibrated, chua kiem dinh".
+
+**Dán nhãn "chưa kiểm định" ở mọi nơi hiển thị** (đúng yêu cầu NV3):
+- Docstring/comment tại nơi định nghĩa hằng số (`src/analytics/entropy.py`).
+- Annotation trực tiếp trên `entropy_regime_chart`.
+- Print rõ trong `06_market_regime.ipynb` ngay cạnh bảng/chart entropy,
+  trích dẫn `MARKET_REGIME_AUDIT.md`.
+
+Test mới xác nhận ngưỡng mới thực sự "sống" trên dải dữ liệu thật (cũ thì
+không — `test_classify_entropy_regime_default_thresholds_are_calibrated_not_dead`).
+
+**Không đổi**: không có kiểm định IC/backtest nào cho `entropy_regime` được
+thực hiện trong vòng này — mục 5 (đề xuất) ở trên vẫn còn nguyên, chưa làm.
+
+### NV4 — regenerate + nghiệm thu
+
+`python scripts/generate_features.py` (không dùng notebook/nbconvert cho
+bước này, đúng bài học từ sự cố audit trước) — xác nhận
+`data/processed/market_features.parquet` production phản ánh đúng bản sửa
+NV1 (`Risk-on 272`, `Structured 230` — cả NV1 và NV3 cùng có hiệu lực).
+Full suite: **306 passed, 0 failed** (+11 test mới so với baseline ngay
+trước NV1-4, xác nhận qua `git diff abaa6a0 HEAD -- tests/`:
+`test_production_guard.py` 7 test mới, `test_entropy_analytics.py` +3,
+`test_benchmark_diagnostics.py` +1). 3 warning không liên quan (guard
+`forward_return_5d` đã có từ trước, không phải regression của vòng này).
+
+**Adjacent, không sửa (ngoài phạm vi, chỉ ghi nhận)**: `build_market_entropy_profile`
+(`src/analytics/entropy.py` dòng ~126-128) có cùng pattern
+`groupby(symbol)[price_col].pct_change()` không guard `close<=0` như
+`build_market_proxy_benchmark` từng có — nhưng nhánh này hiện KHÔNG bị kích
+hoạt trong thực tế vì cả 2 caller thật (`scripts/generate_features.py`,
+notebook 06) đều truyền `features` đã có sẵn cột `return_1d` (đã được
+`add_returns` guard từ trước), nên `if return_col not in out.columns`
+không bao giờ đúng ở đường dùng thật hiện tại. Không sửa trong vòng này
+(NV2 chỉ giới hạn phạm vi ở `build_market_proxy_benchmark`) — cờ cho vòng
+sau nếu có caller mới truyền dữ liệu thiếu `return_1d`.
+
+**Không xóa**: 4 file mồ côi cũ `data/signals/monte_carlo_*.parquet` (từ
+lần chạy notebook 08 trước khi đổi path sang `notebooks/outputs/`) vẫn còn
+nằm lại trên đĩa, không dùng nữa — không xóa trong vòng này (không được
+yêu cầu, gitignored nên không ảnh hưởng git).
+
+Commit sequence: `36661b6` (guard infra + 04/08 path) → `5b630b9` (NV2) →
+`b62c2df` (NV3) → `d3b59d7` (wiring 05/06/10 + chạy lại lấy bằng chứng) →
+commit tài liệu này.
+
+---
+
+*Audit gốc thực hiện 2026-07-20/21; 3 fix kỹ thuật + hardening thực hiện
+2026-07-21 (cùng ngày, vòng theo dõi trực tiếp). Không có chỉ báo regime
+mới nào được thêm, không có kiểm định predictive power nào được chạy —
+đúng ràng buộc đã cho cho cả 2 vòng.*
