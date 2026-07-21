@@ -799,22 +799,32 @@ nói chung — có bằng chứng xếp hạng, chưa có bằng chứng chiến
 
 ## 2.8. Notebook nào còn dùng được
 
+**Cập nhật 2026-07-21 — đã CHẠY THẬT toàn bộ notebook còn lại (loại
+`02_market_research/`, tự audit riêng) trong sandbox cô lập, không chỉ dựa
+vào banner tự khai. Chi tiết đầy đủ + bằng chứng:
+`docs/reports/codebase_audit/NOTEBOOK_AUDIT_FULL.md`.**
+
 | Notebook | Trạng thái | Mở để làm gì |
 |---|---|---|
-| `notebooks/01_data_pipeline/01_validate_environment.ipynb` | Sống | Kiểm tra môi trường/kết nối dữ liệu trước khi chạy sâu hơn |
-| `notebooks/02_market_research/04_market_distribution.ipynb`, `05_volatility_regime.ipynb`, `06_market_regime.ipynb`, `08_monte_carlo_simulation.ipynb`, `10_benchmark_diagnostics.ipynb`, `13_advanced_quant_analysis.ipynb` | Sống (chưa bị phát hiện lệch code — không đồng nghĩa "đã xác nhận đúng 100%") | Nghiên cứu thị trường thủ công: phân phối lợi nhuận, chế độ biến động/thị trường, mô phỏng Monte Carlo, chẩn đoán benchmark |
-| `notebooks/03_alpha_signals/07_breakout_research.ipynb`, `09_stealth_accumulation_screen.ipynb` | Sống | Nghiên cứu breakout, tầm soát tích lũy âm thầm |
-| `notebooks/03_alpha_signals/12_meta_ranking_optimization.ipynb` | **⚠️ OUTDATED** (banner cảnh báo ở đầu file, xác nhận có tồn tại) | Đọc banner trước khi tin số liệu; không chạy lại rồi dùng kết quả như còn hợp lệ |
-| `notebooks/04_watchlist_portfolio/14_portfolio_construction.ipynb`, `15_risk_management.ipynb`, `16_capital_allocation.ipynb` | Sống | Dựng danh mục, quản trị rủi ro, phân bổ vốn (nghiên cứu/mô phỏng) |
-| `notebooks/04_watchlist_portfolio/19_validation_and_stress_test.ipynb`, `20_portfolio_backtester.ipynb` | **⚠️ OUTDATED** (banner xác nhận có tồn tại) | Tương tự trên — đọc banner trước |
-| `notebooks/05_client_report/01_client_market_report.ipynb` | Sống | Sinh báo cáo thị trường dạng đọc được |
-| `notebooks/00_archive/*` (6 file) | **Đóng băng** (thư mục archive) | Chỉ tham khảo lịch sử, không dùng |
-| `stock-decision-engine/notebooks/stock_buy_decision.ipynb` | Sống, **đã cập nhật Nhánh C** (README + SDE_SCORING_REPORT.md xác nhận) | Tra cứu nhanh bảng chỉ số kỹ thuật/thống kê một mã (Phần 2.2-2.3) — không dùng để quyết định mua/bán |
+| `notebooks/01_data_pipeline/01_validate_environment.ipynb` | Sống — **đã chạy thật, xác nhận đúng** | Kiểm tra môi trường/kết nối dữ liệu trước khi chạy sâu hơn |
+| `notebooks/02_market_research/04_market_distribution.ipynb`, `05_volatility_regime.ipynb`, `06_market_regime.ipynb`, `08_monte_carlo_simulation.ipynb`, `10_benchmark_diagnostics.ipynb`, `13_advanced_quant_analysis.ipynb` | Sống — đã audit riêng (`MARKET_REGIME_AUDIT.md`), 3 bug kỹ thuật đã sửa | Nghiên cứu thị trường thủ công: phân phối lợi nhuận, chế độ biến động/thị trường, mô phỏng Monte Carlo, chẩn đoán benchmark |
+| `notebooks/03_alpha_signals/07_breakout_research.ipynb`, `09_stealth_accumulation_screen.ipynb` | Sống — **đã chạy thật, xác nhận đúng** (07 mất ~18 phút thật — cần timeout dài nếu tự động hóa) | Nghiên cứu breakout, tầm soát tích lũy âm thầm |
+| `notebooks/03_alpha_signals/12_meta_ranking_optimization.ipynb` | **❌ BROKEN** — `ModuleNotFoundError` xác nhận qua chạy thật (cell tìm project-root dùng logic yếu hơn các notebook khác, sai khi cwd không đúng tên `notebooks`); banner OUTDATED cũ vẫn đúng một phần (cột hiển thị) | Không dùng cho tới khi sửa cell project-root; xem `NOTEBOOK_AUDIT_FULL.md` |
+| `notebooks/04_watchlist_portfolio/14_portfolio_construction.ipynb`, `15_risk_management.ipynb`, `16_capital_allocation.ipynb` | Sống — **đã chạy thật, xác nhận đúng** (15 đã tự động kế thừa fix `ddof=1`) | Dựng danh mục, quản trị rủi ro, phân bổ vốn (nghiên cứu/mô phỏng) |
+| `notebooks/04_watchlist_portfolio/19_validation_and_stress_test.ipynb` | **❌ BROKEN** — không hoàn thành trong 30 phút (gọi `run_breakout_research` với dữ liệu giá thô chưa tính đặc trưng, đúng lẽ phải dùng `features` đã tính sẵn như notebook 07) | Không dùng cho tới khi sửa tham số đầu vào |
+| `notebooks/04_watchlist_portfolio/20_portfolio_backtester.ipynb` | **❌ BROKEN** — `ValueError` xác nhận qua chạy thật: thiếu `benchmark_features=`, tham số bắt buộc từ khi commit `bef0de6` gỡ fallback benchmark ngầm (đúng loại "gọi hàm lỗi thời" như vụ `06_market_regime`) | Không dùng cho tới khi sửa lệnh gọi `run_portfolio_backtest` |
+| `notebooks/05_client_report/01_client_market_report.ipynb` | Sống — **đã chạy thật, xác nhận đúng** | Sinh báo cáo thị trường dạng đọc được |
+| `notebooks/00_archive/00_project_overview.ipynb`, `18_client_watchlist_report.ipynb` | Đóng băng — đã chạy thật, 0 lỗi, chỉ tham khảo lịch sử | Không dùng, đã có bản thay thế |
+| `notebooks/00_archive/11_trade_card_generation.ipynb` | Đóng băng — đã chạy thật, 0 lỗi, nhưng đã có `scripts/generate_trade_cards.py` thay thế hoàn toàn | Không dùng |
+| `notebooks/00_archive/17_live_watchlist_dashboard.ipynb` | **❌ BROKEN** — `AttributeError` xác nhận qua chạy thật (cột `forward_return_20d` không còn trong schema hiện tại) | Không dùng |
+| `notebooks/00_archive/02_fetch_daily_ohlcv.ipynb`, `03_clean_validate_data.ipynb` | **⚠️ RỦI RO GHI-ĐÈ-PRODUCTION** — ghi thẳng `data/processed/clean_daily_ohlcv.parquet` không qua guard; `03_*` còn âm thầm tạo dữ liệu RỖNG vì đọc thư mục nguồn đã bị thay thế | **KHÔNG BAO GIỜ chạy tay hai file này** cho tới khi guard được mở rộng — xem `NOTEBOOK_AUDIT_FULL.md` |
+| `stock-decision-engine/notebooks/stock_buy_decision.ipynb` | Sống, **đã cập nhật Nhánh C** (README + SDE_SCORING_REPORT.md xác nhận) — đã chạy thật, 0 lỗi | Tra cứu nhanh bảng chỉ số kỹ thuật/thống kê một mã (Phần 2.2-2.3) — không dùng để quyết định mua/bán |
 
-**Với notebook "Sống" không có banner cảnh báo**: nghĩa là *chưa bị phát
-hiện* lệch với code hiện tại, KHÔNG đồng nghĩa "đã xác nhận đúng 100%" —
-nếu nghi ngờ một con số trong đó, đối chiếu với report tương ứng ở bản đồ
-hồ sơ `PROJECT_STATE.md` mục 5 trước khi tin.
+**Với notebook "Sống — đã chạy thật, xác nhận đúng"**: nghĩa là đã chạy
+top-to-bottom trong sandbox cô lập, chữ ký hàm khớp `src/` hiện tại, không
+lỗi — KHÔNG đồng nghĩa "kết quả có giá trị dự báo đã kiểm định", chỉ là
+"chạy đúng kỹ thuật". Nếu nghi ngờ một con số trong đó, đối chiếu với report
+tương ứng ở bản đồ hồ sơ `PROJECT_STATE.md` mục 5 trước khi tin.
 
 **Với notebook đi theo nhóm cell** (áp dụng cho các notebook nghiên cứu
 thị trường/portfolio): cấu trúc chung là *nhập liệu* (đọc parquet/CSV từ

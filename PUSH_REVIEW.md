@@ -1744,3 +1744,68 @@ luận). 4 nhiệm vụ, mỗi nhiệm vụ 1 commit, không push:
 
 **Không đụng**: Finding #2/#3 (annualization hardcode, percentile
 tie-handling) — vẫn ngoài phạm vi, còn trong danh sách chờ.
+
+## Audit toàn bộ notebook còn lại (13 file, cả 2 dự án) — 2026-07-21
+
+**Bối cảnh**: sau `MARKET_REGIME_AUDIT.md` (6 notebook `02_market_research/`,
+2 bug nghiêm trọng), nghi ngờ hợp lý các notebook khác chưa từng được audit
+tương tự. Vòng này: kiểm kê + chạy thật top-to-bottom toàn bộ 13 notebook
+còn lại (dự án chính + `stock-decision-engine/`), **audit thuần** — không
+sửa logic, không xóa gì. Báo cáo đầy đủ:
+`docs/reports/codebase_audit/NOTEBOOK_AUDIT_FULL.md`.
+
+**Bài học phương pháp áp dụng ngay từ đầu** (rút từ chính sự cố
+`MARKET_REGIME_AUDIT.md`): mọi notebook chạy trong sandbox cô lập (rsync
+toàn bộ repo vào scratch, `nbconvert` chạy BÊN TRONG sandbox, không bao giờ
+trỏ vào thư mục gốc thật). Đã xác nhận bằng đối chiếu mtime/`git status`/
+`git diff` thư mục gốc thật trước/sau mỗi lần chạy — 0 file thật nào bị đổi
+trong suốt vòng audit, kể cả khi 2 notebook cố ý thử ghi đè production.
+
+**Phát hiện nguy cơ ghi-đè-production — đã báo NGAY, dừng lại chờ xác nhận
+trước khi quét tiếp** (đúng bài học cũ, không đợi hết audit mới báo): 2
+notebook trong `00_archive/` (`02_fetch_daily_ohlcv.ipynb`,
+`03_clean_validate_data.ipynb`) ghi thẳng `data/processed/clean_daily_ohlcv.parquet`
+— 1 trong 3 path chính thức — **hoàn toàn không qua `guard_production_write()`**,
+xác nhận `guard` hiện chỉ được wire vào 2 notebook của `02_market_research/`,
+chưa từng mở rộng ra chỗ khác. `03_*` còn âm thầm tạo dữ liệu RỖNG (đọc từ
+`data/raw/daily_ohlcv/` — đã bị `full_history_v2` thay thế, giờ rỗng hoàn
+toàn) mà không raise lỗi nào. Người dùng xác nhận: ghi nhận, tiếp tục quét
+phần còn lại, không sửa trong vòng này.
+
+**Kết quả (13 notebook)**: 10 VALIDATED (chạy đúng, khớp `src/` hiện tại —
+gồm `15_risk_management.ipynb` tự động kế thừa fix `ddof=1` vì import trực
+tiếp từ `src.risk.management`, không có phép tính cục bộ nào), 4 BROKEN xác
+nhận qua chạy thật:
+- `12_meta_ranking_optimization.ipynb` — `ModuleNotFoundError` (cell
+  project-root dùng logic yếu hơn chuẩn `find_project_root()` của các
+  notebook khác).
+- `19_validation_and_stress_test.ipynb` — không hoàn thành trong 30 phút
+  (truyền dữ liệu giá thô thay vì `features` đã tính sẵn vào
+  `run_breakout_research`).
+- `20_portfolio_backtester.ipynb` — `ValueError` vì thiếu `benchmark_features=`,
+  tham số bắt buộc từ commit `bef0de6` gỡ fallback benchmark ngầm — **đúng
+  loại "gọi hàm lỗi thời" y hệt vụ `06_market_regime`**.
+- `17_live_watchlist_dashboard.ipynb` (`00_archive/`) — `AttributeError` vì
+  cột `forward_return_20d` không còn trong schema hiện tại.
+
+Cộng 1 CONVERTED_TO_SCRIPT (`11_trade_card_generation.ipynb`, đã có
+`scripts/generate_trade_cards.py` thay thế) và 2 rủi ro-ghi-đè-production
+nêu trên. Không tìm thấy look-ahead/full-sample-normalize nào trong bất kỳ
+notebook nào chạy hoàn chỉnh.
+
+**Sự cố phương pháp đáng ghi lại (không phải sự cố an toàn — không có gì
+mất)**: 2 lần đầu (`07_breakout_research.ipynb` timeout 600s mặc định,
+`12_meta_ranking_optimization.ipynb` lỗi import) đọc nhầm output CŨ đã lưu
+sẵn trong `.ipynb` (từ lần chạy thật gần nhất của người dùng) là "output vừa
+chạy", vì `nbconvert` không ghi file khi gặp lỗi/timeout không bắt được. Đã
+xác minh lại bằng traceback thật trong log terminal + đối chiếu mtime trước
+khi kết luận — không có gì bị ghi sai ở đâu cả, chỉ là hiểu nhầm tạm thời
+trong lúc audit, được tự sửa trước khi báo cáo.
+
+**Đã cập nhật**: `docs/PROJECT_HANDBOOK.md` mục 2.8 (bảng trạng thái
+notebook, khớp kết quả chạy thật thay vì chỉ dựa vào banner tự khai).
+
+**Đề xuất chưa làm (để vòng sau)**: mở rộng `guard_production_write()`/
+`PROTECTED_PATHS` ra ngoài `02_market_research/`; sửa 4 notebook BROKEN;
+cân nhắc archive/xóa 2 notebook rủi ro cao + `11_trade_card_generation.ipynb`.
+Chi tiết đầy đủ trong `NOTEBOOK_AUDIT_FULL.md`.
