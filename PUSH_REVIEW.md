@@ -1695,3 +1695,52 @@ Finding #1 — không phải tune. 5 nhiệm vụ, mỗi nhiệm vụ 1 commit, 
 hardcode) và Finding #3 (percentile tie-handling) — vẫn nguyên trong danh
 sách chờ của `GSQUANT_REFERENCE_CHECK.md`, không tự sửa lẫn vào để giữ commit
 sạch, dễ review.
+
+## Đóng hồ sơ họ bug ddof (vòng 2/2) — sửa CI đã công bố + quét lần cuối — 2026-07-21
+
+NV4 vòng trước phát hiện `scratch/dsr_and_bootstrap_v2.py:125` dùng
+`ddof=0` mặc định của numpy, ăn trực tiếp vào một khoảng tin cậy ĐÃ CÔNG BỐ
+trong `ROBUSTNESS_REPORT.md` — khác các fix trước ở chỗ nó chạm tới ranh
+giới kết luận, không chỉ một số hiển thị. Vòng này sửa + định lượng, đúng
+RÀNG BUỘC (sửa lỗi tính toán đã xác định, không tune, không mở lại kết
+luận). 4 nhiệm vụ, mỗi nhiệm vụ 1 commit, không push:
+
+1. **NV1 (commit `4057031`)** — trước khi sửa, grep lại toàn bộ `scratch/`
+   cho mọi `.std(`/`.var(`/`.cov(` (không chỉ dòng 125 đã nêu) — xác nhận
+   đây là điểm DUY NHẤT trong `scratch/` thuộc họ bug (mọi chỗ khác đã
+   `ddof=1` tường minh, hoặc cặp `.rolling().cov()`/`.rolling().var()` cho
+   beta — bất biến với ddof). Sửa `sims.std(axis=1)` → `sims.std(axis=1,
+   ddof=1)`.
+2. **NV2 (commit `4f3994c`)** — định lượng tác động lên kết luận ĐÃ CÔNG BỐ:
+   chạy lại đúng script gốc (cùng seed=42, cùng dữ liệu, cùng cửa sổ
+   backtest — N=1,120 không đổi, xác nhận không có data drift từ lần chạy
+   gốc 16/7). Sharpe CI: cũ `[−0.5907, +1.3172]` → mới `[−0.5905, +1.3167]`
+   — lệch ±0.045%, khớp gần như tuyệt đối hệ số lý thuyết
+   `sqrt(1120/1119)=1.000447` (mọi giá trị Sharpe mô phỏng dùng chung
+   `horizon_days=N`, nên co giãn theo đúng 1 hệ số hằng — lý thuyết và số
+   chạy lại thật khớp nhau). **Cả CI cũ và mới đều chứa 0 — kết luận không
+   đổi.** DSR=0.0083 không đổi (tính độc lập, đã `ddof=1` từ đầu). Cập nhật
+   số vào `ROBUSTNESS_REPORT.md`, dán nhãn rõ "đã sửa lỗi tính toán, không
+   phải nghiên cứu mới".
+3. **NV3 (commit `5438775` + `84d5e1d`)** — quét lần cuối TOÀN repo (`src/`,
+   `scripts/`, `scratch/`, `notebooks/`, `stock-decision-engine/`) cho mọi
+   `.std(`/`.var(`/`.cov(` không chỉ chỗ có sẵn `ddof`. Sửa thêm 4 điểm để
+   đóng hồ sơ dứt điểm: `src/simulation/bootstrap.py:81`
+   (`summarize_simulation`, cùng pattern numpy-mặc-định-ddof=0),
+   `scripts/build_portfolio_stack.py:98` (fallback path thật, hiếm kích
+   hoạt), `src/analytics/entropy.py:15` (dead code — 0 lời gọi, sửa chỉ để
+   nhất quán), `stock-decision-engine/src/features.py:158` (trùng công thức
+   với `risk.py:14` đã sửa vòng 1). Mọi `.std(`/`.var(`/`.cov(` còn lại
+   trong repo đã xác nhận an toàn (pandas mặc định `ddof=1`, hoặc tỷ số
+   cov/var bất biến với ddof) — liệt kê đầy đủ trong
+   `GSQUANT_REFERENCE_CHECK.md`. **Không còn điểm nào cần theo dõi.**
+   `tests/test_ddof_consistency.py` mở rộng: AST scanner giờ phủ 7 file,
+   thêm scanner riêng chặn `.std()`/`.var()` KHÔNG có `ddof` trên 2 file
+   thao tác mảng numpy thô, 11 test snapshot mới.
+4. **NV4 (commit `84d5e1d`, cùng đợt với tài liệu)** — full suite: **326
+   passed** (315 trước đó + 11 test mới), 0 fail. `ROBUSTNESS_REPORT.md` và
+   `GSQUANT_REFERENCE_CHECK.md` cập nhật đầy đủ, Finding #1 (họ bug ddof)
+   **ĐÃ ĐÓNG HỒ SƠ HOÀN TOÀN** qua 2 vòng.
+
+**Không đụng**: Finding #2/#3 (annualization hardcode, percentile
+tie-handling) — vẫn ngoài phạm vi, còn trong danh sách chờ.
