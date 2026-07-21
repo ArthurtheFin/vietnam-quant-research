@@ -78,7 +78,7 @@ def summarize_simulation(simulated_equity_paths: np.ndarray) -> dict[str, float]
     return {
         "mean_return": float(final_returns.mean()),
         "median_return": float(np.median(final_returns)),
-        "std_return": float(final_returns.std()),
+        "std_return": float(final_returns.std(ddof=1)),
         "p_loss": float((final_returns < 0.0).mean()),
         "p_gain": float((final_returns > 0.0).mean()),
         "worst_return": float(final_returns.min()),

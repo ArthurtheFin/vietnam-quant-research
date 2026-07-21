@@ -95,7 +95,7 @@ def _resolve_inverse_vol_input(
         "atr_pct_14 missing from candidates; using annualized realized vol "
         "from return matrix for inverse-volatility allocation"
     )
-    realized = return_matrix.std(ddof=0) * np.sqrt(252.0)
+    realized = return_matrix.std(ddof=1) * np.sqrt(252.0)
     return realized.replace(0.0, np.nan).fillna(0.02)
 
 

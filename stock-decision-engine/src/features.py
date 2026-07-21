@@ -155,7 +155,7 @@ def _latest_metrics(s: pd.DataFrame, b: pd.DataFrame, rs: pd.DataFrame, perf: di
         "ewma_vol": _f(row.get("ewma_vol")),
         "volatility_percentile": _f(row.get("volatility_percentile")),
         "max_drawdown": _f(s["drawdown"].min()),
-        "downside_deviation": float(returns[returns < 0].std(ddof=0) * np.sqrt(252)) if len(returns[returns < 0]) else 0.0,
+        "downside_deviation": float(returns[returns < 0].std(ddof=1) * np.sqrt(252)) if len(returns[returns < 0]) else 0.0,
         "var_95": _f(var95),
         "cvar_95": _f(cvar95),
         "skewness": _f(returns.skew()),

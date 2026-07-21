@@ -12,7 +12,7 @@ def _clip_quantile_edges(series: pd.Series, lower_q: float = 0.01, upper_q: floa
     hi = float(clean.quantile(upper_q))
     if not np.isfinite(lo) or not np.isfinite(hi) or lo == hi:
         center = float(clean.median()) if not clean.empty else 0.0
-        spread = float(clean.std(ddof=0)) if len(clean) > 1 else 1.0
+        spread = float(clean.std(ddof=1)) if len(clean) > 1 else 1.0
         spread = spread if np.isfinite(spread) and spread > 0 else 1.0
         lo = center - 3 * spread
         hi = center + 3 * spread
