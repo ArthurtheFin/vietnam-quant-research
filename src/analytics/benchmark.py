@@ -85,13 +85,31 @@ def build_market_proxy_benchmark(
     return_col: str = "return_1d",
     price_col: str = "close",
 ) -> pd.DataFrame:
+    """NV2 fix (docs/reports/codebase_audit/MARKET_REGIME_AUDIT.md): when
+    `return_col` isn't already present, this used to compute
+    `close.pct_change()` with no guard against non-positive prices. 387 rows
+    in clean_daily_ohlcv.parquet have close==0 (166 symbols, all in the
+    2020-01/02 data-warmup window) -- the day after one of those, pct_change
+    divides by zero and returns +inf. A single +inf symbol-day is enough to
+    poison the cross-sectional mean() below for that whole date, which
+    previously showed up as `market_proxy_return_1d=inf` on 25 real trading
+    days and `mean_return_spread=-inf` in
+    10_benchmark_diagnostics.ipynb's summary.
+
+    Fix: same convention already used by `add_returns`
+    (src/features/returns.py) for the identical non-positive-price problem --
+    NaN out any price <= 0 before pct_change(), so the return (and the day's
+    close-to-close transition either side of it) becomes NaN instead of inf,
+    and the groupby().mean() below skips it like any other missing value.
+    """
     if price_df.empty:
         return pd.DataFrame()
     out = price_df.copy()
     out[date_col] = pd.to_datetime(out[date_col])
     if return_col not in out.columns:
         out = out.sort_values(["symbol", date_col]).copy()
-        out[return_col] = out.groupby("symbol")[price_col].pct_change()
+        valid_prices = out[price_col].where(out[price_col] > 0.0)
+        out[return_col] = valid_prices.groupby(out["symbol"]).pct_change(fill_method=None)
     proxy = (
         out.groupby(date_col)[return_col]
         .mean()
