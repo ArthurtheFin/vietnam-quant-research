@@ -84,10 +84,58 @@ def add_entropy_features(
     return out
 
 
+def derive_entropy_regime_thresholds(
+    entropy_series: pd.Series,
+    low_percentile: float = 15.0,
+    high_percentile: float = 85.0,
+) -> tuple[float, float]:
+    """Compute (low_threshold, high_threshold) for `classify_entropy_regime`
+    as percentiles of an actual entropy series, instead of a hardcoded
+    constant with no cited source.
+
+    Deterministic recalibration from data, NOT a predictive-power tune (see
+    docs/reports/codebase_audit/MARKET_REGIME_AUDIT.md NV3 -- same category of
+    fix as `derive_factor_weights` for `reversal_quality_score`'s
+    DEFAULT_WEIGHTS: re-run this against a fresh entropy series and rehardcode
+    the result in `classify_entropy_regime`'s defaults below when there's a
+    reason to -- e.g. materially more history -- not to chase a backtest
+    result. Both percentiles default to 15/85 (rather than only recalibrating
+    the low side) because leaving the old high_threshold=0.70 fixed while
+    only moving the low one was checked and rejected: 0.70 sits at roughly
+    the 20th percentile of the real distribution (i.e. barely "high" at
+    all), so pairing it with a data-derived low threshold produced a new,
+    near-empty "Transitional" bucket (~4% of days) instead of fixing the
+    imbalance.
+    """
+    s = pd.to_numeric(entropy_series, errors="coerce").dropna()
+    if s.empty:
+        raise ValueError("entropy_series has no non-null values to derive thresholds from")
+    low = float(s.quantile(low_percentile / 100.0))
+    high = float(s.quantile(high_percentile / 100.0))
+    return low, high
+
+
+# Derived 2026-07-21 via derive_entropy_regime_thresholds() on
+# data/processed/market_features.parquet's market_entropy_21d column (full
+# available history, 2020-01-02 -> 2026-07-17, N=1611 non-null days) --
+# reproducible in scratch/derive_entropy_regime_thresholds.py. Replaces the
+# old 0.35 / 0.70 constants, which no report or commit in this project
+# explained the origin of (confirmed by grep across docs/ and audit/,
+# docs/reports/codebase_audit/MARKET_REGIME_AUDIT.md NV3) and which were
+# empirically broken: "Structured" (<=0.35) never fired once across the
+# full 6.5-year history (observed market_entropy_21d range was
+# [0.529, 0.896] -- always above 0.35). These new values are a deterministic
+# recalibration to the actual data distribution -- they have NOT been tested
+# for predictive/forecasting power. Do not use entropy_regime as a trading
+# signal on the strength of this fix alone; see MARKET_REGIME_AUDIT.md.
+ENTROPY_REGIME_LOW_THRESHOLD = 0.692
+ENTROPY_REGIME_HIGH_THRESHOLD = 0.818
+
+
 def classify_entropy_regime(
     entropy_series: pd.Series,
-    low_threshold: float = 0.35,
-    high_threshold: float = 0.70,
+    low_threshold: float = ENTROPY_REGIME_LOW_THRESHOLD,
+    high_threshold: float = ENTROPY_REGIME_HIGH_THRESHOLD,
 ) -> pd.Series:
     s = pd.to_numeric(entropy_series, errors="coerce")
     out = pd.Series("Unknown", index=s.index, dtype=object)

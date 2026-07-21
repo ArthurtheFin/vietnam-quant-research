@@ -19,9 +19,12 @@ from src.analytics.advanced import (
     screen_pair_divergences,
 )
 from src.analytics.entropy import (
+    ENTROPY_REGIME_HIGH_THRESHOLD,
+    ENTROPY_REGIME_LOW_THRESHOLD,
     add_entropy_features,
     build_market_entropy_profile,
     classify_entropy_regime,
+    derive_entropy_regime_thresholds,
     detect_entropy_regime_shift,
     rolling_shannon_entropy,
 )

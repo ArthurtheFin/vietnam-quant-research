@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 
+from src.analytics.entropy import ENTROPY_REGIME_HIGH_THRESHOLD, ENTROPY_REGIME_LOW_THRESHOLD
+
 
 def return_distribution_chart(df: pd.DataFrame, return_col: str = "return_1d"):
     return px.histogram(df.dropna(subset=[return_col]), x=return_col, nbins=60, title=f"Distribution of {return_col}")
@@ -413,8 +415,23 @@ def entropy_regime_chart(
                 opacity=0.55,
             )
         )
-    fig.add_hline(y=0.35, line_dash="dash", line_color="#457b9d")
-    fig.add_hline(y=0.70, line_dash="dash", line_color="#c1121f")
+    # Thresholds mirror classify_entropy_regime's defaults (src/analytics/entropy.py)
+    # -- recalibrated from the real data distribution, NOT predictive-power
+    # tested. See docs/reports/codebase_audit/MARKET_REGIME_AUDIT.md NV3.
+    fig.add_hline(
+        y=ENTROPY_REGIME_LOW_THRESHOLD,
+        line_dash="dash",
+        line_color="#457b9d",
+        annotation_text="Structured threshold (recalibrated, chua kiem dinh)",
+        annotation_position="bottom right",
+    )
+    fig.add_hline(
+        y=ENTROPY_REGIME_HIGH_THRESHOLD,
+        line_dash="dash",
+        line_color="#c1121f",
+        annotation_text="Chaotic threshold (recalibrated, chua kiem dinh)",
+        annotation_position="top right",
+    )
     fig.update_layout(title=title, xaxis_title="Date", yaxis_title="Normalized entropy", template="plotly_white")
     return fig
 
