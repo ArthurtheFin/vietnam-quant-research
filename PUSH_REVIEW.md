@@ -1420,3 +1420,74 @@ mục 2.3 (ACB, 2026-07-17).
 **Nghiệm thu cuối**: xem báo cáo cuối trong phiên làm việc (số trang/từ, danh
 sách [chưa xác minh]/[suy luận] còn lại, 3 câu tự kiểm). Commit riêng từng
 lô + sự cố + PDF + cập nhật tài liệu khác, không push.
+
+## Audit `notebooks/02_market_research/` — 2026-07-20/21
+
+**Audit thuần** (không sửa logic, không backtest mới, không xóa gì) cho 6
+notebook đo market regime/thị trường: `04_market_distribution`,
+`05_volatility_regime`, `06_market_regime`, `08_monte_carlo_simulation`,
+`10_benchmark_diagnostics`, `13_advanced_quant_analysis`. Báo cáo đầy đủ:
+`docs/reports/codebase_audit/MARKET_REGIME_AUDIT.md`.
+
+**Sự cố trong lúc audit (đã xử lý, không có gì mất)**: chạy thật cả 6
+notebook qua `jupyter nbconvert --execute` để xác nhận "chạy được không"
+(NV1) vô tình ghi đè 2 file production thật vì mỗi notebook tự `os.chdir()`
+về project root rồi ghi output bằng đường dẫn tương đối — không phải sandbox
+như dự kiến. `data/processed/stock_features.parquet` (từ notebook 05) bị
+ghi đè bằng bản THIẾU CỘT so với bản chính thức (~25-30 cột so với 49 cột
+thật). `data/processed/market_features.parquet` (từ notebook 06) bị ghi đè
+bằng bản CÓ BUG ĐÃ BIẾT (`market_regime` 0 ngày Risk-on — xem finding chính
+dưới đây). Báo ngay cho người dùng trước khi đi tiếp (AskUserQuestion), được
+xác nhận chạy `python scripts/generate_features.py` — đúng con đường
+production tạo 2 file này (đọc `full_history_v2`, không phải backtest/test
+mới) — để khôi phục đúng. Xác nhận lại sau khi chạy: `stock_features.parquet`
+đủ 49 cột, `market_regime` ra đủ 3 nhãn (`Neutral 857/Risk-off 503/Risk-on
+272`). Cả 2 file đều gitignored, không có gì cần commit cho việc khôi phục
+này.
+
+**Finding chính (INCORRECT, xác nhận bằng chạy thật + đối chiếu commit)**:
+`06_market_regime.ipynb` gọi `add_market_regime(breadth)` **thiếu tham số
+`benchmark=`** — tái hiện đúng bug đã biết và đã sửa ở `src/models/regime.py`
+(docstring dòng 25-30: thiếu benchmark → `index_above_ma50/200` luôn False →
+"Risk-on structurally unreachable"). Notebook cuối sửa `b437c5d`
+(2026-07-01), fix ở `regime.py` là commit `86412ed` (2026-07-09) — notebook
+có trước fix 8 ngày, chưa bao giờ được cập nhật theo. Hệ quả: mỗi lần ai đó
+chạy tay notebook này, `market_features.parquet` (dùng bởi
+`run_stealth_accumulation_screen.py`'s `regime_pass` filter) bị âm thầm ghi
+đè về trạng thái pre-fix.
+
+**Finding thứ 2 (bug số liệu, notebook 10)**: `mean_return_spread = -inf`
+hiển thị thật trong `10_benchmark_diagnostics.ipynb`. Truy nguyên: 387 dòng
+`close==0` trong `clean_daily_ohlcv.parquet` (166 mã, toàn bộ 2020-01-13 →
+2020-02-25, warmup era — đã biết qua `validate_ohlcv`'s `non_positive_close`
+metric từ trước) tạo `return_1d=inf` khi giá về dương ngày kế tiếp;
+`build_market_proxy_benchmark` (`src/analytics/benchmark.py`) không có guard
+chống inf khi lấy trung bình cross-sectional (khác với `_clean_benchmark_returns`
+cùng file, CÓ guard cho phía benchmark) → 25 ngày Jan-Mar 2020 có
+`market_proxy_return_1d=inf`, kéo `mean_return_spread` cả kỳ xuống `-inf`.
+
+**Entropy (yêu cầu riêng của người dùng)**: `market_entropy_regime`
+(`src/analytics/entropy.py`) — nhãn "Structured" (ngưỡng ≤0.35) **chưa bao
+giờ xuất hiện trong 6.5 năm dữ liệu thật**, ở cả 3 cửa sổ 21d/63d/126d (min
+đo được: 0.455-0.529, luôn trên ngưỡng). Về thực hành chỉ hoạt động như bộ
+phân loại 2 nhãn (Transitional/Chaotic). Nghi vấn kỹ thuật (chưa kiểm chứng
+riêng): `n_bins=24` cố định trong khi `window=21` cho tỷ lệ mẫu/bin <1 —
+thiên lệch dương đã biết của ước lượng Shannon entropy từ histogram thưa
+mẫu. Ngoài ra: chưa từng được kiểm định khả năng dự báo ở đâu trong dự án
+(`FOLD_AUTOPSY_REPORT.md` test 3 label khác nhưng không test entropy — đây
+là khoảng trống thật, không phải đã-test-và-fail).
+
+**Phân loại đầy đủ + trùng lặp với report cũ** (breadth/vol-regime đã thử ở
+`FOLD_AUTOPSY_REPORT`, momentum đã thất bại ở `FACTOR_RETEST_V2_REPORT`,
+breadth-collapse persistence overlay ở `CRASH_RISK_RESEARCH_REPORT`): xem
+bảng đầy đủ trong `MARKET_REGIME_AUDIT.md` NV2. Không tìm thấy look-ahead
+(full-sample normalize) nào trong 6 notebook — toàn bộ dùng rolling/expanding
+đúng cách.
+
+**Đề xuất chưa làm** (ưu tiên theo chi phí S trước): (1) sửa notebook 06
+truyền `benchmark=`; (2) thêm guard inf vào `build_market_proxy_benchmark`;
+(3) đồng bộ cột output notebook 05 với `generate_features.py` hoặc đổi path
+để không trùng file production; (4) đổi output path notebook 04/08 ra khỏi
+`data/processed/`/`data/signals/` (xác nhận không consumer nào đọc lại);
+(5-8) prereg mới cho entropy/pair-divergence/monte-carlo out-of-sample/
+breadth-persistence overlay — việc lớn hơn, để vòng sau quyết định.
