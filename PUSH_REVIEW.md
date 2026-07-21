@@ -1639,3 +1639,59 @@ mỗi nhiệm vụ 1 commit, không push:
 Không có thay đổi code, không có phân tích/chạy script mới, không đổi bất
 kỳ kết luận PASS/FAIL nào của hồ sơ #9. Full suite không cần chạy lại
 (chỉ sửa 2 file tài liệu).
+
+## Chuẩn hóa ddof=1 (Finding #1 GSQUANT_REFERENCE_CHECK) + hợp nhất 2 implementation Sharpe — 2026-07-21
+
+Sửa kỹ thuật thuần theo bằng chứng đã có từ `GSQUANT_REFERENCE_CHECK.md`
+Finding #1 — không phải tune. 5 nhiệm vụ, mỗi nhiệm vụ 1 commit, không push:
+
+1. **NV1 (commit `d69f85e`)** — trước khi sửa, grep TƯƠI lại toàn bộ 10 điểm
+   (không tin report suông) — khớp chính xác với report gốc. Đổi `ddof=0`→
+   `ddof=1` ở `src/risk/management.py` (6 điểm: `annualized_volatility`,
+   `sharpe_ratio`, `rolling_sharpe_series`, `expanding_sharpe_series`,
+   `sharpe_stability_report`, `portfolio_beta`'s guard) và
+   `stock-decision-engine/src/risk.py` (4 điểm: `downside_deviation`, vol
+   trong `ratios()`, `information_ratio`, `tracking_error`). KHÔNG đụng
+   `sortino_ratio`'s downside deviation (dùng `np.mean`, đúng convention
+   Sortino chuẩn — chia cho N đầy đủ, không phải lựa chọn biased/unbiased std
+   — không phải cùng loại vấn đề) hay `src/analytics/entropy.py:15`/
+   `scripts/build_portfolio_stack.py:98` (cùng loại `ddof=0` nhưng KHÔNG nằm
+   trong 10 điểm đã nêu — ngoài phạm vi, để lại cho vòng sau).
+2. **NV2 (commit `fe253e5`)** — `scripts/main_visual_dashboard.py`'s
+   `calculate_sharpe_ratio` (implementation Sharpe độc lập thứ 2) gỡ bỏ hoàn
+   toàn, thay bằng import `sharpe_ratio` từ `src.risk.management` trực tiếp
+   — đúng nguyên tắc "một nguồn sự thật" đã dùng cho Gate #6. Xác nhận đại số
+   trước khi sửa: 2 công thức đã tương đương toán học từ trước (chỉ khác
+   `ddof`), giờ cho ra CÙNG một function object.
+3. **NV3 (commit `fb8bce8`)** — `tests/test_ddof_consistency.py` (9 test):
+   AST-scan 2 file đã sửa chặn tái xuất hiện `ddof=0`; snapshot test so khớp
+   công thức unbiased qua numpy độc lập (sai số <1e-9); test xác nhận `ddof`
+   thật sự đổi số (không phải no-op, và luôn đúng chiều "ddof=0 thổi phồng
+   Sharpe"); test xác nhận 2 nơi gọi Sharpe giờ là cùng 1 function object
+   (không chỉ cùng kết quả).
+4. **NV4 (commit `2dfc6bc`)** — đánh giá tác động ngược, truy chuỗi import
+   THẬT (không suy đoán): `WATCHLIST_VALIDATION_REPORT.md` không dùng module
+   bị ảnh hưởng; `SCORE_V2_REPORT.md` chỉ trích dẫn số từ `ROBUSTNESS_REPORT.md`;
+   **`ROBUSTNESS_REPORT.md`'s Sharpe=0.32 (N=1,120) CÓ đi qua hàm đã sửa**
+   (`scratch/dsr_and_bootstrap_v2.py` → `run_portfolio_backtest` →
+   `calculate_sharpe` → `src.risk.management.sharpe_ratio`) — lệch định
+   lượng `sqrt(1120/1119)≈1.00045` (+0.045%), dưới độ chính xác hiển thị của
+   report, **không đổi kết luận DSR=0.0083** (tính độc lập, đã `ddof=1` từ
+   trước) **hay kết luận "CI chứa 0"**. Không chạy lại backtest nào (đúng
+   yêu cầu) — lệch tính trực tiếp từ N đã biết. Không tìm thấy report nào
+   dùng cửa sổ ngắn N<63 làm căn cứ quyết định (grep toàn `docs/` cho tên
+   field `sharpe_stability_score`/`rolling_sharpe_latest`/
+   `expanding_sharpe_latest` ra rỗng) — không cần gắn cờ riêng.
+   **Phát hiện phụ mới, chưa sửa**: `scratch/dsr_and_bootstrap_v2.py:125`
+   dùng `numpy.std(axis=1)` mặc định `ddof=0` (khác pandas!) để sinh khoảng
+   CI Sharpe đã công bố `[−0.59, +1.32]` — file này KHÔNG nằm trong 10 điểm
+   NV1, không do vòng này gây ra, cũng chưa sửa — cờ cho vòng sau, chưa định
+   lượng độ lệch.
+5. **NV5 (commit `2dfc6bc`, cùng commit với NV4)** — cập nhật
+   `GSQUANT_REFERENCE_CHECK.md` đánh dấu Finding #1 RESOLVED kèm commit. Full
+   suite: **315 passed** (306 trước đó + 9 test mới), 0 fail.
+
+**Không đụng trong vòng này** (đúng RÀNG BUỘC): Finding #2 (annualization
+hardcode) và Finding #3 (percentile tie-handling) — vẫn nguyên trong danh
+sách chờ của `GSQUANT_REFERENCE_CHECK.md`, không tự sửa lẫn vào để giữ commit
+sạch, dễ review.
