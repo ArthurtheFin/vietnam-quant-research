@@ -26,18 +26,7 @@ from src.analytics.correlation import build_return_matrix
 from src.simulation.bootstrap import block_bootstrap_returns, simulate_equity_paths_from_returns, summarize_simulation
 from src.simulation.var_cvar import calculate_simulated_var, calculate_simulated_cvar
 from src.visualization.dashboard_export import generate_visual_risk_dashboard
-
-
-def calculate_sharpe_ratio(returns: pd.Series, risk_free_rate: float = 0.0) -> float:
-    """Calculate annualized Sharpe ratio."""
-    r = returns.dropna()
-    if len(r) < 2:
-        return 0.0
-    mean_excess = (r.mean() - risk_free_rate / 252) * 252
-    vol = r.std(ddof=1) * np.sqrt(252)
-    if vol == 0:
-        return np.nan
-    return float(mean_excess / vol)
+from src.risk.management import sharpe_ratio
 
 
 def calculate_sortino_ratio(returns: pd.Series, risk_free_rate: float = 0.0) -> float:
@@ -125,7 +114,7 @@ def main() -> None:
         # Returns/Risk metrics
         ann_ret = float(ret_1d.mean() * 252)
         ann_vol = float(ret_1d.std() * np.sqrt(252))
-        sharpe = calculate_sharpe_ratio(ret_1d)
+        sharpe = sharpe_ratio(ret_1d)
         sortino = calculate_sortino_ratio(ret_1d)
 
         # Latest features
@@ -261,7 +250,7 @@ def main() -> None:
         port_rec_days = calculate_recovery_time(port_cum_prices)
         port_ann_ret = float(portfolio_returns.mean() * 252)
         port_ann_vol = float(portfolio_returns.std() * np.sqrt(252))
-        port_sharpe = calculate_sharpe_ratio(portfolio_returns)
+        port_sharpe = sharpe_ratio(portfolio_returns)
         port_sortino = calculate_sortino_ratio(portfolio_returns)
 
         # Run block bootstrap simulation (horizon = 20 trading days, circular block size = 5)
