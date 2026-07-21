@@ -1,5 +1,18 @@
 # GSQUANT_REFERENCE_CHECK — đối chiếu công thức với gs-quant (Goldman Sachs, Apache-2.0)
 
+**Cập nhật 2026-07-21 — Finding #1 (ddof=0 vs ddof=1) RESOLVED.** 10 điểm
+`ddof=0` đã đổi thành `ddof=1` (`src/risk/management.py` 6 điểm,
+`stock-decision-engine/src/risk.py` 4 điểm), 2 implementation Sharpe đã hợp
+nhất về `src.risk.management.sharpe_ratio` (một nguồn sự thật, đúng nguyên
+tắc Gate #6). Commit: `d69f85e` (10 điểm ddof), `fe253e5` (hợp nhất Sharpe),
+`fb8bce8` (test hồi quy). Đánh giá tác động ngược lên report đã công bố: xem
+mục "Cập nhật 2026-07-21 — đánh giá tác động ngược (NV4)" cuối file. Finding
+#2 (annualization hardcode) và #3 (percentile tie-handling) **CHƯA sửa**,
+đúng RÀNG BUỘC vòng này (chỉ sửa ddof + hợp nhất Sharpe) — vẫn còn nguyên
+trong danh sách chờ.
+
+---
+
 **Phạm vi**: khảo sát THUẦN, đối chiếu công thức. **Không cài gs-quant làm
 dependency của dự án, không import bất kỳ hàm nào từ gs-quant vào production
 code.** `requirements.txt` không đổi (xác nhận: `grep -i "gs.quant\|gs_quant"
@@ -183,10 +196,13 @@ khác" mà NV2 yêu cầu tìm, không phải một lỗi đáng sửa.
    sẵn dùng `ddof=1`) tại `src/risk/management.py` (6 vị trí),
    `stock-decision-engine/src/risk.py` (4 vị trí),
    `stock-decision-engine/src/features.py:158`,
-   `scripts/build_portfolio_stack.py:98` — cần một prereg/round riêng để đo
-   xem việc đổi ddof có làm lệch số nào đã báo cáo trước đây không (vd. các
-   con số Sharpe trong `docs/reports/scoring/ROBUSTNESS_REPORT.md` có dùng qua
-   `src/risk/management.py` không — chưa kiểm tra trong vòng này).
+   `scripts/build_portfolio_stack.py:98` — **RESOLVED cho `src/risk/management.py`
+   và `stock-decision-engine/src/risk.py`** (commit `d69f85e`); đánh giá tác
+   động ngược lên số đã công bố xem mục "Cập nhật 2026-07-21 — đánh giá tác
+   động ngược (NV4)" cuối file. `src/analytics/entropy.py:15` và
+   `scripts/build_portfolio_stack.py:98` **vẫn còn `ddof=0`, chưa sửa** —
+   ngoài phạm vi vòng vừa rồi (chỉ giới hạn 2 file/10 điểm đã nêu), còn trong
+   danh sách chờ.
 2. **Finding #2 (annualization hardcode)** — chi phí thấp nếu muốn thêm một
    assertion/warning khi tần suất dữ liệu đầu vào không phải daily, nhưng
    không cấp bách (dự án luôn dùng daily data).
@@ -196,6 +212,81 @@ khác" mà NV2 yêu cầu tìm, không phải một lỗi đáng sửa.
 **Không đề xuất**: import bất kỳ hàm nào từ gs-quant, hoặc thêm gs-quant vào
 `requirements.txt` — nếu muốn áp dụng Finding #1/#2, viết lại bằng tay theo
 convention hiện có của repo (không phải copy code gs-quant), đúng RÀNG BUỘC.
+
+---
+
+## Cập nhật 2026-07-21 — chuẩn hóa ddof=1 + đánh giá tác động ngược (NV4)
+
+### Sửa gì (NV1-NV3, tóm tắt — chi tiết trong message từng commit)
+
+- **NV1** (`d69f85e`): 10 điểm `ddof=0`→`ddof=1`, xác nhận lại bằng grep tươi
+  trước khi sửa (không tin report suông) — khớp chính xác với bảng Finding #1
+  gốc, không có điểm nào lệch giữa lúc audit và lúc sửa.
+- **NV2** (`fe253e5`): `scripts/main_visual_dashboard.py::calculate_sharpe_ratio`
+  (implementation Sharpe độc lập thứ hai) đã gỡ bỏ, thay bằng import trực
+  tiếp `sharpe_ratio` từ `src.risk.management` — xác nhận đại số 2 công thức
+  đã tương đương từ trước (trừ hằng số risk-free không đổi std; `252/sqrt(252)
+  = sqrt(252)`), giờ cho ra CÙNG một object hàm, không chỉ cùng kết quả.
+- **NV3** (`fb8bce8`): `tests/test_ddof_consistency.py`, 9 test — AST-scan 2
+  file đã sửa (chặn tái xuất hiện `ddof=0`), snapshot test so khớp công thức
+  unbiased qua numpy (sai số <1e-9), test xác nhận `ddof` THẬT SỰ đổi số (không
+  phải no-op), test xác nhận 2 nơi gọi Sharpe giờ là CÙNG MỘT function object.
+
+### NV4 — đánh giá tác động ngược lên 3 report đã nêu
+
+**Phương pháp**: truy theo import chain thật (không suy đoán) từ mỗi report
+tới `src.risk.management`/`stock-decision-engine/src/risk.py`, bằng `grep`
+trực tiếp — không chạy lại backtest nào.
+
+| Report | Có dùng module bị ảnh hưởng không? | Bằng chứng |
+|---|---|---|
+| `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` | **Không** | `grep -n "sharpe\|volatility\|\.std("` → chỉ 1 dòng nhắc tên factor `volatility_percentile` (từ `src/features/volatility.py`, tầng feature-engineering, KHÔNG phải `src/risk/management.py`) — không có phép tính Sharpe/vol portfolio nào trong report này |
+| `docs/reports/scoring/SCORE_V2_REPORT.md` | **Gián tiếp, qua trích dẫn** | Report này không tự tính Sharpe/DSR — trích dẫn nguyên số từ `ROBUSTNESS_REPORT.md` (`[−0.59, +1.32]`) — cùng kết luận với dòng dưới |
+| `docs/reports/scoring/ROBUSTNESS_REPORT.md` | **Có, xác nhận qua chuỗi import thật** | `Sharpe(năm hoá)=0.32` (mục 5, N=1,120 ngày) sinh bởi `scratch/dsr_and_bootstrap_v2.py` → gọi `src.backtest.run_portfolio_backtest` → `src/backtest/portfolio_backtest.py:464` gọi `calculate_sharpe(...)` → import từ `src/validation/metrics.py:19` → chính là `src.risk.management.sharpe_ratio` (hàm đã sửa NV1) |
+
+**Độ lệch định lượng cho `ROBUSTNESS_REPORT.md`**: hệ số lệch giữa số CŨ
+(`ddof=0`, đã công bố) và số ĐÚNG (`ddof=1`, sau khi sửa) là
+`sqrt(N/(N-1))`. Với N=1,120 (đúng N đã ghi trong report):
+`sqrt(1120/1119) ≈ 1.00045` — **lệch +0.045%**, tức Sharpe=0.32 đã công bố
+trước đây cao hơn số đúng khoảng 0.00014 — **dưới độ chính xác hiển thị của
+report (3 chữ số thập phân, "0.319"/"0.32")**. Đúng dự đoán trong
+`GSQUANT_REFERENCE_CHECK.md` gốc ("N lớn, sai lệch <1%"). **Không chạy lại
+backtest** (đúng NV4) — kết luận dựa trên tính hệ số lệch trực tiếp, không
+cần recompute.
+
+**Không đổi kết luận nào của `ROBUSTNESS_REPORT.md`**:
+- **DSR=0.0083** — tính ĐỘC LẬP trong `scratch/dsr_and_bootstrap_v2.py:48`
+  (`sr_hat = daily_returns.mean() / daily_returns.std(ddof=1)`) — **đã dùng
+  `ddof=1` từ trước**, không đi qua `src.risk.management`, không bị ảnh hưởng
+  bởi vòng sửa này chút nào.
+- **Bootstrap CI `[−0.59, +1.32]`** — tính từ `block_bootstrap_returns`
+  (`src/simulation/bootstrap.py`, không sửa) + `sims.std(axis=1)` tại
+  `scratch/dsr_and_bootstrap_v2.py:125` — đây là **numpy array**, không phải
+  pandas Series, nên `.std()` không tham số mặc định `ddof=0` (khác pandas!)
+  — một điểm `ddof=0` khác, **KHÔNG nằm trong 10 điểm đã sửa vòng này** (file
+  không được nêu tên trong NV1), **không do vòng này gây ra, cũng không được
+  vòng này sửa**. Ghi vào danh sách chờ bên dưới vì phát hiện được trong lúc
+  đánh giá tác động, không phải vì thuộc phạm vi sửa.
+
+**Cửa sổ ngắn (N<63) làm căn cứ quyết định — không tìm thấy trường hợp nào
+trong 3 report đã nêu**: `rolling_sharpe_series`/`expanding_sharpe_series`/
+`sharpe_stability_report` (các hàm cửa sổ ngắn N=21/63 trong
+`src/risk/management.py`) chỉ được gọi nội bộ bởi `build_portfolio_risk_report`,
+được `scripts/build_portfolio_stack.py` gọi — nhưng **không có field nào từ
+đó** (`sharpe_stability_score`, `rolling_sharpe_latest`, `expanding_sharpe_latest`)
+**xuất hiện trong bất kỳ file `docs/` nào** (`grep -rn` toàn bộ `docs/` ra
+rỗng) — xác nhận các số cửa sổ ngắn này chưa từng được trích dẫn làm căn cứ
+quyết định ở đâu. Không cần gắn cờ.
+
+**Adjacent, chưa sửa (phát hiện mới trong lúc NV4, không thuộc phạm vi vòng
+này)**: `scratch/dsr_and_bootstrap_v2.py:125` (`sims.std(axis=1)`, numpy
+mảng, mặc định `ddof=0`) — trực tiếp sinh ra khoảng CI Sharpe đã công bố
+`[−0.59, +1.32]` trong `ROBUSTNESS_REPORT.md`. Vì đây là numpy (không phải
+pandas), lệch số tiềm năng cần tính riêng (không giống hệ số `sqrt(N/(N-1))`
+ở trên — block bootstrap có N khác, cấu trúc khác) — **chưa định lượng**,
+cần một round riêng nếu muốn theo đuổi.
+
+Commit tài liệu này: xem `PUSH_REVIEW.md` round tương ứng.
 
 ---
 
