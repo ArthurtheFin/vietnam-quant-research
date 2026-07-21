@@ -32,6 +32,7 @@ data/reports/**/*.md
 data/quarantine_existing_v1/**/*.parquet
 
 # notebooks outputs if needed
+notebooks/outputs/**/*.parquet
 *.log
 
 # system-font copy for scratch/render_handbook_pdf.py, recreated on demand
