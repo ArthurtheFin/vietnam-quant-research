@@ -122,7 +122,7 @@ def main():
         pd.Series(daily_returns), horizon_days=n, block_size=20, n_simulations=1000, random_state=42
     )
     sim_cagr = (1.0 + sims).prod(axis=1) ** (252.0 / n) - 1.0
-    sim_sharpe = sims.mean(axis=1) / sims.std(axis=1) * np.sqrt(252)
+    sim_sharpe = sims.mean(axis=1) / sims.std(axis=1, ddof=1) * np.sqrt(252)
     cagr_ci = np.percentile(sim_cagr, [2.5, 97.5])
     sharpe_ci = np.percentile(sim_sharpe, [2.5, 97.5])
     print(f"  CAGR point={metrics['cagr']:+.2%}  bootstrap CI=[{cagr_ci[0]:+.2%}, {cagr_ci[1]:+.2%}]")
