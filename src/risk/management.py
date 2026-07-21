@@ -53,7 +53,7 @@ def annualized_volatility(portfolio_returns: pd.Series, periods_per_year: int = 
     r = portfolio_returns.dropna()
     if r.empty:
         return float("nan")
-    return float(r.std(ddof=0) * np.sqrt(periods_per_year))
+    return float(r.std(ddof=1) * np.sqrt(periods_per_year))
 
 
 def sharpe_ratio(portfolio_returns: pd.Series, risk_free_rate: float = 0.0, periods_per_year: int = 252) -> float:
@@ -61,7 +61,7 @@ def sharpe_ratio(portfolio_returns: pd.Series, risk_free_rate: float = 0.0, peri
     if r.empty:
         return float("nan")
     excess = r - risk_free_rate / periods_per_year
-    vol = excess.std(ddof=0)
+    vol = excess.std(ddof=1)
     if vol == 0:
         return float("nan")
     return float(excess.mean() / vol * np.sqrt(periods_per_year))
@@ -76,7 +76,7 @@ def rolling_sharpe_series(
     r = portfolio_returns.astype(float)
     excess = r - risk_free_rate / periods_per_year
     mean = excess.rolling(window).mean()
-    vol = excess.rolling(window).std(ddof=0)
+    vol = excess.rolling(window).std(ddof=1)
     sharpe = mean / vol.replace(0, np.nan) * np.sqrt(periods_per_year)
     sharpe.name = f"rolling_sharpe_{window}d"
     return sharpe
@@ -91,7 +91,7 @@ def expanding_sharpe_series(
     r = portfolio_returns.astype(float)
     excess = r - risk_free_rate / periods_per_year
     mean = excess.expanding(min_periods=min_periods).mean()
-    vol = excess.expanding(min_periods=min_periods).std(ddof=0)
+    vol = excess.expanding(min_periods=min_periods).std(ddof=1)
     sharpe = mean / vol.replace(0, np.nan) * np.sqrt(periods_per_year)
     sharpe.name = "expanding_sharpe"
     return sharpe
@@ -119,7 +119,7 @@ def sharpe_stability_report(
     valid_expanding = expanding.dropna()
     valid_rolling = rolling.dropna()
     terminal = float(valid_expanding.iloc[-1]) if not valid_expanding.empty else float("nan")
-    rolling_std = float(valid_rolling.std(ddof=0)) if len(valid_rolling) > 1 else float("nan")
+    rolling_std = float(valid_rolling.std(ddof=1)) if len(valid_rolling) > 1 else float("nan")
     stability = float(1 / (1 + rolling_std)) if np.isfinite(rolling_std) else float("nan")
     return {
         "expanding_sharpe_latest": terminal,
@@ -177,7 +177,7 @@ def concentration_metrics(weights: pd.Series) -> dict[str, float]:
 
 def portfolio_beta(portfolio_returns: pd.Series, benchmark_returns: pd.Series) -> float:
     aligned = pd.concat([portfolio_returns, benchmark_returns], axis=1).dropna()
-    if aligned.empty or aligned.iloc[:, 1].var(ddof=0) == 0:
+    if aligned.empty or aligned.iloc[:, 1].var(ddof=1) == 0:
         return float("nan")
     cov = aligned.iloc[:, 0].cov(aligned.iloc[:, 1])
     var = aligned.iloc[:, 1].var(ddof=1)

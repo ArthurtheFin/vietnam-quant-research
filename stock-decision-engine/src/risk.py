@@ -11,7 +11,7 @@ def max_drawdown(close: pd.Series) -> pd.Series:
 
 def downside_deviation(returns: pd.Series, trading_days: int = 252) -> float:
     downside = returns[returns < 0]
-    return float(downside.std(ddof=0) * np.sqrt(trading_days)) if len(downside) else 0.0
+    return float(downside.std(ddof=1) * np.sqrt(trading_days)) if len(downside) else 0.0
 
 
 def var_cvar(returns: pd.Series, level: float = 0.95) -> tuple[float, float]:
@@ -38,7 +38,7 @@ def ratios(
     beta = float(aligned["stock"].cov(aligned["bench"]) / aligned["bench"].var()) if aligned["bench"].var() else np.nan
     alpha_daily = float(excess.mean() - beta * bench_excess.mean()) if np.isfinite(beta) else np.nan
     tracking = aligned["stock"] - aligned["bench"]
-    vol = aligned["stock"].std(ddof=0) * np.sqrt(trading_days)
+    vol = aligned["stock"].std(ddof=1) * np.sqrt(trading_days)
     dd = downside_deviation(aligned["stock"], trading_days)
     curve = (1.0 + aligned["stock"]).cumprod()
     mdd = abs(float((curve / curve.cummax() - 1.0).min()))
@@ -49,8 +49,8 @@ def ratios(
         "sharpe": float((excess.mean() * trading_days) / vol) if vol else np.nan,
         "sortino": float((excess.mean() * trading_days) / dd) if dd else np.nan,
         "treynor": float((ann_ret - risk_free_annual) / beta) if beta and np.isfinite(beta) else np.nan,
-        "information_ratio": float(tracking.mean() / tracking.std(ddof=0) * np.sqrt(trading_days)) if tracking.std(ddof=0) else np.nan,
-        "tracking_error": float(tracking.std(ddof=0) * np.sqrt(trading_days)),
+        "information_ratio": float(tracking.mean() / tracking.std(ddof=1) * np.sqrt(trading_days)) if tracking.std(ddof=1) else np.nan,
+        "tracking_error": float(tracking.std(ddof=1) * np.sqrt(trading_days)),
         "calmar": float(ann_ret / mdd) if mdd else np.nan,
     }
 
