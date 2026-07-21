@@ -1090,6 +1090,24 @@ một trường hợp cá biệt. **Chỉ nhớ một điều**: khi thấy mộ
 cho một nhân tố đo trên chuỗi có cửa sổ dự báo chồng lấn, luôn hỏi "đây là
 t-stat naive hay đã hiệu chỉnh Newey-West" trước khi tin.
 
+**Ví dụ THẬT thứ hai (block bootstrap — cùng họ vấn đề, cách sửa khác)**:
+Newey-West sửa t-stat khi chỉ TARGET chồng lấn theo thời gian; khi chính
+BIẾN NHÓM cũng tự tương quan mạnh theo ngày liền kề (vd. một ngày
+"Risk-off" gần như chắc chắn theo sau bởi "Risk-off"), cần block bootstrap
+thay vì chỉ hiệu chỉnh t-stat — resample theo khối liên tiếp (không phải
+từng điểm rời rạc) để giữ đúng cấu trúc phụ thuộc. `market_regime`
+"Risk-on − Risk-off" (kiểm định H1 biến động VNINDEX 20 ngày tới, giai
+đoạn P1, `docs/reports/scoring/MARKET_REGIME_STUDY_REPORT.md` mục 6): Mann-Whitney U
+naive p=**2.99e-08** — trông cực kỳ có ý nghĩa — nhưng CI block-bootstrap
+(block=20 phiên, N=2000 lần lặp) cho ĐÚNG cặp/giai đoạn này là
+**[-0.144, 0.017]**, CHỨA 0. Trên toàn bộ 36 tổ hợp kiểm định của nghiên
+cứu đó, naive + BH-FDR "tìm thấy" 17/36 có ý nghĩa; block-bootstrap (đã
+khóa trước trong prereg) chỉ giữ lại 6/36, và không cặp nào đủ mạnh ở cả
+3/3 giai đoạn. **Chỉ nhớ thêm một điều**: nếu BIẾN NHÓM (không chỉ target)
+có khả năng tự tương quan theo chuỗi ngày — regime, trạng thái thị
+trường, bất kỳ nhãn nào "một khi vào thì có xu hướng ở lại" — Newey-West
+đơn thuần (chỉ sửa phía target) không đủ; cần block bootstrap.
+
 <a id="sec-4-5" name="sec-4-5"></a>
 
 ## 4.5. Null test / percentile trong 2,000 danh mục ngẫu nhiên
