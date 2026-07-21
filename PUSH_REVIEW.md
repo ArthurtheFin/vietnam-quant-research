@@ -1555,3 +1555,56 @@ dẫn): `docs/reports/codebase_audit/MARKET_REGIME_AUDIT.md` mục "Cập nhật
    như NV2 từng sửa, nhưng nhánh đó hiện không bị kích hoạt bởi bất kỳ
    caller thật nào (cả 2 caller đều truyền `features` đã có `return_1d`
    sẵn) — cờ cho vòng sau nếu có caller mới.
+
+## Prereg + kiểm định predictive power của regime module — 2026-07-21 (kết quả: âm tính)
+
+Lần đầu tiên `market_regime`/`market_entropy_regime` được kiểm định độc
+lập như tín hiệu dự báo (trước giờ chỉ dùng làm filter mô tả, vd.
+`regime_pass` trong stealth screen). Đúng kỷ luật prereg-trước-code đã
+dùng cho disclosure event study/SCORE_V2. 3 nhiệm vụ, mỗi nhiệm vụ 1
+commit, không push:
+
+1. **NV1 (commit `613b33f`)** — `docs/reports/scoring/MARKET_REGIME_PREREG.md` khóa TRƯỚC
+   khi viết code phân tích. Chốt: 2 đối tượng (`market_regime`,
+   `market_entropy_regime`) — **breadth (`pct_above_ma50`) loại khỏi vòng
+   này** (không phải vì NaN — xác nhận lại 1632/1632 non-null — mà vì
+   không có sẵn dạng phân loại rời rạc, tự dựng ngưỡng mới sẽ tính là
+   "thêm chỉ báo mới", bị cấm theo RÀNG BUỘC); 3 giả thuyết H1 (vol có
+   điều kiện 20 ngày tới), H2 (persistence, Markov + đo trực tiếp), H3
+   (return có điều kiện — làm lại đúng câu `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` NV2
+   đã thử với 5 fold và thiếu lực, giờ chạy trên 1631 ngày); công thức
+   biến mục tiêu khóa chính xác (`forward_vol_20d` tự tính theo convention
+   `add_realized_volatility`, `forward_return_20d` dùng nguyên cột có
+   sẵn); chia 3 giai đoạn đều theo số phiên (544/544/544, trùng gần đúng
+   "biên giai đoạn cũ" của `EVENT_DETECTION_REPORT.md` nhưng suy ra độc
+   lập, không phải cố tình tái dùng — và xác nhận không có vấn đề thiếu
+   coverage 2020-2022 như báo cáo kia vì `stock_count` ổn định suốt); máy
+   đo block-bootstrap (block=20, N=2000, seed=42) thay t-test ngây thơ
+   (regime tự tương quan theo ngày); tiêu chí PASS/FAIL khóa chính xác
+   cho từng giả thuyết.
+2. **NV2 (commit `27b8173`)** — `scratch/market_regime_study.py` chạy đúng
+   prereg 1 lần, không tune. Báo N mỗi trạng thái TRƯỚC kết quả (đúng yêu
+   cầu) — nhóm mỏng nhất: Structured@P2 chỉ 27 ngày, Risk-on@P2/P3
+   68/63 ngày. **Kết quả: 0/12 combo (H1/H2/H3 × 2 chỉ báo) đạt tiêu chí
+   đã khóa** — âm tính toàn diện.
+3. **NV3 (commit `c14fd80`, cập nhật hồ sơ commit `d9b43c9`)** —
+   `docs/reports/scoring/MARKET_REGIME_STUDY_REPORT.md`. Chi tiết đầy đủ trong report; điểm
+   đáng chú ý nhất: (a) **naive Mann-Whitney+BH-FDR "tìm thấy" 17/36 so
+   sánh có ý nghĩa, block-bootstrap đúng phương pháp chỉ 6/36, và 0/12
+   combo giữ được cả 3 giai đoạn** — bằng chứng thực nghiệm trực tiếp
+   (không chỉ lý thuyết) cho lý do phải dùng block-bootstrap với dữ liệu
+   tự tương quan; (b) H2 cho thấy trạng thái đa số (Neutral/Risk-off,
+   Transitional) khá bền nhưng trạng thái cực đoan (Risk-on, Structured,
+   Chaotic) rã về gần ngẫu nhiên trong vài tuần — sắc thái thật dù không
+   đổi kết luận FAIL; (c) 2 near-miss ở H1 (Risk-on−Risk-off,
+   Transitional−Chaotic: cùng dấu cả 3 giai đoạn, CI chỉ loại trừ 0 ở
+   1/3) ghi nhận cho tương lai, không phải kết luận. Thêm dòng #9 vào
+   "5.2. Bảng hồ sơ đã đóng" (`docs/PROJECT_HANDBOOK.md`).
+
+**Không làm trong vòng này** (đúng RÀNG BUỘC): không kiểm định regime ×
+chọn mã (không join cấp-mã, không tính null-test percentile của bất kỳ
+composite nào cùng regime); không thêm chỉ báo mới; không tune tham số
+sau khi thấy kết quả; kết quả âm tính không kéo theo thử định nghĩa
+trạng thái khác. Full suite sau vòng này: 306 passed (không đổi so với
+trước — vòng này không sửa code sản xuất, chỉ thêm 1 script nghiên cứu +
+tài liệu).
