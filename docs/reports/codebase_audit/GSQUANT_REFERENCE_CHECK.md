@@ -1,15 +1,29 @@
 # GSQUANT_REFERENCE_CHECK — đối chiếu công thức với gs-quant (Goldman Sachs, Apache-2.0)
 
-**Cập nhật 2026-07-21 — Finding #1 (ddof=0 vs ddof=1) RESOLVED.** 10 điểm
-`ddof=0` đã đổi thành `ddof=1` (`src/risk/management.py` 6 điểm,
-`stock-decision-engine/src/risk.py` 4 điểm), 2 implementation Sharpe đã hợp
-nhất về `src.risk.management.sharpe_ratio` (một nguồn sự thật, đúng nguyên
-tắc Gate #6). Commit: `d69f85e` (10 điểm ddof), `fe253e5` (hợp nhất Sharpe),
-`fb8bce8` (test hồi quy). Đánh giá tác động ngược lên report đã công bố: xem
-mục "Cập nhật 2026-07-21 — đánh giá tác động ngược (NV4)" cuối file. Finding
-#2 (annualization hardcode) và #3 (percentile tie-handling) **CHƯA sửa**,
-đúng RÀNG BUỘC vòng này (chỉ sửa ddof + hợp nhất Sharpe) — vẫn còn nguyên
-trong danh sách chờ.
+**Cập nhật 2026-07-21 — Finding #1 (ddof=0 vs ddof=1) ĐÃ ĐÓNG HỒ SƠ HOÀN
+TOÀN**, qua 2 vòng theo dõi:
+
+- **Vòng 1**: 10 điểm `ddof=0` đã đổi thành `ddof=1` (`src/risk/management.py`
+  6 điểm, `stock-decision-engine/src/risk.py` 4 điểm), 2 implementation
+  Sharpe đã hợp nhất về `src.risk.management.sharpe_ratio` (một nguồn sự
+  thật, đúng nguyên tắc Gate #6). Commit: `d69f85e`, `fe253e5`, `fb8bce8`.
+- **Vòng 2** (quét toàn repo lần cuối, xem mục "Cập nhật 2026-07-21 —
+  đóng hồ sơ" cuối file): 5 điểm nữa — bao gồm `scratch/dsr_and_bootstrap_v2.py:125`
+  (ảnh hưởng trực tiếp một CI đã công bố trong
+  `docs/reports/scoring/ROBUSTNESS_REPORT.md`, đã định lượng + sửa số công bố),
+  `src/simulation/bootstrap.py:81`, `scripts/build_portfolio_stack.py:98`,
+  `src/analytics/entropy.py:15` (dead code), `stock-decision-engine/src/features.py:158`.
+  Commit: `4057031`, `4f3994c`, `5438775`.
+- **Toàn bộ repo (`src/`, `scripts/`, `scratch/`, `notebooks/`,
+  `stock-decision-engine/`) đã được quét đầy đủ** cho mọi lệnh gọi
+  `.std()`/`.var()`/`.cov()` — không chỉ những chỗ đã gắn từ khóa `ddof`.
+  **Không còn site nào cần theo dõi** — mọi thứ đã sửa hoặc xác nhận an
+  toàn (pandas default `ddof=1`, hoặc tỷ số cov/var bất biến với ddof).
+  Bảng phân loại đầy đủ ở cuối file.
+
+Finding #2 (annualization hardcode) và #3 (percentile tie-handling) **vẫn
+CHƯA sửa** — không thuộc họ bug ddof, ngoài phạm vi 2 vòng vừa rồi, còn
+nguyên trong danh sách chờ.
 
 ---
 
@@ -287,6 +301,72 @@ pandas), lệch số tiềm năng cần tính riêng (không giống hệ số `
 cần một round riêng nếu muốn theo đuổi.
 
 Commit tài liệu này: xem `PUSH_REVIEW.md` round tương ứng.
+
+---
+
+## Cập nhật 2026-07-21 — đóng hồ sơ họ bug ddof (vòng theo dõi 2/2)
+
+Sửa lỗi tính toán đã xác định + quét lần cuối, đúng RÀNG BUỘC ("không tune,
+không mở lại bất kỳ kết luận nào ngoài việc sửa lỗi tính toán đã xác định").
+
+### NV1/NV2 — `scratch/dsr_and_bootstrap_v2.py:125`
+
+Commit `4057031` (sửa) + `4f3994c` (cập nhật report). Khác các điểm đã sửa ở
+vòng trước: đây là điểm DUY NHẤT trong toàn bộ họ bug ddof ăn trực tiếp vào
+một khoảng tin cậy ĐÃ CÔNG BỐ (`docs/reports/scoring/ROBUSTNESS_REPORT.md`'s bootstrap
+Sharpe CI). Đã chạy lại đúng script gốc (không phải "chạy lại toàn bộ
+bootstrap từ đầu" theo nghĩa tốn kém — script này chạy trong 9 giây, cùng
+seed=42, cùng dữ liệu) để lấy CI đúng thay CI cũ:
+
+| | CI cũ (ddof=0, lỗi) | CI mới (ddof=1, đúng) | Đổi |
+|---|---|---|---|
+| Sharpe (năm hoá) | [−0.5907, +1.3172] | [−0.5905, +1.3167] | ±0.045%, khớp `sqrt(1120/1119)` |
+
+**Kết luận "CI chứa 0" và DSR=0.0083 không đổi** — chi tiết đầy đủ trong
+`docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 5.
+
+### NV3 — quét lần cuối toàn repo, phân loại đầy đủ
+
+Grep mọi `.std(`/`.var(`/`.cov(` trong `src/`, `scripts/`, `scratch/`,
+`notebooks/`, `stock-decision-engine/` (không chỉ những dòng có sẵn từ khóa
+`ddof`) — mỗi kết quả phân loại theo 1 trong 3 nhóm:
+
+**Đã sửa (7 điểm, họ bug xác nhận, vòng 2)**:
+
+| File:dòng | Trạng thái | Ảnh hưởng |
+|---|---|---|
+| `scratch/dsr_and_bootstrap_v2.py:125` | Đã sửa | **Có** — CI đã công bố, định lượng ở trên |
+| `src/simulation/bootstrap.py:81` (`summarize_simulation`) | Đã sửa | Có khả năng — dùng bởi `scripts/main_visual_dashboard.py`'s risk dashboard, không nằm trong 3 report đã kiểm (SCORE_V2/ROBUSTNESS/WATCHLIST_VALIDATION) |
+| `scripts/build_portfolio_stack.py:98` (`_resolve_inverse_vol_input` fallback) | Đã sửa | Fallback path — chỉ kích hoạt khi `atr_pct_14` thiếu khỏi `candidates` (hiếm trong vận hành bình thường, `stock_features.parquet` luôn có cột này) |
+| `src/analytics/entropy.py:15` (`_clip_quantile_edges`) | Đã sửa (chỉ để nhất quán) | **Không** — 0 lời gọi ở bất kỳ đâu trong repo (`grep -rn "_clip_quantile_edges"` chỉ ra chính định nghĩa), dead code |
+| `stock-decision-engine/src/features.py:158` (`_latest_metrics`) | Đã sửa | Trùng lặp công thức với `stock-decision-engine/src/risk.py:14` (đã sửa vòng 1), file khác |
+
+**Không ảnh hưởng kết luận nào (đã kiểm, không cần sửa)** — pandas
+Series/DataFrame mặc định `ddof=1`, hoặc cặp cov/var dùng làm tỷ số (beta,
+bất biến với lựa chọn ddof miễn 2 vế cùng convention):
+
+`src/visualization/dashboard_export.py:142`, `risk_charts.py:60`;
+`src/features/liquidity.py:11`, `volatility.py:62,87`;
+`src/models/monte_carlo.py:122` (bọc `pd.Series` tường minh trước `.std()`);
+`src/portfolio/construction.py:153`, `src/portfolio/risk.py:13` (`.cov()`
+ma trận); `src/validation/stress_test.py:27,32`; `src/analytics/advanced.py:59,117`,
+`cashflow_board.py:114`, `sector_board.py:378`, `benchmark.py:165`;
+`src/screening/light_market_scan.py:82`, `stealth_accumulation.py:315,316,485,915,918,924,928`;
+`scripts/build_portfolio_stack.py:248`, `main_visual_dashboard.py:116,252`;
+`stock-decision-engine/src/risk.py:38,60-61`, `features.py:40-42,65,96`;
+3 notebook (`19_validation_and_stress_test`, `15_risk_management`,
+`14_portfolio_construction`) + 1 archived (`17_live_watchlist_dashboard`) —
+đều chỉ `.cov()` trên `pd.DataFrame` cho ma trận hiệp phương sai; toàn bộ
+`scratch/*.py` còn lại (đã grep riêng, liệt kê trong commit `4057031`) —
+hoặc đã `ddof=1` tường minh, hoặc cặp `.rolling().cov()`/`.rolling().var()`
+cho beta.
+
+**Cần theo dõi**: không còn mục nào — sweep này là lần cuối, mọi site đã sửa
+hoặc xác nhận an toàn.
+
+Test hồi quy đầy đủ (7 file trong AST scanner + 2 file trong bare-numpy-std
+scanner + 11 snapshot test mới): `tests/test_ddof_consistency.py`, commit
+`5438775`. Full suite: **326 passed**, 0 fail.
 
 ---
 
