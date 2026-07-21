@@ -165,6 +165,20 @@ với số đo trực tiếp ở trên (trạng thái đa số bền hơn trạn
 — không mâu thuẫn với kết luận persistence trực tiếp. Chi tiết đầy đủ
 trong JSON, không lặp lại bảng ở đây vì không đổi kết luận.
 
+> **QUAN SÁT (không phải kết luận, không đổi verdict FAIL của H2)**: cả
+> 2 chỉ báo cho cùng một hình dạng — trạng thái CỰC TRỊ (Risk-on,
+> Structured, Chaotic) rã nhanh về gần ngẫu nhiên trong vài tuần
+> (persistence lag=20: 29.0%/13.0%/14.5%), còn trạng thái TRUNG TÂM
+> (Neutral, Transitional) dính >60%+ ở phần lớn phạm vi đo. Nếu tương
+> lai có ai xây một regime overlay, đây là một gợi ý đáng cân nhắc: CHỈ
+> hành động khi thị trường ở trạng thái cực trị (tín hiệu hiếm nhưng có
+> vẻ bền hơn để tin), không hành động dựa trên trạng thái trung tâm (phổ
+> biến nhưng không phân biệt được gì — đúng là trạng thái "mặc định").
+> **Đây CHƯA phải cơ sở để dùng** — quan sát này không đến từ một giả
+> thuyết đã pre-register (H1/H2/H3 đều FAIL, kể cả cho các trạng thái cực
+> trị này), chỉ là một hình dạng dữ liệu nhận thấy sau khi nhìn kết quả.
+> Cần một prereg riêng, khóa trước, nếu muốn theo đuổi hướng này.
+
 ---
 
 ## 5. H3 — Return có điều kiện (`forward_return_20d`) — làm lại câu hỏi FOLD_AUTOPSY
