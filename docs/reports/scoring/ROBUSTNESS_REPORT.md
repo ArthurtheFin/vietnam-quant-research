@@ -162,7 +162,28 @@ trong 560 lần thử" (SR0≈0.092/ngày ≈ 1.46 năm hoá — đáng chú ý 
 | | Điểm | CI 95% |
 |---|---|---|
 | CAGR | +3.67% | **[−9.58%, +19.32%]** |
-| Sharpe (năm hoá) | 0.32 | **[−0.59, +1.32]** |
+| Sharpe (năm hoá) | 0.32 | **[−0.590, +1.317]** |
+
+**Cập nhật 2026-07-21 — đã sửa lỗi tính toán ddof, KHÔNG PHẢI kết quả nghiên
+cứu mới, kết luận không đổi**: `scratch/dsr_and_bootstrap_v2.py:125` dùng
+`sims.std(axis=1)` trên mảng numpy — mặc định `ddof=0` của numpy (khác mặc
+định `ddof=1` của pandas), phát hiện qua `docs/reports/codebase_audit/GSQUANT_REFERENCE_CHECK.md`.
+Đã sửa thành `ddof=1` (khớp DSR's `sr_hat` vốn đã dùng `ddof=1` ngay trong
+cùng file, khớp convention "unbiased estimator" của gs-quant/toàn dự án) và
+CHẠY LẠI đúng script gốc (cùng seed=42, cùng dữ liệu, cùng cửa sổ backtest
+2022-01-01→2026-07-06 — N=1,120 không đổi, xác nhận không có data drift kể
+từ lần chạy gốc 2026-07-16) để lấy CI đúng thay cho CI cũ. Số CŨ (trước sửa):
+CAGR CI không đổi (không dùng std, không bị ảnh hưởng); Sharpe CI CŨ =
+**[−0.5907, +1.3172]**. So với CI MỚI (trong bảng trên): cận dưới dịch
++0.045%, cận trên dịch −0.045%, bề rộng CI hẹp lại 0.045% — khớp chính xác
+hệ số lý thuyết `sqrt(N/(N-1))=sqrt(1120/1119)=1.000447` (mọi giá trị Sharpe
+mô phỏng co lại theo đúng 1 hệ số hằng, vì mọi lần lặp bootstrap dùng cùng
+`horizon_days=N=1120` — kiểm chứng bằng số thật khớp gần như tuyệt đối với
+suy luận lý thuyết trước khi chạy lại). **Cả hai khoảng tin cậy (cũ và mới)
+đều chứa 0 — kết luận "không thể bác bỏ giả thuyết hiệu suất thật=0" hoàn
+toàn không đổi.** DSR=0.0083 không đổi (tính độc lập, đã `ddof=1` từ đầu,
+không đi qua dòng bị lỗi). Đây là sửa lỗi tính toán, không phải điều chỉnh
+sau khi nhìn kết quả — không tune, không mở lại kết luận.
 
 **Cả hai khoảng tin cậy đều chứa 0** — không thể bác bỏ giả thuyết "hiệu suất
 thật = 0" ở mức 95%, nhất quán với kết quả DSR.
