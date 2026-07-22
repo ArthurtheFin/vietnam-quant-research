@@ -232,18 +232,21 @@ ba việc này là của bạn.
 
 **Quyết định mua/bán và khối lượng là của bạn.** Khi tự đánh giá một backtest
 hay con số lợi nhuận long-only bất kỳ (của dự án này hoặc nơi khác dùng
-universe tương tự "500 mã đang niêm yết hôm nay"), **luôn trừ thêm mức sàn
-survivorship bias trước khi tin phần "vượt trội" còn lại**:
+universe tương tự "500 mã đang niêm yết hôm nay"), **đối chiếu với cận trên
+thô dưới đây trước khi tin phần "vượt trội" còn lại là alpha thật** (cận trên
+của một hỗn hợp survivorship bias + size/liquidity-tilt, KHÔNG phải mức trừ
+chính xác cho survivorship thuần túy — sửa cách diễn giải 2026-07-22):
 
-| Cửa sổ nắm giữ | Trừ thêm |
+| Cửa sổ nắm giữ | Cận trên thô |
 |---|---|
 | ~20 ngày giao dịch | 0.4% |
 | ~60 ngày giao dịch | 1.2% |
 | ~120 ngày giao dịch | 2.9% |
 
 (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` — universe hiện tại chỉ gồm mã còn niêm yết
-hôm nay, nên tự nó đã có một mức "vượt trội ảo" không liên quan gì đến chọn
-mã giỏi.)
+hôm nay VÀ đủ thanh khoản, nên tự nó đã có một mức "vượt trội ảo" không liên
+quan gì đến chọn mã giỏi — một phần từ loại mã đã hủy niêm yết, một phần từ
+chính bộ lọc thanh khoản, không tách được hai phần này ở đây.)
 
 ### ✅ Checklist 5 câu hỏi tự vấn trước khi đặt lệnh
 
@@ -256,8 +259,8 @@ mã giỏi.)
 4. Tôi đã tự định giá/đọc tin tức/chọn thời điểm chưa, hay đang mong hệ
    thống làm việc đó? (Hệ thống không làm — Bước 4.)
 5. Khối lượng lệnh của tôi có phù hợp với thanh khoản thật của mã (Bước 2)
-   không, và tôi đã trừ sàn survivorship khi đánh giá bất kỳ con số backtest
-   nào chưa?
+   không, và tôi đã đối chiếu với cận trên thô survivorship+size-tilt khi
+   đánh giá bất kỳ con số backtest nào chưa?
 
 ---
 

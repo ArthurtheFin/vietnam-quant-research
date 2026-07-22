@@ -227,9 +227,11 @@ round did.
   **0.83%**. Bootstrap CI (block=20 ngày, N=1000, seed=42) cho cả CAGR
   ([−9.6%, +19.3%]) lẫn Sharpe ([−0.59, +1.32]) đều **chứa 0** — không bác bỏ
   được giả thuyết "hiệu suất thật bằng 0" ở mức 95%.
-- Cả hai con số DSR/bootstrap trên **CHƯA trừ mức sàn hiệu chỉnh survivorship
-  bias** (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`: +0.4%/+1.2%/+2.9% ở cửa sổ
-  20/60/120 ngày) — nếu trừ thêm, phần "hiệu suất thật" còn lại chỉ càng nhỏ
+- Cả hai con số DSR/bootstrap trên **CHƯA trừ mức sàn hiệu chỉnh survivorship**
+  (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`: +0.4%/+1.2%/+2.9% ở cửa sổ
+  20/60/120 ngày — **cận trên thô của hỗn hợp survivorship bias + size/liquidity-tilt,
+  không phải mức trừ chính xác cho survivorship thuần túy, sửa cách diễn giải
+  2026-07-22**) — nếu trừ thêm, phần "hiệu suất thật" còn lại chỉ càng nhỏ
   hơn, không lớn hơn.
 
 **Kết luận thực tế**: một nhân tố xếp hạng có bằng chứng thống kê tốt không

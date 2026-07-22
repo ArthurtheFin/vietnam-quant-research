@@ -1,5 +1,20 @@
 # SURVIVORSHIP_BIAS_ESTIMATE — exploratory drift floor, not a confirmed decomposition
 
+**Cập nhật 2026-07-22 — sửa cách diễn giải, đáp lại adversarial review (nghi
+vấn lập luận vòng tròn)**: mục "Mức sàn hiệu chỉnh đề xuất" trước đây mô tả
++0.4/+1.2/+2.9% như một mức TRỪ CHÍNH XÁC. **Đây là mô tả không đủ chặt chẽ —
+con số này là HỖN HỢP giữa survivorship bias thật (loại trừ mã đã hủy niêm
+yết/ngừng giao dịch, thứ Gate #3 chưa có dữ liệu point-in-time để đo trực
+tiếp) VÀ một hiệu ứng size/liquidity-tilt của chính bộ lọc "đủ điều kiện"
+(thanh khoản ≥3 tỷ, không `INACTIVE_LONG`) — hai nguồn khác nhau, không tách
+được bằng phương pháp round này, và bộ lọc size/liquidity không liên quan gì
+tới việc công ty còn tồn tại hay không.** Đã viết lại mục "Mức sàn hiệu chỉnh
+đề xuất" + "Giới hạn" bên dưới: con số này giờ dùng như **CẬN TRÊN thô** (bản
+thân survivorship bias nhiều khả năng NHỎ HƠN con số này, không lớn hơn),
+không phải mức trừ chính xác cho bất kỳ báo cáo nào khác — các báo cáo khác
+đã trích dẫn con số này (`SCORE_V2_REPORT.md`, `PROJECT_HANDBOOK.md`, v.v.)
+cũng đã sửa cách diễn giải cho nhất quán, xem PUSH_REVIEW.md round này.
+
 **NHÃN: EXPLORATORY.** Tài liệu này ước lượng một con số, không kiểm định một giả
 thuyết. Nó xuất phát từ một phát hiện phụ (không phải kết luận chính đã khóa) của
 `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`: tín hiệu đối chứng S3 (bán, kỳ vọng CAR ≤ 0
@@ -80,47 +95,71 @@ này), hoặc (c) hiệu ứng lựa chọn thời điểm — sự kiện discl
 đều theo thời gian, có thể tập trung hơn vào giai đoạn thị trường đang lên. Round
 này KHÔNG có đủ cơ sở để chọn giữa 3 khả năng trên.
 
-## Mức sàn hiệu chỉnh đề xuất (correction floor)
+## Mức sàn hiệu chỉnh đề xuất (correction floor) — ĐỌC LẠI 2026-07-22
 
-**Dùng con số đối chiếu chéo không điều kiện (mục 3) làm mức sàn chính** — đây
-là ước lượng độc lập nhất với thiết kế disclosure event-study (không phụ thuộc
-việc chọn sự kiện nào, cụm hóa ra sao), N lớn nhất, và là con số áp dụng trực
-tiếp nhất cho "một mã bất kỳ trong universe hiện tại, tại một ngày bất kỳ":
+**Con số này là CẬN TRÊN thô của một hỗn hợp 2 nguồn, KHÔNG phải mức trừ
+chính xác cho survivorship bias thuần túy.** Method 3 (đối chiếu chéo không
+điều kiện) đo trung bình excess return của rổ "đủ điều kiện" (thanh khoản ≥3
+tỷ, không `INACTIVE_LONG`) — rổ này đồng thời là:
+- **(a) Rổ sống sót** — chỉ gồm mã còn niêm yết/giao dịch hôm nay, đúng định
+  nghĩa survivorship bias.
+- **(b) Rổ đã lọc theo thanh khoản/quy mô** — bản thân bộ lọc "thanh khoản ≥3
+  tỷ" là một size/liquidity-tilt, một hiệu ứng factor THẬT nhưng KHÔNG liên
+  quan gì đến việc công ty còn tồn tại hay không (một cổ phiếu thanh khoản
+  thấp vẫn có thể đang giao dịch bình thường, chỉ là nhỏ/kém thanh khoản).
 
-| Cửa sổ backtest | Mức sàn hiệu chỉnh (trừ khi diễn giải excess return) |
+Vì round này không có dữ liệu point-in-time (Gate #3) để tách riêng (a) khỏi
+(b) — không có nhóm đối chứng "mã đã hủy niêm yết" để so sánh — con số
++0.4/+1.2/+2.9% đo (a)+(b) GỘP LẠI, không đo được (a) một mình. **Vì (b) là
+một thành phần thật (không phải nhiễu, không phải lỗi), phần survivorship
+bias THUẦN TÚY (a) nhiều khả năng NHỎ HƠN con số dưới đây, không lớn hơn** —
+đây là lý do dùng nó như cận trên, không phải mức trừ đúng bằng:
+
+| Cửa sổ backtest | Cận trên thô cho hỗn hợp survivorship + size-tilt |
 |---|---|
 | ~20 ngày giao dịch | **+0.4%** (làm tròn từ +0.38%, CI rộng chạm 0) |
 | ~60 ngày giao dịch | **+1.2%** (làm tròn từ +1.22%) |
 | ~120 ngày giao dịch | **+2.9%** (làm tròn từ +2.85%) |
 
-**Cách dùng**: với bất kỳ backtest long-only nào trong dự án báo cáo "excess
-return dương so với VNINDEX" trên cửa sổ nắm giữ gần với 20/60/120 ngày giao
-dịch, trừ mức sàn tương ứng ở bảng trên trước khi diễn giải phần excess return
-còn lại là "alpha thật". Nếu excess return đo được nhỏ hơn mức sàn, phần đó
-**không được coi là bằng chứng của một tín hiệu/chiến lược có giá trị** — nhiều
-khả năng chỉ là survivorship bias của chính universe. Đây là một heuristic diễn
-giải, không phải một phép hiệu chỉnh toán học chính xác (CI của mức sàn còn
-rộng, chạm 0 ở cửa sổ ngắn) — **hiệu lực cho đến khi dự án có point-in-time
-universe thật (Gate #3, `audit/PATH_TO_100.md`)**, lúc đó nên đo lại survivorship
-bias trực tiếp thay vì suy luận gián tiếp qua placebo như ở đây.
+**Cách dùng ĐÃ SỬA**: với bất kỳ backtest long-only nào trong dự án báo cáo
+"excess return dương so với VNINDEX" trên cửa sổ nắm giữ gần với 20/60/120
+ngày giao dịch:
+- **KHÔNG trừ con số này ra khỏi excess return rồi coi phần còn lại là "alpha
+  đã hiệu chỉnh"** — làm vậy ngụ ý con số là mức trừ chính xác cho
+  survivorship thuần túy, trong khi nó lớn hơn survivorship thuần túy (vì gộp
+  cả size-tilt).
+- **Dùng như một ngưỡng cảnh báo cận trên**: nếu excess return đo được NHỎ
+  HƠN con số này, không có cơ sở coi phần đó là bằng chứng "alpha thật" —
+  hoàn toàn có thể chỉ là hỗn hợp survivorship+size-tilt của chính universe.
+  Nếu excess return LỚN HƠN con số này, vẫn không suy ra được "phần vượt trên
+  chắc chắn là alpha thật" — chỉ là ít có khả năng bị giải thích hết bởi hỗn
+  hợp này hơn.
+- **Hiệu lực cho đến khi dự án có point-in-time universe thật** (Gate #3,
+  `audit/PATH_TO_100.md`), lúc đó nên đo lại survivorship bias trực tiếp
+  (so sánh mã sống sót vs. mã đã hủy niêm yết tại từng thời điểm) thay vì suy
+  luận gián tiếp + gộp nguồn như ở đây.
 
 ## Giới hạn (đọc trước khi dùng con số trên)
 
 1. **Không phải một phép decomposition nguyên nhân** — chỉ là bằng chứng nhất
    quán với giả thuyết survivorship bias, không loại trừ được các lời giải
    thích khác (mục "Đối chiếu" ở trên).
-2. **CI rộng, chạm 0 ở cửa sổ 20 ngày cho cả ba ước lượng** — mức sàn ở cửa sổ
+2. **Là hỗn hợp survivorship bias + size/liquidity-tilt, không tách được ở
+   round này (xem mục "Mức sàn hiệu chỉnh đề xuất" ngay trên) — dùng như cận
+   trên thô, không phải mức trừ chính xác.** Đây là caveat quan trọng nhất
+   sau khi sửa lại cách diễn giải 2026-07-22.
+3. **CI rộng, chạm 0 ở cửa sổ 20 ngày cho cả ba ước lượng** — mức sàn ở cửa sổ
    ngắn kém tin cậy nhất về mặt thống kê, dù điểm trung tâm vẫn dương và tăng
    dần theo cửa sổ dài hơn (mẫu hình hợp lý về mặt kinh tế cho một drift tích
    lũy theo thời gian).
-3. **Không tách theo giai đoạn/nhóm thanh khoản** ở round này (khác với test
+4. **Không tách theo giai đoạn/nhóm thanh khoản** ở round này (khác với test
    chính đã khóa trong `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md`) — một ước lượng gộp
    toàn kỳ duy nhất, đơn giản hóa có chủ đích cho một exploratory pass.
-4. **Kế thừa mọi caveat đã có** của rổ đủ điều kiện (18 mã `INACTIVE_LONG` bị
+5. **Kế thừa mọi caveat đã có** của rổ đủ điều kiện (18 mã `INACTIVE_LONG` bị
    loại khỏi lịch sử của chính nó, `trading_status` không thực point-in-time
    trước 2026-07-13) — xem `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` mục "Rổ đủ điều
    kiện".
-5. **Đây KHÔNG phải một prereg mới, KHÔNG kiểm định lại H1/H2** — không có tiêu
+6. **Đây KHÔNG phải một prereg mới, KHÔNG kiểm định lại H1/H2** — không có tiêu
    chí PASS/FAIL nào ở đây, chỉ là một con số ước lượng để dùng làm ngữ cảnh diễn
    giải cho các backtest khác.
 

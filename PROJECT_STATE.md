@@ -214,8 +214,10 @@ SÂU một kết luận cụ thể.
    hạng alpha, bằng chứng từng thành phần.
 8. **`docs/reports/scoring/ROBUSTNESS_REPORT.md`** — DSR/FDR/bootstrap, các con số cần trích khi
    đánh giá độ tin cậy bất kỳ nhân tố/chiến lược nào trong dự án.
-9. **`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`** — mức sàn hiệu chỉnh
-   (+0.4%/+1.2%/+2.9% ở 20/60/120 ngày) áp cho MỌI số CAGR/Sharpe long-only.
+9. **`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`** — cận trên thô
+   (+0.4%/+1.2%/+2.9% ở 20/60/120 ngày, hỗn hợp survivorship+size-tilt, KHÔNG
+   phải mức trừ chính xác — sửa 2026-07-22) đối chiếu với MỌI số CAGR/Sharpe
+   long-only.
 10. **`docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_REPORT.md`** + **`docs/reports/disclosure/DISCLOSURE_PREREG_2_REPORT.md`**
     — vì sao nhánh disclosure đóng, để không mở lại mà không có lý do mới.
 

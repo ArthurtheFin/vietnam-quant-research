@@ -277,11 +277,14 @@ sau khi nhìn kết quả — không tune, không mở lại kết luận.
 thật = 0" ở mức 95%, nhất quán với kết quả DSR.
 
 **Chú thích cố định, áp dụng cho mọi số long-only trong tài liệu này và các
-báo cáo tương lai**: mọi con số CAGR/Sharpe/excess-return long-only ở trên
-CHƯA trừ mức sàn hiệu chỉnh survivorship bias đã định lượng ở
+báo cáo tương lai (sửa cách diễn giải 2026-07-22)**: mọi con số CAGR/Sharpe/
+excess-return long-only ở trên CHƯA trừ mức sàn hiệu chỉnh survivorship ở
 `docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md` (**+0.4%/+1.2%/+2.9%** ở cửa sổ 20/60/120
 ngày giao dịch) — nếu trừ thêm, CAGR/Sharpe thật sự còn thấp hơn số đã báo ở
-trên, không cao hơn.
+trên, không cao hơn. **Con số này là CẬN TRÊN thô của hỗn hợp survivorship
+bias + size/liquidity-tilt (không tách được — xem `SURVIVORSHIP_BIAS_ESTIMATE.md`
+mục "Mức sàn hiệu chỉnh đề xuất"), không phải mức trừ chính xác** cho
+survivorship thuần túy.
 
 ---
 

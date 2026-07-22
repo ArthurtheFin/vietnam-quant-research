@@ -866,7 +866,7 @@ flowchart TD
     C --> C2["Disclosure gần đây: chỉ NGỮ CẢNH<br/>(đã kiểm định âm tính 3 vòng — mục 2.6)"]
     C1 --> D
     C2 --> D
-    D["Bước 4 — Quyết định + sizing<br/>CỦA BẠN.<br/>Trừ sàn survivorship trước khi tin bất kỳ<br/>số backtest/excess-return nào:<br/>+0.4% (20 ngày) / +1.2% (60 ngày) / +2.9% (120 ngày)"]
+    D["Bước 4 — Quyết định + sizing<br/>CỦA BẠN.<br/>Đối chiếu với cận trên thô survivorship+size-tilt<br/>trước khi tin bất kỳ số backtest/excess-return nào:<br/>+0.4% (20 ngày) / +1.2% (60 ngày) / +2.9% (120 ngày)<br/>(cận trên, KHÔNG phải mức trừ chính xác)"]
 ```
 
 **Diễn giải từng bước bằng lời** (phòng khi Mermaid không render được ở nơi
@@ -894,8 +894,13 @@ bạn đọc):
    (2.6) như ngữ cảnh thuần túy.
 4. **Quyết định + sizing — của bạn.** Khi tự đánh giá bất kỳ con số
    backtest/excess-return nào (của dự án này hay nơi khác dùng universe
-   tương tự), luôn trừ sàn survivorship trước
-   (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`).
+   tương tự), đối chiếu với cận trên thô survivorship+size-tilt
+   (`docs/reports/scoring/SURVIVORSHIP_BIAS_ESTIMATE.md`) trước khi tin — **đây là cận
+   trên của một hỗn hợp 2 nguồn (survivorship bias + size/liquidity-tilt),
+   KHÔNG phải mức trừ chính xác cho survivorship thuần túy** (sửa cách diễn
+   giải 2026-07-22, xem report gốc mục "Mức sàn hiệu chỉnh đề xuất"): nếu
+   excess return đo được nhỏ hơn con số này, chưa có cơ sở coi là alpha thật;
+   nếu lớn hơn, cũng không tự động kết luận phần vượt lên là alpha thật.
 
 <a id="sec-3-2" name="sec-3-2"></a>
 
