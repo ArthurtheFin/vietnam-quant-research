@@ -43,6 +43,54 @@ cầu). Nguồn: `scratch/diagnose_factor_ic_robust.py` (script FACTOR_RETEST_V2
 gốc, không sửa methodology, chạy lại trên `data/signals/stealth_accumulation_history.parquet`
 đã đồng bộ đến 2026-07-15 tại GĐ4).
 
+## 2b. Xác minh triển khai Newey-West HAC SE — 2026-07-22 (đáp lại adversarial review)
+
+Adversarial review (AI thứ 2) nghi ngờ `_newey_west_mean_se` (định nghĩa
+lặp lại ở `scratch/diagnose_factor_ic_robust.py` và 5 script `scratch/*`
+khác cùng công thức) tính sai standard error HAC, có thể làm mọi `t_NW`
+công bố trong dự án (mục 2 ở trên, `FACTOR_RETEST_V2_REPORT.md`,
+`docs/reports/scoring/SCORE_FORENSIC_REPORT.md`, v.v.) bị lệch. **Đã verify độc lập trước khi
+quyết định sửa hay không, đúng yêu cầu.**
+
+**Phương pháp**: cài đặt/dùng `statsmodels` (đã có sẵn 0.14.2 trong môi
+trường, KHÔNG thêm vào `requirements.txt` — xem lưu ý tương thích bên dưới),
+so `_newey_west_mean_se(y, maxlags)` với `sm.OLS(y, const).fit(cov_type="HAC",
+cov_kwds={"maxlags": maxlags}).bse[0]` (đúng API mà comment nguồn của hàm tự
+nhận là tương đương) trên 2 bộ input:
+1. **Dữ liệu tổng hợp** (AR(1), 27 tổ hợp `n∈{60,120,252}` ×
+   `maxlags∈{5,10,20}` × tự tương quan `φ∈{0.0,0.3,0.6}` — trải rộng đúng
+   dải `n`/`maxlags=20` dùng trong các report thật).
+2. **Dữ liệu thật**: chuỗi IC ngày thật của 3 nhân tố (`realized_vol_20d`,
+   `value_ma20`, `return_20d` vs `forward_return_20d`, n=1592–1608 ngày,
+   `maxlags=20` — đúng tham số dùng để tạo bảng mục 2 ở trên) từ
+   `data/signals/stealth_accumulation_history.parquet`.
+
+**Kết quả: KHỚP TUYỆT ĐỐI ở mọi tổ hợp** — chênh lệch tương đối 0.0000% (đến
+giới hạn làm tròn số thực) giữa `local_SE` và `sm_SE`, cả `t_naive`/`t_NW`
+tính từ 2 nguồn giống nhau đến 4 chữ số thập phân trên dữ liệu thật:
+
+| Nhân tố | n | mean_IC | local_SE | statsmodels_SE | local_t | sm_t |
+|---|---|---|---|---|---|---|
+| `realized_vol_20d` | 1602 | −0.04019 | 0.015525 | 0.015525 | −2.5886 | −2.5886 |
+| `value_ma20` | 1608 | 0.00142 | 0.017465 | 0.017465 | 0.0813 | 0.0813 |
+| `return_20d` | 1592 | −0.02085 | 0.013389 | 0.013389 | −1.5573 | −1.5573 |
+
+(27/27 tổ hợp tổng hợp cũng khớp 0.0000% — bảng đầy đủ không đưa vào đây để
+tránh dài dòng, tái lập được bằng script xác minh, xem dưới.)
+
+**Kết luận: claim của adversarial review SAI — `_newey_west_mean_se` triển
+khai ĐÚNG công thức Newey-West/Bartlett-kernel chuẩn, khớp `statsmodels`
+(thư viện tham chiếu độc lập) không sai lệch có hệ thống ở bất kỳ `n`,
+`maxlags`, hay mức tự tương quan nào đã thử.** Không sửa code — đúng nhánh
+"khớp → claim sai, không sửa" đã định trước.
+
+**Lưu ý tương thích không đổi**: `requirements.txt` đã ghi rõ
+`statsmodels.api` (top-level) hiện KHÔNG import được trong môi trường này
+(`scipy>=1.17` phá vỡ `statsmodels.distributions.discrete`) — vòng xác minh
+này import trực tiếp `statsmodels.regression.linear_model.OLS` và
+`statsmodels.stats.sandwich_covariance` (bỏ qua `statsmodels.api`), tránh
+được lỗi. Không cài thêm gói nào, không đổi `requirements.txt`.
+
 ## 3. Khám nghiệm `risk_score` — trùng cluster hay độc lập?
 
 **Ma trận correlation (Spearman cross-sectional trung bình 1,627 ngày,
