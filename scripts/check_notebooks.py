@@ -36,13 +36,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 KERNEL_NAME = "vnquant"
 DEFAULT_TIMEOUT_S = 300
 
-# Notebooks confirmed (2026-07-21 audit) to need much longer than the default
-# nbconvert timeout because they run a real full-universe grid-search
+# Notebooks confirmed (2026-07-21/22 audit) to need much longer than the
+# default nbconvert timeout because they run a real full-universe grid-search
 # backtest, not because anything is wrong -- see NOTEBOOK_AUDIT_FULL.md.
+# 19_validation_and_stress_test.ipynb measured at ~51 real minutes (its cell
+# stacks run_breakout_research + 3 more sensitivity/cost/risk sweeps in one
+# cell/one timeout budget) -- given 4500s here, not 1800s like its siblings.
 LONG_TIMEOUT_NOTEBOOKS: dict[str, int] = {
     "notebooks/03_alpha_signals/07_breakout_research.ipynb": 1800,
     "notebooks/03_alpha_signals/09_stealth_accumulation_screen.ipynb": 1800,
-    "notebooks/04_watchlist_portfolio/19_validation_and_stress_test.ipynb": 1800,
+    "notebooks/04_watchlist_portfolio/19_validation_and_stress_test.ipynb": 4500,
 }
 
 # Notebooks that make live, real (not mocked) external API calls with no

@@ -1,12 +1,14 @@
 # NOTEBOOK_AUDIT_FULL — audit toàn bộ notebook còn lại (cả 2 dự án)
 
-**Cập nhật 2026-07-21 (vòng theo dõi trực tiếp) — RESOLVED**: cả 2 nguy cơ
-ghi-đè-production (mục "Phát hiện nguy cơ ghi-đè-production") và cả 4
-notebook BROKEN (mục NV3) đã được sửa + xác nhận qua chạy thật trong sandbox
-cô lập. Thêm rào chắn cấu trúc `scripts/check_notebooks.py` (`make
-check-notebooks`) để lần tới thay đổi chữ ký hàm không còn phải đợi audit
-thủ công mới phát hiện. Chi tiết đầy đủ ở mục "Cập nhật 2026-07-21" cuối
-file; phần audit gốc bên dưới giữ nguyên làm hồ sơ.
+**Cập nhật 2026-07-21/22 (vòng theo dõi trực tiếp) — RESOLVED**: cả 2 nguy cơ
+ghi-đè-production (mục "Phát hiện nguy cơ ghi-đè-production") và cả 4/4
+notebook BROKEN (mục NV3, kể cả `19_validation_and_stress_test.ipynb` —
+xác nhận chạy hết thật ~51 phút sau khi sửa root cause) đã được sửa + xác
+nhận qua chạy thật trong sandbox cô lập. Thêm rào chắn cấu trúc
+`scripts/check_notebooks.py` (`make check-notebooks`) để lần tới thay đổi
+chữ ký hàm không còn phải đợi audit thủ công mới phát hiện. Chi tiết đầy đủ
+ở mục "Cập nhật 2026-07-21/22" cuối file; phần audit gốc bên dưới giữ
+nguyên làm hồ sơ.
 
 **Phạm vi**: audit thuần (không sửa logic, không backtest mới, không xóa gì)
 cho **13 notebook còn lại** sau `notebooks/02_market_research/` (6 file, đã
@@ -394,28 +396,35 @@ này. Xác nhận qua chạy thật: cell chạy hết, `avg_gain_proxy` fallbac
 chuỗi `median_return` → `0.03` (mặc định cuối) khi cả 2 cột đều NaN, không
 còn `AttributeError`.
 
-**`19_validation_and_stress_test.ipynb` (fix đã áp dụng, RUOT CAUSE đã xác
-nhận qua đo trực tiếp — xem chi tiết runtime ở mục riêng bên dưới do độ dài
-tính toán vượt khung audit thông thường)**: đổi lệnh gọi
+**`19_validation_and_stress_test.ipynb` (RESOLVED, commit theo sau — xác
+nhận chạy hết thật, không chỉ root cause)**: đổi lệnh gọi
 `run_breakout_research(clean_daily)` (dữ liệu giá thô, buộc
 `ensure_breakout_features()` phải tự tính lại toàn bộ đặc trưng cho cả
 universe) thành `run_breakout_research(signals, signal_col="breakout_20d")`
 — `signals` = `data/signals/setup_signals.parquet`, đã tải sẵn ở cell "Load
-Inputs", đúng nguồn ưu tiên số 1 mà notebook 07 dùng. **Đo trực tiếp (ngoài
-notebook, cùng dữ liệu, cùng lệnh gọi) xác nhận: `run_breakout_research`
-hoàn tất SẠCH sau ~1338s (~22.3 phút), trả về đủ 14 khóa kết quả, không lỗi**
-— input đã đúng, root cause gốc (dữ liệu thô/tính lại toàn bộ) đã được sửa
-dứt điểm. Cell thật trong notebook còn gọi thêm `run_parameter_sensitivity`/
-`run_cost_sensitivity`/`run_risk_limit_sensitivity` ngay sau đó (cùng 1 cell,
-cùng 1 timeout) — các lệnh gọi bổ sung này cộng dồn đủ để tổng thời gian
-cả cell vượt quá 40 phút trong 2 lần thử nbconvert (1 lần cô lập hoàn toàn,
-không có tiến trình nặng nào khác chạy song song). **Đây là chi phí tính
-toán THẬT của thiết kế nghiên cứu (grid-search nhiều tầng trên toàn
-universe), không phải bug** — đúng ràng buộc đã cho ("nếu treo vì logic
-cồng kềnh thật, chỉ ghi nhận, không tối ưu"), không cắt bớt/tối ưu logic
-sensitivity/cost/risk trong vòng này. `scripts/check_notebooks.py` (NV3)
-đặt timeout riêng cho notebook này dài hơn nhóm 07/09 để phản ánh đúng chi
-phí thật.
+Inputs", đúng nguồn ưu tiên số 1 mà notebook 07 dùng.
+
+Quá trình xác nhận qua 3 lần đo, từ hẹp tới đầy đủ:
+1. Đo trực tiếp (ngoài notebook, cùng dữ liệu, cùng lệnh gọi):
+   `run_breakout_research` một mình hoàn tất SẠCH sau ~1338s (~22.3 phút),
+   trả đủ 14 khóa kết quả, không lỗi — xác nhận input đã đúng, root cause
+   gốc (dữ liệu thô/tính lại toàn bộ) đã sửa dứt điểm.
+2. 2 lần thử `nbconvert` với timeout 1800s/2400s vẫn `CellTimeoutError` —
+   vì cell thật còn gọi thêm `run_parameter_sensitivity`/
+   `run_cost_sensitivity`/`run_risk_limit_sensitivity` ngay sau đó (cùng 1
+   cell, cùng 1 timeout ngân sách), cộng dồn vượt quá cả 2 mức trên.
+3. Chạy lại với timeout 5400s (90 phút, cô lập hoàn toàn, không tiến trình
+   nặng nào khác) — **hoàn tất SẠCH, exit code 0, thời gian thật đo được
+   ~51 phút** (08:04 → 08:55). Cả 3 output "Parameter/Cost/Risk Limit
+   Sensitivity Summary" đều in ra bình thường, không lỗi.
+
+**Đây là chi phí tính toán THẬT của thiết kế nghiên cứu (4 lệnh gọi
+grid-search/sensitivity xếp chồng trong 1 cell, toàn universe ~500 mã),
+không phải bug** — đúng ràng buộc đã cho ("nếu treo vì logic cồng kềnh
+thật, chỉ ghi nhận, không tối ưu"), không cắt bớt/tối ưu logic sensitivity/
+cost/risk trong vòng này. `scripts/check_notebooks.py` (NV3) đặt timeout
+riêng 4500s cho notebook này (dài hơn nhóm 07/09 ở 1800s) để phản ánh đúng
+chi phí thật ~51 phút + biên an toàn.
 
 ### NV3 (RESOLVED, commit `9d63572`) — rào chắn cấu trúc chống tái phát
 

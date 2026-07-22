@@ -1858,6 +1858,10 @@ push:
 `docs/reports/codebase_audit/NOTEBOOK_AUDIT_FULL.md` (mục "Cập nhật
 2026-07-21/22") và `docs/PROJECT_HANDBOOK.md` mục 2.8.
 
-**Chưa xong**: xác nhận runtime đầy đủ của `19_validation_and_stress_test.ipynb`
-sau khi sửa (đang đo với timeout dài hơn); commit riêng cho notebook này sau
-khi xác nhận.
+**Cập nhật cuối — `19_validation_and_stress_test.ipynb` xác nhận xong
+(commit theo sau)**: sau 2 lần thử timeout 1800s/2400s vẫn `CellTimeoutError`
+(cell thật cộng dồn `run_breakout_research` + 3 lệnh sensitivity/cost/risk
+khác trong cùng 1 ngân sách thời gian), chạy lại với timeout 5400s (cô lập
+hoàn toàn) → **hoàn tất SẠCH, thời gian thật ~51 phút**. `scripts/check_notebooks.py`
+cập nhật timeout riêng cho notebook này lên 4500s để phản ánh đúng chi phí
+thật. **4/4 notebook BROKEN đã sửa + xác nhận xong trong vòng này.**
