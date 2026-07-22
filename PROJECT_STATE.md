@@ -140,6 +140,22 @@ nghị, không phải quyết định tự động — người dùng có thể 
 một tiêu chuẩn chặt hơn (vd. tính cả các lần SUMMARY FAIL là một dạng rủi
 ro vận hành cần theo dõi, dù không làm mất dữ liệu lần này).
 
+**LaunchAgent tự nhiên đã xác nhận qua dữ liệu thật, không chỉ qua log —
+2026-07-22**: 2 ngày liên tiếp không ai chạy tay (2026-07-19, 2026-07-20),
+`daily_run.sh` vẫn tự chạy đúng lịch qua launchd — xác nhận bằng chính dữ
+liệu mới sinh (không chỉ đọc `logs/daily_run.log`, file cục bộ dễ mất khi
+đổi máy): `data/full_history_v2/daily_price_update_log.jsonl` có 2 dòng
+`run_at` mới (`2026-07-19T03:21:40Z`, `2026-07-20T16:08:27Z`),
+`data/disclosure/daily_update_log.jsonl` tương tự (2 dòng mới, 0 lỗi fetch
+mỗi lần), cộng 500+ symbol × 2 ngày disclosure raw JSON mới trong
+`data/disclosure/raw/`, `data/signals/final_watchlist.csv` + `reports/*`
+được regenerate, và `stock-decision-engine/outputs/` có thêm 1 lượt phân
+tích mới (TCB, cùng GEX cũ được cập nhật). Toàn bộ đã commit
+(`7582996`, message `data: automated daily sync 2026-07-19 → 2026-07-20`)
+và push lên `origin/main`. Đây là bằng chứng mạnh hơn 1 bậc so với "log nói
+đã chạy" — dữ liệu thật ở nhiều tầng độc lập (giá, disclosure, watchlist,
+SDE) đều nhất quán với 2 lần chạy đó.
+
 **Kiểm tra/tắt agent (3 dòng)**:
 ```
 launchctl list | grep vietnam-quant-research   # có dòng kết quả = đang nạp; cột đầu là PID nếu đang chạy, "-" nếu không

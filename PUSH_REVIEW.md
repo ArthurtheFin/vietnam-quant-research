@@ -1865,3 +1865,32 @@ khác trong cùng 1 ngân sách thời gian), chạy lại với timeout 5400s (
 hoàn toàn) → **hoàn tất SẠCH, thời gian thật ~51 phút**. `scripts/check_notebooks.py`
 cập nhật timeout riêng cho notebook này lên 4500s để phản ánh đúng chi phí
 thật. **4/4 notebook BROKEN đã sửa + xác nhận xong trong vòng này.**
+
+## Dọn dẹp gitignore + commit sync tự động 2 ngày + push — 2026-07-22
+
+`git status` cho thấy `daily_run` đã tự chạy đúng lịch qua launchd 2 ngày
+liên tiếp không cần can thiệp tay (2026-07-19, 2026-07-20). 3 nhiệm vụ, mỗi
+nhiệm vụ 1 commit:
+
+1. **Gitignore (commit `6a0cfcd`)** — `logs/` xuất hiện untracked dù đã có
+   `*.log` vì `scripts/check_notebooks.py` (thêm vòng trước) ghi thêm 1 file
+   `.json` không khớp pattern; đổi sang ignore cả thư mục `logs/`. Thêm
+   `docs/.Rhistory` (file rác 0 byte, không liên quan dự án). Không có gì
+   trong `logs/`/`docs/.Rhistory` từng được track trước đó.
+2. **Data sync (commit `7582996`, "data: automated daily sync 2026-07-19 →
+   2026-07-20")** — xác nhận qua log thật (`daily_price_update_log.jsonl`,
+   `daily_update_log.jsonl` đều có 2 `run_at` mới, 0 lỗi fetch) trước khi
+   commit: 1470 file — giá 2 ngày (`data/full_history_v2/raw/*.parquet` +
+   440 mã), disclosure raw 2 ngày (~1000 file JSON mới), watchlist
+   (`data/signals/final_watchlist.csv`, `reports/*`), SDE outputs (GEX cập
+   nhật + TCB mới, cả file lẫn `stock_buy_decision.ipynb`'s `TICKER` param —
+   xác nhận trước khi gộp: chỉ đổi tham số/output, không đổi logic cell
+   nào). `14_portfolio_construction.ipynb` cũng đổi nhưng xác nhận chỉ
+   output (source từng cell so HEAD giống hệt) — gộp chung vì cùng bản chất
+   dữ liệu tự sinh.
+3. **Push** — `git push origin main`: `7a0a386..7582996`, xác nhận
+   `origin/main` khớp local main tuyệt đối (`rev-parse` 2 bên bằng nhau).
+
+Cập nhật `PROJECT_STATE.md` (mục LaunchAgent): đánh dấu xác nhận qua nhiều
+tầng dữ liệu thật độc lập (giá/disclosure/watchlist/SDE), không chỉ qua
+log cục bộ.
