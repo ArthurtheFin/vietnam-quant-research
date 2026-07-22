@@ -157,52 +157,92 @@ từ nay (`CLAUDE.md` mục 9, mới thêm).
 `above_ma200`, 2022-01-01→2026-07-06, dữ liệu 2026-07-15): CAGR=+3.67%,
 Sharpe(năm hoá)=0.32, MaxDD=−30.7%, N=1,120 ngày giao dịch.
 
-**Số lượng "thử nghiệm" (M) trong mẫu số DSR — khai báo cách đếm** (cộng dồn
-số tổ hợp/cấu hình đã kiểm định trong lịch sử dự án, mỗi dòng lấy nguyên số đã
-tự công bố trong chính report đó, không tự đếm lại):
+**Cập nhật 2026-07-22 — đếm lại M qua TOÀN BỘ lịch sử git, không chỉ những
+report đã dẫn (đáp lại adversarial review nghi ngờ M=560 đếm hẹp)**:
 
-| Nguồn | Số tổ hợp |
-|---|---|
-| `docs/reports/scoring/ROBUST_FACTOR_IC_REPORT.md` (44 nhân tố × 2 universe × 2 target) | 176 |
-| `docs/reports/scoring/FACTOR_RETEST_V2_REPORT.md` (48 nhân tố × 2 universe × 2 target — tái chạy trên dữ liệu sạch, tính là một đợt thử riêng) | 192 |
-| `docs/reports/scoring/EVENT_DETECTION_REPORT.md` (factor-direction, lift-based) | 88 |
-| `docs/reports/scoring/WATCHLIST_VALIDATION_REPORT.md` (7 thành phần composite × ~4 cấu hình + v2/watchlist tối giản) | 38 |
-| `docs/reports/scoring/FOLD_AUTOPSY_REPORT.md` (tổ hợp holding-period) | 30 |
-| Portfolio construction sensitivity (size 5/10/20 × sector cap, ước lượng từ commit `7c791d7`, không có bảng số chi tiết để đếm chính xác — ước lượng 3×3) | 9 (ước lượng) |
-| `docs/reports/disclosure/DISCLOSURE_EVENT_STUDY_PREREG.md` round 1 (3 tín hiệu × 3 lag × {test chính, CAR}) | 18 |
-| `docs/reports/disclosure/DISCLOSURE_PREREG_2_CLUSTER.md` (3 nhóm × 3 lag) | 9 |
-| **Tổng M** | **560** |
+Quét `git log --all --diff-filter=A --name-only -- 'scratch/*.py'` — **57
+script** từng được thêm vào `scratch/` xuyên suốt lịch sử dự án (không chỉ
+những gì đang còn trích dẫn trong report chính thức). Phân loại từng script:
+hạ tầng/data-engineering (backfill, fetch, render PDF — không tính vào M vì
+không phải kiểm định giả thuyết alpha) vs. kiểm định thật (nhìn dữ liệu, thử
+một giả thuyết/tổ hợp factor — tính vào M). Kết quả: **8 script/report đã
+từng kiểm định nhưng CHƯA có trong bảng M cũ**, phần lớn từ giai đoạn "Phase
+B" sớm hơn (trước khi các report GĐ-numbered tồn tại) và 2 report GĐ sau này
+chưa được gộp vào bảng M:
 
-**Đây là ước lượng công khai, không phải số chính xác** — đặc biệt dòng
-"portfolio construction sensitivity" thiếu bảng số gốc để đếm chính xác, và
-việc có nên tính `EVENT_DETECTION_REPORT`/disclosure event-study (kiểm định
-biến khác, không phải trực tiếp v2) vào cùng mẫu số DSR của v2 là một lựa
-chọn có thể tranh luận — chọn hướng BAO GỒM (đếm rộng) theo đúng tinh thần
-DSR: mọi lần "nhìn vào dữ liệu và thử một giả thuyết" bởi cùng một dự án/nhóm
-đều làm tăng rủi ro data-snooping chung, không chỉ riêng những gì trực tiếp
-dẫn đến v2.
+| Nguồn mới phát hiện | Số tổ hợp | Ghi chú |
+|---|---|---|
+| `scratch/diagnose_broad_factor_ic.py` (Phase B, ~53 factor liên tục + boolean, 1 universe/target — đếm trực tiếp `CANDIDATES` dict) | 53 | Đợt factor screen SỚM HƠN, riêng biệt với `ROBUST_FACTOR_IC_REPORT`/`FACTOR_RETEST_V2` đã đếm — không lên report chính thức, chỉ còn lại trong `scratch/`. |
+| `docs/reports/scoring/MARKET_REGIME_STUDY_REPORT.md` (H1/H2/H3 × 2 chỉ báo, đúng số tự công bố "0/12") | 12 | Prereg đầy đủ, kết quả âm tính — chưa từng được gộp vào M dù đã có report riêng. |
+| `docs/reports/scoring/CRASH_RISK_RESEARCH_REPORT.md` (4 cấu hình overlay trong bảng kết quả chính) | 4 | |
+| `docs/reports/scoring/SCORE_FORENSIC_REPORT.md` NV3 (`alpha_score` composite tự nó làm factor: 2 universe × 2 target chính + 3 giai đoạn stability — chỉ đếm hàng `alpha_score`, không đếm lại `realized_vol_20d` đã có sẵn trong M) | 8 | Lần đầu composite được test trực tiếp làm 1 factor. |
+| `scratch/test_quantile_spread_analysis.py` (3 factor đã biết, lăng kính quantile-spread khác Spearman IC) | 3 | Cùng factor cũ nhưng phương pháp thống kê khác = một lần "nhìn" khác. |
+| **Sửa lại dòng "portfolio construction sensitivity"**: `docs/reports/scoring/CONCENTRATION_ANALYSIS_REPORT.md` có bảng số thật (không cần ước lượng nữa) — **4 cấu hình** (size 5/10/20, size10+cap2), không phải 9 | **4** (thay 9 ước lượng) | Tìm thấy report gốc có bảng số chi tiết — đếm chính xác thay vì ước lượng. |
 
-**Kết quả DSR** (công thức Bailey & López de Prado 2014; phương sai Sharpe
-null giữa các thử nghiệm dùng xấp xỉ chuẩn V≈1/N do không có phân phối Sharpe
-thật của từng thử nghiệm lịch sử — khai báo rõ đây là xấp xỉ, không phải tinh
-chỉnh công thức gốc):
+**Scenario bảo thủ (giữ nguyên bảng cũ, không đổi)**: M = **560** (như đã
+công bố trước đây — coi là "sàn", chỉ tính những gì đã chính thức lên report
+với bảng số rõ ràng đúng như cách đếm ban đầu).
 
-| | Giá trị |
-|---|---|
-| SR_hat (năm hoá) | 0.319 |
-| Skewness | −0.71 |
-| Kurtosis (không trừ 3) | 9.82 |
-| SR0 (ngưỡng kỳ vọng dưới H0, M=560) | 0.092 (ngày) |
-| z-statistic | −2.40 |
-| **DSR** | **0.0083** |
+**Scenario trung bình** (bảo thủ + 5 nguồn mới có bảng số RÕ RÀNG, sửa lại
+dòng portfolio-sensitivity bằng số thật thay vì ước lượng):
+560 + 53 + 12 + 4 + 8 + 3 − 5 (sửa 9→4) = **M = 635**.
 
-**DSR=0.83% — sau khi khấu trừ trung thực cho lịch sử đa kiểm định của dự án,
-gần như không còn bằng chứng "kỹ năng thật" trong Sharpe quan sát được của v2
-ở cấu hình backtest chuẩn này.** Đây là một kết quả nghiêm túc, không phải lỗi
-tính toán — z-statistic âm nghĩa là ngay cả SR_hat thô (0.32) cũng thấp hơn
-ngưỡng kỳ vọng dưới giả thuyết "không có gì, chỉ đang chọn kết quả tốt nhất
-trong 560 lần thử" (SR0≈0.092/ngày ≈ 1.46 năm hoá — đáng chú ý cao, phản ánh
-đúng bản chất DSR: càng nhiều thử nghiệm, ngưỡng "may mắn thuần túy" càng cao).
+**Scenario rộng** (trung bình + phần còn lại của lịch sử `scratch/` — 8 script
+Phase B khác có dấu "one-off diagnostic"/"EXPLORATORY" trong docstring nhưng
+KHÔNG có report chính thức đi kèm để lấy số chính xác, ước lượng thô 1-4 mỗi
+script dựa trên số biến thể mô tả trong chính docstring —
+`diagnose_alpha_source.py`≈2, `diagnose_backtest.py`≈3,
+`test_evidence_based_score.py`≈1, `walk_forward_validation.py`≈1,
+`rolling_walk_forward.py`≈4 (test nhiều overlay: stop-loss/regime/take-profit),
+`test_corp_action_zerofill_alternative.py`≈1,
+`validate_score_meta_ranking.py`+`_full.py`≈2, `car_s1_autopsy.py`≈1 —
+tổng ≈15 — CỘNG `stock-decision-engine/SDE_SCORING_REPORT.md` Vòng 3's 28
+test đã tự công bố (7 đối tượng × 2 universe × 2 target — composite KHÁC,
+target KHÁC, nhưng cùng dự án/nhóm nên tính theo tinh thần "bao gồm rộng" đã
+chọn từ đầu cho M):
+635 + 15 + 28 = **M = 678**.
+
+**Đây vẫn là ước lượng, KHÔNG phải số chính xác tuyệt đối** — đặc biệt
+scenario rộng có 15 điểm ước lượng thô (docstring mô tả định tính, không có
+bảng số). Nhưng khác với con số cứng M=560 cũ, dải 560→678 phản ánh trung
+thực hơn sự không chắc chắn thật của việc đếm M từ lịch sử một dự án nghiên
+cứu kéo dài nhiều tháng. Script tái lập: `scratch/recompute_dsr_m_scenarios.py`
+(dùng lại nguyên vẹn `deflated_sharpe_ratio()` của `scratch/dsr_and_bootstrap_v2.py`,
+chỉ đổi `n_trials`, cùng chuỗi return thật).
+
+**Kết quả DSR theo cả 3 scenario** (công thức Bailey & López de Prado 2014;
+phương sai Sharpe null giữa các thử nghiệm dùng xấp xỉ chuẩn V≈1/N do không
+có phân phối Sharpe thật của từng thử nghiệm lịch sử — khai báo rõ đây là
+xấp xỉ, không phải tinh chỉnh công thức gốc; SR_hat/skewness/kurtosis giống
+hệt nhau ở cả 3 scenario, chỉ SR0/z/DSR đổi theo M):
+
+| | Bảo thủ (M=560, cũ) | Trung bình (M=635) | Rộng (M=678) |
+|---|---|---|---|
+| SR_hat (năm hoá) | 0.319 | 0.319 | 0.319 |
+| Skewness | −0.71 | −0.71 | −0.71 |
+| Kurtosis (không trừ 3) | 9.82 | 9.82 | 9.82 |
+| SR0 (ngưỡng kỳ vọng dưới H0) | 0.0922 (ngày) | 0.0933 (ngày) | 0.0939 (ngày) |
+| z-statistic | −2.395 | −2.432 | −2.451 |
+| **DSR** | **0.0083** | **0.0075** | **0.0071** |
+
+**Kết luận không đổi ở cả 3 scenario**: DSR dao động rất hẹp (0.71%–0.83%),
+đều gần như bằng 0 — **M có tăng lên tới 21% (560→678) cũng không đổi bản
+chất kết luận: gần như không còn bằng chứng "kỹ năng thật" trong Sharpe quan
+sát được của v2 ở cấu hình backtest chuẩn này.** Đây là một điểm mạnh của
+chính DSR: hàm `Phi^-1` tăng rất chậm theo M ở vùng M lớn, nên sự không chắc
+chắn thật trong việc đếm M (dải 560-678 tìm thấy ở đây) không tạo ra sự khác
+biệt định tính trong kết luận cuối — không cần một con số M "chính xác tuyệt
+đối" để tin vào kết quả này.
+
+**DSR=0.71%–0.83% tuỳ scenario M (xem bảng 3 scenario ở trên) — sau khi khấu
+trừ trung thực cho lịch sử đa kiểm định của dự án, gần như không còn bằng
+chứng "kỹ năng thật" trong Sharpe quan sát được của v2 ở cấu hình backtest
+chuẩn này, ở CẢ 3 cách đếm M.** Đây là một kết quả nghiêm túc, không phải lỗi
+tính toán — z-statistic âm ở mọi scenario nghĩa là ngay cả SR_hat thô (0.32)
+cũng thấp hơn ngưỡng kỳ vọng dưới giả thuyết "không có gì, chỉ đang chọn kết
+quả tốt nhất trong hàng trăm lần thử" (SR0≈0.092–0.094/ngày ≈ 1.46–1.49 năm
+hoá tuỳ scenario — đáng chú ý cao, phản ánh đúng bản chất DSR: càng nhiều thử
+nghiệm, ngưỡng "may mắn thuần túy" càng cao).
 
 **Bootstrap CI** (block bootstrap, block=20 ngày giao dịch, N=1,000, seed=42,
 `src/simulation/bootstrap.py::block_bootstrap_returns` không sửa):
