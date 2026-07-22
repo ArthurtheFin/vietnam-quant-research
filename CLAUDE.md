@@ -53,3 +53,16 @@
     decision label nào** cho đến khi có bằng chứng IC/null-test mới đạt
     tiêu chí tương đương — đây không còn là vùng "chưa kiểm định", mà là
     "đã kiểm định và không đạt".
+11. **Đổi chữ ký hàm (thêm/bỏ/đổi tên tham số bắt buộc) của bất kỳ hàm nào
+    trong `src/` mà notebook có gọi tới → PHẢI chạy
+    `make check-notebooks` (hoặc `python scripts/check_notebooks.py`)
+    trước khi coi thay đổi đó là xong.** Lý do:
+    `docs/reports/codebase_audit/NOTEBOOK_AUDIT_FULL.md` — 3 lần liên tiếp
+    một thay đổi chữ ký hàm hợp lệ trong `src/` (ví dụ: `add_market_regime`
+    thêm `benchmark=`, `run_portfolio_backtest` bỏ fallback benchmark ngầm
+    bắt buộc `benchmark_features=`) chỉ được phát hiện đã làm hỏng notebook
+    qua audit thủ công, không phải ngay khi đổi. `check_notebooks.py` chạy
+    toàn bộ notebook trong sandbox cô lập (không đụng dữ liệu thật) và báo
+    lỗi ngay — không cần đợi vòng audit sau mới biết. Notebook gọi API
+    sống (SSI) bị bỏ qua mặc định (`LIVE_API_NOTEBOOKS` trong script), thêm
+    `--include-live` nếu cần chạy cả chúng.
