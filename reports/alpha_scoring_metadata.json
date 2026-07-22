@@ -1,6 +1,6 @@
 {
-  "latest_date": "2026-07-17",
-  "symbol_count": 440,
+  "latest_date": "2026-07-20",
+  "symbol_count": 436,
   "top_watchlist_count": 20,
   "generated_files": [
     "data/signals/alpha_scores.parquet",
@@ -10,11 +10,11 @@
   "lineage": {
     "dataset_version": "full_history_v2",
     "features_path": "data/processed/stock_features.parquet",
-    "features_sha256": "06b3a0b4023944bdaabe301e8daabb391ebe06ce14abf18cf809dce8d1e8d0c5",
-    "features_row_count": 717399,
+    "features_sha256": "9c7efdcb3f98b718fc20867f5787bb346058465471194df1fa3249e6294699c8",
+    "features_row_count": 717835,
     "config_path": "config/strategy_config.yaml",
     "config_hash": "11236e60e4cf4852651ac471f71bf0ff0990c35ec56ac6e0a2dfa2e020a0f771",
-    "git_commit_hash": "8f037e04a93eebb84808c931e9ef570f132891e0",
-    "lineage_generated_at": "2026-07-18T16:36:26+00:00"
+    "git_commit_hash": "6f4a56cc082df6937ff024351e37f97be6cd22d6",
+    "lineage_generated_at": "2026-07-20T18:08:30+00:00"
   }
 }
