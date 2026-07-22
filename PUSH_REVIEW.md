@@ -1809,3 +1809,55 @@ notebook, khớp kết quả chạy thật thay vì chỉ dựa vào banner tự
 `PROTECTED_PATHS` ra ngoài `02_market_research/`; sửa 4 notebook BROKEN;
 cân nhắc archive/xóa 2 notebook rủi ro cao + `11_trade_card_generation.ipynb`.
 Chi tiết đầy đủ trong `NOTEBOOK_AUDIT_FULL.md`.
+
+## Vòng theo dõi trực tiếp: mở rộng guard + sửa BROKEN + rào chắn cấu trúc — 2026-07-21/22
+
+Ba nhiệm vụ theo đúng thứ tự ưu tiên đã giao (an toàn dữ liệu trước, sửa lỗi
+chạy được sau, rào chắn chống tái phát cuối cùng). 3 commit riêng, không
+push:
+
+1. **NV1 (commit `aa97ae2`)** — mở rộng `production_guard.py`: quét lại toàn
+   bộ 23 notebook thật (không phải 26 như ước tính), xác nhận đúng 2
+   notebook ghi thẳng path bảo vệ mà chưa có guard —
+   `00_archive/02_fetch_daily_ohlcv.ipynb` và `03_clean_validate_data.ipynb`
+   (cả 2 ghi `clean_daily_ohlcv.parquet`). Thêm guard cùng pattern với
+   `02_market_research/05+06`. Chẩn đoán RÕ nguyên nhân dữ liệu rỗng của
+   `03_*`: đọc `data/raw/daily_ohlcv/` = `LEGACY_PRICE_RAW_DIR`
+   (`src/data/dataset_config.py:46`), đã rỗng hoàn toàn từ khi gate #6 fix
+   (2026-07-13) — ghi rõ trong code, KHÔNG sửa logic đọc (ngoài phạm vi NV1).
+   Xác nhận qua sandbox cô lập: guard chặn đúng, in thông báo rõ, file thật ở
+   gốc dự án không đổi (`cmp` khớp).
+2. **NV2 (commit `0406234`, 3/4 notebook)** — sửa theo đúng chữ ký hàm hiện
+   tại: `12_meta_ranking_optimization.ipynb` (thay cell project-root yếu
+   bằng `find_project_root()` chuẩn), `20_portfolio_backtester.ipynb` (thêm
+   `benchmark_features=` bắt buộc từ commit `bef0de6`),
+   `17_live_watchlist_dashboard.ipynb` (đổi fallback cột từ
+   `forward_return_20d` — không tồn tại, look-ahead — sang `median_return`,
+   cùng họ thống kê với `avg_return`). Cả 3 xác nhận hết lỗi qua chạy thật
+   trong sandbox cô lập. `19_validation_and_stress_test.ipynb`: root cause
+   (input thô thay vì `features` đã tính sẵn) đã sửa trong working tree,
+   đo trực tiếp xác nhận `run_breakout_research` với input đúng hoàn tất
+   sạch ~22 phút (không lỗi) — nhưng cell còn 3 lệnh gọi sensitivity/cost/
+   risk khác cộng dồn đủ vượt 40 phút trong 2 lần thử nbconvert (kể cả chạy
+   cô lập hoàn toàn, không tiến trình nặng nào khác). Đây là chi phí tính
+   toán THẬT của thiết kế nghiên cứu nhiều tầng trên toàn universe, không
+   phải bug — đúng ràng buộc đã cho, không tối ưu/cắt bớt logic. Commit này
+   giữ lại cho 3 notebook đã xác nhận đầy đủ; `19_*` chờ xác nhận runtime
+   dài hơn trước khi commit riêng.
+3. **NV3 (commit `9d63572`)** — `scripts/check_notebooks.py` +
+   `make check-notebooks`: chạy toàn bộ notebook top-to-bottom trong sandbox
+   cô lập (rsync riêng, sync lại trước mỗi file để tránh nhiễu chéo), báo
+   PASS/FAIL/SKIPPED + traceback rút gọn, log JSON. Notebook gọi API sống
+   không giới hạn (SSI) bỏ qua mặc định (`--include-live` để chạy). Notebook
+   nặng có timeout riêng dài hơn, lý do ghi rõ trong code. Smoke-test xác
+   nhận đúng logic skip/timeout. Thêm CLAUDE.md mục 11: đổi chữ ký hàm được
+   notebook gọi tới → phải chạy `make check-notebooks` trước khi coi xong.
+
+**Nghiệm thu**: full suite 326 passed, 0 failed (không đổi — chỉ sửa
+`.ipynb`, không đụng `src/`/`tests/`). Đã cập nhật
+`docs/reports/codebase_audit/NOTEBOOK_AUDIT_FULL.md` (mục "Cập nhật
+2026-07-21/22") và `docs/PROJECT_HANDBOOK.md` mục 2.8.
+
+**Chưa xong**: xác nhận runtime đầy đủ của `19_validation_and_stress_test.ipynb`
+sau khi sửa (đang đo với timeout dài hơn); commit riêng cho notebook này sau
+khi xác nhận.

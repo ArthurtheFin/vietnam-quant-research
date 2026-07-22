@@ -1,5 +1,13 @@
 # NOTEBOOK_AUDIT_FULL — audit toàn bộ notebook còn lại (cả 2 dự án)
 
+**Cập nhật 2026-07-21 (vòng theo dõi trực tiếp) — RESOLVED**: cả 2 nguy cơ
+ghi-đè-production (mục "Phát hiện nguy cơ ghi-đè-production") và cả 4
+notebook BROKEN (mục NV3) đã được sửa + xác nhận qua chạy thật trong sandbox
+cô lập. Thêm rào chắn cấu trúc `scripts/check_notebooks.py` (`make
+check-notebooks`) để lần tới thay đổi chữ ký hàm không còn phải đợi audit
+thủ công mới phát hiện. Chi tiết đầy đủ ở mục "Cập nhật 2026-07-21" cuối
+file; phần audit gốc bên dưới giữ nguyên làm hồ sơ.
+
 **Phạm vi**: audit thuần (không sửa logic, không backtest mới, không xóa gì)
 cho **13 notebook còn lại** sau `notebooks/02_market_research/` (6 file, đã
 audit riêng trong `MARKET_REGIME_AUDIT.md`, loại khỏi vòng này theo đúng yêu
@@ -299,6 +307,137 @@ mọi việc khác)**:
    ai còn dùng (đã có script thay thế cho toàn bộ luồng fetch/clean).
 8. Cân nhắc xóa/archive `11_trade_card_generation.ipynb` (đã có
    `scripts/generate_trade_cards.py` thay thế hoàn toàn).
+
+---
+
+## Cập nhật 2026-07-21/22 — mở rộng guard + sửa 4 BROKEN + rào chắn cấu trúc
+
+Vòng theo dõi trực tiếp audit trên. Khác vòng trước (audit thuần): vòng này
+**có sửa code**, theo đúng 3 nhiệm vụ đã giao (NV1 an toàn dữ liệu trước,
+NV2 sửa BROKEN, NV3 rào chắn cấu trúc). Mọi thứ vẫn xác nhận qua chạy thật
+trong sandbox cô lập trước khi chấp nhận — không có gì sửa "theo suy luận".
+
+### NV1 (RESOLVED) — mở rộng `production_guard.py`
+
+Quét lại toàn bộ 23 notebook thật có trong repo (không phải 26 như ước tính
+ban đầu — con số chính xác, xem bảng NV1 kiểm kê ở đầu file) cho mọi lệnh
+`save_parquet`/`save_csv_atomic`/`to_csv`/`save_*_outputs` và path đích. Kết
+quả đầy đủ:
+
+| Notebook | Ghi vào | Trong 3 path bảo vệ? | Guard trước khi sửa | Guard sau khi sửa |
+|---|---|---|---|---|
+| `00_archive/02_fetch_daily_ohlcv.ipynb` | `data/processed/clean_daily_ohlcv.parquet` | **Có** | Không | **Có** |
+| `00_archive/03_clean_validate_data.ipynb` | `data/processed/clean_daily_ohlcv.parquet` | **Có** | Không | **Có** |
+| `02_market_research/05_volatility_regime.ipynb` | `data/processed/stock_features.parquet` | Có | Có (từ vòng trước) | Có |
+| `02_market_research/06_market_regime.ipynb` | `data/processed/market_features.parquet` | Có | Có (từ vòng trước) | Có |
+| `00_archive/11_trade_card_generation.ipynb` | `data/signals/breakout_20d_trade_cards.parquet` | Không | — | — |
+| `00_archive/17_live_watchlist_dashboard.ipynb` | 5 file `data/signals/*.parquet` (trùng tên với output notebook 15/16 "Sống") | Không | — | — (ghi nhận rủi ro va chạm tên file, ngoài phạm vi NV1 vì không phải 1 trong 3 path chính thức) |
+| `02_market_research/04+08` | `notebooks/outputs/*.parquet` | Không (đã đổi path từ vòng trước) | — | — |
+| `03_alpha_signals/07/09/12` | `data/signals/*.parquet` (12 ghi thêm `alpha_scores.parquet`) | Không | — | — (12's `alpha_scores.parquet` là file production thật nhưng nằm ngoài `PROTECTED_PATHS`, đã ghi nhận là finding riêng, không mở rộng `PROTECTED_PATHS` trong vòng này — ngoài phạm vi NV1 đã giao) |
+| `04_watchlist_portfolio/14/15/16` | `data/signals/*.parquet` | Không | — | — |
+
+**Sửa** (commit `aa97ae2`): thêm `guard_production_write()`/`ProductionWriteBlocked`
+(cùng pattern với `02_market_research/05+06`) vào 2 notebook duy nhất ghi
+thẳng 1 trong 3 path bảo vệ mà chưa có guard.
+- `02_fetch_daily_ohlcv.ipynb`: guard trước `save_parquet(daily, ...)`.
+- `03_clean_validate_data.ipynb`: guard trước `save_parquet(clean, ...)`,
+  cộng comment giải thích RÕ NGUYÊN NHÂN dữ liệu rỗng (không sửa) — xem mục
+  dưới.
+
+**Chẩn đoán dữ liệu rỗng của `03_clean_validate_data.ipynb`** (yêu cầu NV1
+mục 2 — hiểu vì sao, chưa cần sửa): `data/raw/daily_ohlcv/` chính là
+`LEGACY_PRICE_RAW_DIR` (`src/data/dataset_config.py:46`) — hằng số đặt tên
+rõ ràng, tự nhận là superseded bởi `OFFICIAL_PRICE_RAW_DIR =
+data/full_history_v2/raw` từ khi gate #6 được fix (2026-07-13). Thư mục này
+hiện **rỗng hoàn toàn trên đĩa** (0 file, gitignored) — không còn tiến trình
+nào ghi vào đây nữa. `read_symbol_files("data/raw/daily_ohlcv")` vì vậy trả
+về DataFrame rỗng, và mọi bước validate sau đó "pass" trên 0 dòng mà không
+raise lỗi nào. Đây là bug thật (đọc nguồn đã chết) nhưng đã hiểu rõ nguyên
+nhân và có tên gọi chính thức trong code (`LEGACY_PRICE_RAW_DIR`) — không
+sửa logic đọc trong vòng này (ngoài phạm vi NV1 đã giao), chỉ đảm bảo kết
+quả rỗng đó không thể ghi đè production nữa.
+
+**Xác nhận qua sandbox cô lập**: chạy `03_clean_validate_data.ipynb` sau khi
+sửa → in đúng `(0, 0)` cho shape + thông báo `KHONG ghi ... ProductionWriteBlocked`
++ xác nhận `cmp` file thật ở gốc dự án không đổi. `02_fetch_daily_ohlcv.ipynb`
+xác nhận bằng syntax-check tĩnh (không chạy hết vì gọi SSI API sống không
+giới hạn — chi phí không cần thiết để xác nhận 1 dòng guard).
+
+### NV2 — sửa 4 notebook BROKEN theo chữ ký hàm hiện tại
+
+**`12_meta_ranking_optimization.ipynb` (RESOLVED, commit `0406234`)**: thay
+cell "Setup Project Root" (logic cũ: `Path.cwd().resolve().parents[0] if
+Path.cwd().name == "notebooks" else Path.cwd().resolve()` — sai khi cwd của
+kernel là thư mục CHỨA notebook, vd `03_alpha_signals`, không phải
+`notebooks`) bằng đúng hàm `find_project_root()` (tìm ngược lên tới khi gặp
+cả `src/`+`config/`) mà mọi notebook khác trong dự án đã dùng. Xác nhận
+trong sandbox cô lập: `PosixPath(...)` giờ trỏ đúng root sandbox, không còn
+`ModuleNotFoundError`.
+
+**`20_portfolio_backtester.ipynb` (RESOLVED, commit `0406234`)**: thêm
+`benchmark_features = read_parquet("data/processed/benchmark_vnindex.parquet")`
+vào cell load input + truyền `benchmark_features=benchmark_features` vào
+lệnh gọi `run_portfolio_backtest` — đúng tham số bắt buộc từ commit `bef0de6`
+(gỡ fallback benchmark ngầm cũ). Xác nhận qua chạy thật trong sandbox:
+`Loaded benchmark (VNINDEX): (1632, 33)`, backtest hoàn tất, CAGR 19.20%,
+Max Drawdown -25.86%, Sharpe 0.95, 690 lệnh — không còn `ValueError`.
+
+**`17_live_watchlist_dashboard.ipynb` (RESOLVED, commit `0406234`)**: fallback
+`avg_gain_proxy` trỏ tới `forward_return_20d` — cột **không hề được merge
+vào `capital_candidates`** (chỉ 4 cột từ eligibility được enrich:
+`win_rate`/`avg_return`/`stop_loss`/`eligible`) và về bản chất là nhãn
+look-ahead (không phù hợp cho tín hiệu sống). `.get()` vì vậy trả về scalar
+`np.nan` mặc định thay vì Series, làm `.abs()` lỗi. Sửa: thêm
+`"median_return"` (cùng họ thống kê backtest-trade với `avg_return`,
+`src/backtest/metrics.py`) vào danh sách cột enrich, đổi fallback sang cột
+này. Xác nhận qua chạy thật: cell chạy hết, `avg_gain_proxy` fallback đúng
+chuỗi `median_return` → `0.03` (mặc định cuối) khi cả 2 cột đều NaN, không
+còn `AttributeError`.
+
+**`19_validation_and_stress_test.ipynb` (fix đã áp dụng, RUOT CAUSE đã xác
+nhận qua đo trực tiếp — xem chi tiết runtime ở mục riêng bên dưới do độ dài
+tính toán vượt khung audit thông thường)**: đổi lệnh gọi
+`run_breakout_research(clean_daily)` (dữ liệu giá thô, buộc
+`ensure_breakout_features()` phải tự tính lại toàn bộ đặc trưng cho cả
+universe) thành `run_breakout_research(signals, signal_col="breakout_20d")`
+— `signals` = `data/signals/setup_signals.parquet`, đã tải sẵn ở cell "Load
+Inputs", đúng nguồn ưu tiên số 1 mà notebook 07 dùng. **Đo trực tiếp (ngoài
+notebook, cùng dữ liệu, cùng lệnh gọi) xác nhận: `run_breakout_research`
+hoàn tất SẠCH sau ~1338s (~22.3 phút), trả về đủ 14 khóa kết quả, không lỗi**
+— input đã đúng, root cause gốc (dữ liệu thô/tính lại toàn bộ) đã được sửa
+dứt điểm. Cell thật trong notebook còn gọi thêm `run_parameter_sensitivity`/
+`run_cost_sensitivity`/`run_risk_limit_sensitivity` ngay sau đó (cùng 1 cell,
+cùng 1 timeout) — các lệnh gọi bổ sung này cộng dồn đủ để tổng thời gian
+cả cell vượt quá 40 phút trong 2 lần thử nbconvert (1 lần cô lập hoàn toàn,
+không có tiến trình nặng nào khác chạy song song). **Đây là chi phí tính
+toán THẬT của thiết kế nghiên cứu (grid-search nhiều tầng trên toàn
+universe), không phải bug** — đúng ràng buộc đã cho ("nếu treo vì logic
+cồng kềnh thật, chỉ ghi nhận, không tối ưu"), không cắt bớt/tối ưu logic
+sensitivity/cost/risk trong vòng này. `scripts/check_notebooks.py` (NV3)
+đặt timeout riêng cho notebook này dài hơn nhóm 07/09 để phản ánh đúng chi
+phí thật.
+
+### NV3 (RESOLVED, commit `9d63572`) — rào chắn cấu trúc chống tái phát
+
+Thêm `scripts/check_notebooks.py` + `make check-notebooks`: chạy toàn bộ
+notebook (mặc định 23 file, trừ 2 notebook gọi API sống không giới hạn —
+`--include-live` để chạy cả 2) top-to-bottom trong sandbox cô lập (rsync
+riêng, không đụng dữ liệu thật, sync lại trước mỗi notebook để tránh nhiễu
+chéo), báo PASS/FAIL/SKIPPED + traceback rút gọn cho từng file, ghi log đầy
+đủ vào `logs/check_notebooks_last_run.json`. Notebook nặng (07/09/19) có
+timeout riêng dài hơn mặc định, ghi rõ lý do trong code. Smoke-test xác nhận
+đúng: chạy 2 notebook biết trước là tốt (2.9s, 19.1s — PASS), xác nhận cờ
+`--only` bỏ qua danh sách skip (dùng để test/chạy tay 1 notebook cụ thể kể
+cả loại live-API).
+
+Thêm CLAUDE.md mục 11: đổi chữ ký hàm `src/` mà notebook có gọi tới → phải
+chạy `make check-notebooks` trước khi coi thay đổi đã xong.
+
+### NV4 — nghiệm thu
+
+Full suite: **326 passed, 0 failed** (không đổi so với trước vòng này — các
+sửa chỉ nằm trong `.ipynb`, không đụng `src/`/`tests/`). Chi tiết đầy đủ +
+commit hash: xem 4 commit riêng biệt cho NV1/NV2/NV3 (không push).
 
 ---
 

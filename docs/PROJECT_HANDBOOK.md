@@ -799,24 +799,31 @@ nói chung — có bằng chứng xếp hạng, chưa có bằng chứng chiến
 
 ## 2.8. Notebook nào còn dùng được
 
-**Cập nhật 2026-07-21 — đã CHẠY THẬT toàn bộ notebook còn lại (loại
+**Cập nhật 2026-07-21/22 — đã CHẠY THẬT toàn bộ notebook còn lại (loại
 `02_market_research/`, tự audit riêng) trong sandbox cô lập, không chỉ dựa
-vào banner tự khai. Chi tiết đầy đủ + bằng chứng:
-`docs/reports/codebase_audit/NOTEBOOK_AUDIT_FULL.md`.**
+vào banner tự khai; 3/4 notebook BROKEN đã sửa + xác nhận lại, mở rộng
+`production_guard.py`, thêm `make check-notebooks` chống tái phát. Chi tiết
+đầy đủ + bằng chứng: `docs/reports/codebase_audit/NOTEBOOK_AUDIT_FULL.md`.**
 
 | Notebook | Trạng thái | Mở để làm gì |
 |---|---|---|
 | `notebooks/01_data_pipeline/01_validate_environment.ipynb` | Sống — **đã chạy thật, xác nhận đúng** | Kiểm tra môi trường/kết nối dữ liệu trước khi chạy sâu hơn |
 | `notebooks/02_market_research/04_market_distribution.ipynb`, `05_volatility_regime.ipynb`, `06_market_regime.ipynb`, `08_monte_carlo_simulation.ipynb`, `10_benchmark_diagnostics.ipynb`, `13_advanced_quant_analysis.ipynb` | Sống — đã audit riêng (`MARKET_REGIME_AUDIT.md`), 3 bug kỹ thuật đã sửa | Nghiên cứu thị trường thủ công: phân phối lợi nhuận, chế độ biến động/thị trường, mô phỏng Monte Carlo, chẩn đoán benchmark |
 | `notebooks/03_alpha_signals/07_breakout_research.ipynb`, `09_stealth_accumulation_screen.ipynb` | Sống — **đã chạy thật, xác nhận đúng** (07 mất ~18 phút thật — cần timeout dài nếu tự động hóa) | Nghiên cứu breakout, tầm soát tích lũy âm thầm |
-| `notebooks/03_alpha_signals/12_meta_ranking_optimization.ipynb` | **❌ BROKEN** — `ModuleNotFoundError` xác nhận qua chạy thật (cell tìm project-root dùng logic yếu hơn các notebook khác, sai khi cwd không đúng tên `notebooks`); banner OUTDATED cũ vẫn đúng một phần (cột hiển thị) | Không dùng cho tới khi sửa cell project-root; xem `NOTEBOOK_AUDIT_FULL.md` |
+| `notebooks/03_alpha_signals/12_meta_ranking_optimization.ipynb` | **✅ Sửa xong** — cell project-root đổi sang `find_project_root()` chuẩn, xác nhận hết `ModuleNotFoundError` qua chạy thật; banner OUTDATED cũ (cột hiển thị momentum/rs/trend) vẫn còn, chưa gỡ | Đọc banner trước khi tin số liệu hiển thị |
 | `notebooks/04_watchlist_portfolio/14_portfolio_construction.ipynb`, `15_risk_management.ipynb`, `16_capital_allocation.ipynb` | Sống — **đã chạy thật, xác nhận đúng** (15 đã tự động kế thừa fix `ddof=1`) | Dựng danh mục, quản trị rủi ro, phân bổ vốn (nghiên cứu/mô phỏng) |
-| `notebooks/04_watchlist_portfolio/19_validation_and_stress_test.ipynb` | **❌ BROKEN** — không hoàn thành trong 30 phút (gọi `run_breakout_research` với dữ liệu giá thô chưa tính đặc trưng, đúng lẽ phải dùng `features` đã tính sẵn như notebook 07) | Không dùng cho tới khi sửa tham số đầu vào |
-| `notebooks/04_watchlist_portfolio/20_portfolio_backtester.ipynb` | **❌ BROKEN** — `ValueError` xác nhận qua chạy thật: thiếu `benchmark_features=`, tham số bắt buộc từ khi commit `bef0de6` gỡ fallback benchmark ngầm (đúng loại "gọi hàm lỗi thời" như vụ `06_market_regime`) | Không dùng cho tới khi sửa lệnh gọi `run_portfolio_backtest` |
+| `notebooks/04_watchlist_portfolio/19_validation_and_stress_test.ipynb` | **⚠️ Đã sửa root cause, chưa xác nhận chạy hết** — input sai (`clean_daily` thô) đã sửa thành `signals` đã tính sẵn, đo trực tiếp xác nhận `run_breakout_research` với input đúng hoàn tất sạch ~22 phút; cell còn 3 lệnh gọi sensitivity/cost/risk khác cộng dồn vượt 40 phút — chi phí tính toán thật của thiết kế nghiên cứu, không phải bug, chưa tối ưu theo đúng ràng buộc | Đọc banner OUTDATED trước; kỳ vọng chạy rất lâu (>40 phút) nếu chạy lại cả cell "Sweeps and Sensitivities" |
+| `notebooks/04_watchlist_portfolio/20_portfolio_backtester.ipynb` | **✅ Sửa xong** — thêm `benchmark_features=` (từ `benchmark_vnindex.parquet`), xác nhận hết `ValueError` qua chạy thật (CAGR 19.20%, Sharpe 0.95, 690 lệnh) | Backtest danh mục lịch sử |
 | `notebooks/05_client_report/01_client_market_report.ipynb` | Sống — **đã chạy thật, xác nhận đúng** | Sinh báo cáo thị trường dạng đọc được |
 | `notebooks/00_archive/00_project_overview.ipynb`, `18_client_watchlist_report.ipynb` | Đóng băng — đã chạy thật, 0 lỗi, chỉ tham khảo lịch sử | Không dùng, đã có bản thay thế |
 | `notebooks/00_archive/11_trade_card_generation.ipynb` | Đóng băng — đã chạy thật, 0 lỗi, nhưng đã có `scripts/generate_trade_cards.py` thay thế hoàn toàn | Không dùng |
-| `notebooks/00_archive/17_live_watchlist_dashboard.ipynb` | **❌ BROKEN** — `AttributeError` xác nhận qua chạy thật (cột `forward_return_20d` không còn trong schema hiện tại) | Không dùng |
+| `notebooks/00_archive/17_live_watchlist_dashboard.ipynb` | **✅ Sửa xong** — fallback `avg_gain_proxy` đổi từ cột không tồn tại (`forward_return_20d`) sang `median_return` (đã merge từ eligibility), xác nhận hết `AttributeError` qua chạy thật | Đóng băng, chỉ tham khảo — không dùng cho quyết định thật |
+| `notebooks/00_archive/02_fetch_daily_ohlcv.ipynb`, `03_clean_validate_data.ipynb` | Đóng băng — **đã gắn `production_guard.py`**, không còn ghi đè được `clean_daily_ohlcv.parquet` dù chạy tay; `03_*` vẫn đọc nguồn đã chết (`LEGACY_PRICE_RAW_DIR`, xem `NOTEBOOK_AUDIT_FULL.md`), chưa sửa logic đọc | **KHÔNG dùng** — chỉ còn an toàn về mặt không ghi đè production, chưa sửa logic |
+
+**Rào chắn mới**: `make check-notebooks` (hoặc `python scripts/check_notebooks.py`)
+chạy toàn bộ notebook trong sandbox cô lập, báo lỗi ngay khi một thay đổi
+chữ ký hàm trong `src/` làm hỏng notebook nào — chạy lệnh này trước khi coi
+một thay đổi chữ ký hàm là xong (CLAUDE.md mục 11).
 | `notebooks/00_archive/02_fetch_daily_ohlcv.ipynb`, `03_clean_validate_data.ipynb` | **⚠️ RỦI RO GHI-ĐÈ-PRODUCTION** — ghi thẳng `data/processed/clean_daily_ohlcv.parquet` không qua guard; `03_*` còn âm thầm tạo dữ liệu RỖNG vì đọc thư mục nguồn đã bị thay thế | **KHÔNG BAO GIỜ chạy tay hai file này** cho tới khi guard được mở rộng — xem `NOTEBOOK_AUDIT_FULL.md` |
 | `stock-decision-engine/notebooks/stock_buy_decision.ipynb` | Sống, **đã cập nhật Nhánh C** (README + SDE_SCORING_REPORT.md xác nhận) — đã chạy thật, 0 lỗi | Tra cứu nhanh bảng chỉ số kỹ thuật/thống kê một mã (Phần 2.2-2.3) — không dùng để quyết định mua/bán |
 
