@@ -35,5 +35,13 @@ data/quarantine_existing_v1/**/*.parquet
 notebooks/outputs/**/*.parquet
 *.log
 
+# operational logs dir (daily_run.log, launchd_std*.log, check_notebooks
+# JSON runlog) -- *.log alone missed non-.log files dropped here, leaving
+# logs/ untracked-but-visible in git status; ignore the whole dir instead.
+logs/
+
 # system-font copy for scratch/render_handbook_pdf.py, recreated on demand
 scratch/fonts/
+
+# stray empty R history file, unrelated to this project
+docs/.Rhistory
