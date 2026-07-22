@@ -108,6 +108,42 @@ lỗi hệ thống.** Kết quả NEGATIVE của H1/H2 vì vậy được đọc
 thiết kế test (không phải do đối chứng bị lệch), không cần diễn giải thận
 trọng thêm như đã dự phòng trong prereg.
 
+## 6. Caveat phương pháp luận — đây KHÔNG phải out-of-sample sạch tuyệt đối
+(đáp lại adversarial review, 2026-07-22)
+
+**Thừa nhận thẳng**: round này không phải một prereg thuần túy theo nghĩa
+chặt nhất — "khám phá" (round 1 + `SURVIVORSHIP_BIAS_ESTIMATE.md` phát hiện
+S3 dương bất thường, gợi ý confound survivorship) và "xác nhận" (round này,
+thiết kế đối chứng khớp cặp để triệt tiêu đúng confound đó) đều chạy trên
+**cùng một tập dữ liệu disclosure** (2020–2026, cùng nguồn CafeF, không phải
+một mẫu mới chưa từng nhìn qua). Về mặt kỹ thuật, thiết kế của round này (khớp
+cặp theo mã+ngày) đã bị THÔNG TIN bởi chính mẫu hình quan sát được ở round 1
+— đây là điểm khác biệt thật so với một prereg "chưa từng thấy dữ liệu trước
+khi khóa thiết kế", và adversarial review nêu đúng.
+
+**Vai trò của H0 như cơ chế giảm nhẹ rủi ro này (không phải xóa bỏ hoàn
+toàn)**: H0 (đối chứng nội bộ, đơn lẻ/không cụm/không gia đình) được khóa
+TRƯỚC khi chạy trong CÙNG round này, và bản thân H0 cũng rút từ đúng tập dữ
+liệu "đã khám phá" đó. Nếu toàn bộ thiết kế round 2 chỉ đơn thuần đang tái tạo
+lại pattern dương giả từ việc "đã nhìn thấy dữ liệu", một cách hợp lý ta sẽ kỳ
+vọng H0 CŨNG dương giả theo cùng cơ chế (cùng universe, cùng loại drift). H0
+ra ÂM TÍNH sạch (mục 2, mục 5) là bằng chứng gián tiếp thiết kế khớp cặp đang
+thực sự triệt tiêu confound, không chỉ đang tình cờ khớp lại với dữ liệu đã
+xem — nhưng đây là một lập luận GIÁN TIẾP, không phải bằng chứng trực tiếp
+tương đương một mẫu out-of-sample thật.
+
+**Mức độ tin cậy nên đọc thấp hơn một bậc**: kết luận NEGATIVE của round này
+nên được đọc với độ tin cậy THẤP HƠN một prereg thuần túy chưa từng thấy dữ
+liệu trước khi khóa thiết kế (ví dụ round 1 gốc, `DISCLOSURE_EVENT_STUDY_PREREG.md`,
+vốn không có bước "khám phá" nào đi trước) — dù H0 âm tính có phần trấn an,
+nó không nâng độ tin cậy round này lên NGANG BẰNG một prereg sạch tuyệt đối.
+**Điều này KHÔNG làm thay đổi kết luận đóng nhánh** (mục "Kết luận & đóng
+nhánh" bên dưới) — kết quả âm tính vẫn giữ nguyên, và một round kiểm định
+"explore-rồi-confirm cùng dataset" có bằng chứng H0 sạch vẫn là một lý do
+chính đáng để đóng nhánh, chỉ là nên tự nhận thức rằng đây không phải mức
+bằng chứng mạnh nhất có thể có (mức mạnh nhất sẽ cần dữ liệu disclosure hoàn
+toàn mới, chưa từng được nhìn qua ở bất kỳ round nào trước).
+
 ---
 
 ## Kết luận & đóng nhánh (đúng ràng buộc gốc)
