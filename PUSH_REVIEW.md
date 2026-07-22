@@ -1894,3 +1894,84 @@ nhiệm vụ 1 commit:
 Cập nhật `PROJECT_STATE.md` (mục LaunchAgent): đánh dấu xác nhận qua nhiều
 tầng dữ liệu thật độc lập (giá/disclosure/watchlist/SDE), không chỉ qua
 log cục bộ.
+
+## Đáp lại adversarial review (AI thứ 2) — xử lý có chọn lọc, 5 nhiệm vụ — 2026-07-22
+
+Review từ một AI thứ 2 lọc ra 3 finding có căn cứ mạnh + 2 claim cần verify.
+Vòng này XỬ LÝ CÓ CHỌN LỌC — verify trước khi sửa, không sửa mù theo toàn bộ
+review. 5 commit riêng biệt, không push (yêu cầu rõ: đây là sửa lại số đã
+công bố, cần review trước):
+
+1. **NV1 (commit `f28fb8b`) — Verify Newey-West, KHÔNG sửa**: cài/dùng
+   `statsmodels` (đã có sẵn 0.14.2, import trực tiếp
+   `statsmodels.regression.linear_model`/`statsmodels.stats.sandwich_covariance`,
+   bỏ qua `statsmodels.api` bị lỗi do scipy>=1.17), so `_newey_west_mean_se`
+   với `OLS(...).fit(cov_type="HAC")` trên 27 tổ hợp tổng hợp (AR(1),
+   n/maxlags/tự tương quan khác nhau) + 3 chuỗi IC thật (n=1592-1608,
+   maxlags=20, đúng tham số dùng để tạo bảng đã công bố). **Khớp 0.0000% ở
+   mọi trường hợp** — claim của review SAI, không sửa code. Chi tiết:
+   `docs/reports/scoring/ROBUSTNESS_REPORT.md` mục 2b.
+2. **NV2 (commit `a0ec130`) — đếm lại M cho DSR**: quét `git log --all` cho
+   toàn bộ 57 script `scratch/*.py` từng tồn tại (không chỉ những gì còn
+   trích dẫn), tìm ra 5 nguồn có bảng số thật chưa từng gộp vào M=560 cũ
+   (`MARKET_REGIME_STUDY_REPORT` +12, `CRASH_RISK_RESEARCH_REPORT` +4,
+   `SCORE_FORENSIC_REPORT` NV3 +8, quantile-spread +3, một đợt factor-screen
+   Phase B sớm hơn ~53 nhân tố chưa từng lên report), sửa lại 1 dòng ước
+   lượng cũ (portfolio-sensitivity: 9→4, tìm được bảng số thật). Báo 3
+   scenario thay vì 1 số cứng: bảo thủ M=560 (0.83%), trung bình M=635
+   (0.75%), rộng M=678 (0.71%) — **kết luận không đổi ở cả 3 mức M**.
+3. **NV3 (commit `b0f017b`) — sửa circular logic sàn survivorship**: sàn
+   +0.4/+1.2/+2.9% là HỖN HỢP survivorship bias + size/liquidity-tilt của bộ
+   lọc "đủ điều kiện", không tách được ở round trước, và trước đây bị mô tả
+   như một mức TRỪ CHÍNH XÁC. Viết lại `SURVIVORSHIP_BIAS_ESTIMATE.md` +
+   quét sửa cách diễn giải ở `ROBUSTNESS_REPORT.md`, `SCORE_V2_REPORT.md`,
+   `PROJECT_HANDBOOK.md` (mermaid + Bước 4), `DAILY_OPERATING_GUIDE.md`,
+   `PROJECT_STATE.md` — giờ dùng như CẬN TRÊN thô, không phải mức trừ chính
+   xác. Không đụng 2 file prereg đã khóa (`WATCHLIST_VALIDATION_PREREG.md`,
+   `SDE_SCORING_PREREG.md`) và 3 report chỉ narrate mô tả (không có claim
+   hành động cần sửa).
+4. **NV4 (commit `9973a21`) — caveat explore-rồi-confirm cho Prereg 2**:
+   thêm mục 6 vào `DISCLOSURE_PREREG_2_REPORT.md` — thừa nhận thiết kế đối
+   chứng khớp cặp bị thông tin bởi mẫu hình quan sát ở round 1 trên CÙNG
+   dataset (không phải out-of-sample sạch), giải thích H0 (đối chứng nội bộ,
+   khóa trước, cùng dataset "đã khám phá") là bằng chứng GIÁN TIẾP giảm nhẹ
+   rủi ro này (nếu thiết kế chỉ đang tái tạo pattern giả, H0 nhiều khả năng
+   cũng dương giả — nhưng ra âm tính sạch), và mức tin cậy nên đọc thấp hơn
+   một bậc so với prereg thuần túy. Kết luận đóng nhánh KHÔNG đổi.
+5. **NV5 (kiểm tra thuần, không sửa)** — 3 nghi vấn bug dự đoán:
+   - **Lot size fractional shares**: XÁC NHẬN CÓ THẬT.
+     `src/capital/management.py` dùng `np.floor(value/price)` ra số cổ phiếu
+     lẻ (vd. 4722), không làm tròn xuống bội số 100 (`config/vn_market_rules.yaml`'s
+     `lot_size: 100` xác nhận grep 0 kết quả sử dụng, khớp
+     `audit/PATH_TO_100.md` dòng 174 đã ghi từ trước). **Không ảnh hưởng bất
+     kỳ con số đã công bố nào** — `src/backtest/portfolio_backtest.py` (động
+     cơ đứng sau MỌI CAGR/Sharpe/DSR/t_NW đã công bố) xác nhận grep 0 kết
+     quả cho `quantity`/`shares`/`lot` — hoạt động thuần trên tỷ trọng liên
+     tục, không bao giờ tính số cổ phiếu rời rạc. Chỉ ảnh hưởng
+     `build_capital_plan`/`align_capital_plan_to_target_weights` (công cụ
+     sizing SỐNG, thực thi tương lai) — đúng diện hoãn GĐ6, không sửa.
+   - **Bootstrap cross-sectional structure**: KIỂM TRA, KHÔNG TÌM THẤY BUG.
+     Cả 2 hàm bootstrap trong repo (`block_bootstrap_returns` cho CI DSR,
+     `bootstrap_price_paths` cho Monte Carlo 1 mã) đều thao tác trên MỘT
+     chuỗi return duy nhất — không có chiều cross-sectional (nhiều mã) nào
+     để "bỏ qua". Hàm DUY NHẤT có cấu trúc cross-sectional thật
+     (`generate_random_portfolios`, notebook 14) dùng đúng ma trận hiệp
+     phương sai thật, không giả định độc lập. (Giới hạn time-series
+     autocorrelation của `bootstrap_price_paths` đã ghi nhận riêng từ
+     `MARKET_REGIME_AUDIT.md` — khác vấn đề, không phải phát hiện mới.)
+   - **Disclosure calendar-join lag**: KIỂM TRA, KHÔNG TÌM THẤY BUG.
+     `next_trading_day` (`src/data/disclosure_parser.py`) dùng đúng lịch
+     giao dịch thật (bỏ qua cuối tuần + `config/vn_market_holidays.csv`),
+     không phải cộng ngày lịch ngây thơ. Join `available_at` dùng
+     `np.searchsorted(..., side="left")` — căn đúng ngày giao dịch đầu tiên
+     từ lúc thông tin công khai. Placeholder "+1 ngày giao dịch" cho dữ liệu
+     backfill đã tự nhận là ước lượng — và độ nhạy của nó với chính giả
+     định lag đã được kiểm định trực tiếp trong `DISCLOSURE_PREREG_2_REPORT.md`
+     mục 4 (lag +1/+3/+5, verdict KHÔNG đổi ở cả 3 mức) — nên bất kỳ sai số
+     hiệu chỉnh còn lại trong placeholder này cũng không đe dọa kết luận âm
+     tính đã công bố.
+
+**Nghiệm thu**: full suite 326 passed (không đụng `src/`/`tests/` ở bất kỳ
+NV nào trừ đọc-only trong NV5). Toàn bộ 5 commit trên `main`, **CHƯA push**
+theo đúng yêu cầu — chờ review trước vì đây là sửa lại chính các con số đã
+công bố.
