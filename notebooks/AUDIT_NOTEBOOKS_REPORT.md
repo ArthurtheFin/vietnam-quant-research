@@ -106,6 +106,76 @@ Chỉ bổ sung `notebooks/outputs/**/*.csv` (trước đó chỉ có `*.parquet
 
 ---
 
+# ĐỢT 3 — KIỂM ĐỊNH + DỌN HỆ QUẢ CỦA GUARD (2026-07-27)
+
+Phạm vi: hệ quả của Đợt 2, nguyên tắc "guard ở chỗ đọc", nb19, và sidecar research_notes.
+**Không** đụng chuỗi overfitting `14→15→16` (để Đợt 5).
+
+## Nghiệm thu Đợt 2 (kết quả thật, chạy `daily_run.sh --force`)
+
+```
+[2026-07-27 13:24:26] START update_prices_daily
+[2026-07-27 13:39:56] OK   update_prices_daily (930s)
+[2026-07-27 14:02:21] OK   update_disclosure_daily (1345s)
+[2026-07-27 14:02:28] OK   update_index_data (7s)
+[2026-07-27 14:03:41] ###### FAIL ###### run_daily_pipeline (73s, exit=1)
+[2026-07-27 14:03:41] ###### SUMMARY: 1/4 step(s) FAILED: run_daily_pipeline ######
+   -> generate_trade_cards: "breakout_20d_setup_eligibility.parquet is 25.0 days
+      older than setup_signals.parquet (limit: 7 days)"
+   -> "Pipeline stopped at step `generate_trade_cards`"
+```
+
+Guard kích hoạt đúng như thiết kế.
+
+**Đính chính dự đoán của Đợt 2.** Tôi đã nói guard sẽ "cascade sang `run_meta_ranking`
+khiến bước đó cũng FAIL". **Sai.** `run_daily_pipeline.py:882-883` dừng hẳn ở bước lỗi
+(`return 1`) sau khi vẫn ghi `pipeline_metadata.json`. Thực tế **tốt hơn** dự đoán: một
+điểm lỗi duy nhất, rõ ràng, không có lỗi thứ hai gây nhiễu. Phần đúng: `data/output/*watchlist`
+không được sinh mới nên client report vẫn hiển thị bản 2026-07-23.
+
+## Bốn nhiệm vụ
+
+| NV | Việc | Commit |
+|---|---|---|
+| 1 | Chuyển cả 4 artifact chuỗi `14/15/16/19` sang `notebooks/outputs/` — **sửa cả chỗ ghi lẫn chỗ đọc**. `load_upstream_artifact()` luôn in mtime + tuổi file. nb15 nói thẳng khi đang dùng trọng số cũ, và fallback HRP khi không có file. 4 bản cũ chuyển vào `data/quarantine_notebook_chain_v1/` kèm README (không xoá — chúng bị gitignore, xoá là mất hẳn) | `811edef` |
+| 2 | Quét AST toàn pipeline, lập bảng {consumer, artifact, producer, đã có check chưa}. 4 bước thiếu check (`generate_signals`, `run_alpha_scoring`, `run_stealth_accumulation_screen`, `build_cashflow_board`) nay gọi `assert_input_chain_fresh()`. Ghi **CLAUDE.md rule 12** | `acf2046` |
+| 3 | Chạy thật cell leakage của nb19; tạo `config/delisted_symbols.csv`; sửa nhãn OOS sai; trỏ stress test vào đúng cột danh mục thật | `bab83d3` |
+| 4 | `research_notes_metadata.json` khai 4 note không tồn tại → regenerate; kèm sửa `generated_at` luôn rỗng | `1d3994c` |
+
+## NV3 — kết quả THẬT của cell chưa từng chạy
+
+| Check | Kết quả | Đọc thế nào |
+|---|---|---|
+| **Look-ahead** | ❌ **FAILED** — `['forward_return_5d','10d','20d','60d']` | **Không phải báo động đỏ.** `check_lookahead_bias` là phép quét **tên cột** (`"forward" in c.lower()`, `bias_checks.py:47`), không phải kiểm tra cách dùng. Các cột này nằm trong `setup_signals.parquet` **có chủ đích** — chúng là *nhãn* của backtest (`metrics.py`, `breakout_research.py`, `engine.py` đều dùng làm kết quả thực tế của lệnh, không phải feature đầu vào). Lớp chặn rò rỉ thật là `assert_no_forward_columns` (audit D5), đã strip trước mọi lần ghi output. **Không sửa check cho nó xanh.** |
+| **Data leakage** | ✅ PASSED | train max `2023-12-29` < test min `2024-01-02` |
+| **Survivorship** | ⚠️ "bias present", missing = 1 | **Gần như tuần hoàn.** 19/20 mã trong danh sách nằm ngay trong universe 500 mã nên theo định nghĩa không thể "missing"; chỉ `GEE` nằm ngoài. Con số 1 phản ánh cách dựng danh sách, không phải mức bias thật. |
+
+**`config/delisted_symbols.csv`** — 20 mã `INACTIVE_LONG` (vòng trước đếm 18; tăng vì dữ liệu
+chạy tới 2026-07-27, cùng cách tính). Ba hạn chế ghi rõ trong `config/DELISTED_SYMBOLS_README.md`:
+ngưỡng `gap_days > 10` được hiệu chuẩn cho *eligibility gate* chứ không phải để nhận diện hủy
+niêm yết, nên **10/20 mã chỉ hở 12–19 ngày** và bị đánh dấu `inactive_unverified`; danh sách chỉ
+chứa được mã **đã có** trong `full_history_v2`, tức bỏ sót đúng phần bias nghiêm trọng nhất; và
+vì thế phép đo hiện tại gần như tuần hoàn. Nối với Gate #3.
+
+**Nhãn OOS**: cả 3 đoạn đổi thành `(in-sample)` — `weights_df` fit trên toàn 2020-2026 nên
+"Out-of-Sample (2025-2026)" là sai định nghĩa. OOS thật thuộc Đợt 5.
+**Stress test**: chuyển từ `max_ret_under_risk` sang `mc_best_concentrated_3_5` — cột notebook 14
+thực sự đẩy xuống 15/16; trước đây notebook kiểm định đang stress-test một danh mục không ai dùng.
+
+**Còn tồn:** file `.ipynb` của nb19 vẫn để `execution_count = null` ở cell đó. Chạy in-place trọn
+notebook cần nb14→15 chạy trước (artifact vừa bị quarantine) **và** cell "Sweeps" ~51 phút. Kết quả
+thật đã chạy và ghi ngay trong cell + report này; việc chạy in-place để nhau kết quả vào file thuộc
+vòng sau.
+
+## Nghiệm thu Đợt 3
+
+- Full suite **357 passed** (355 → 357; tổng cộng 326 → 357 qua 2 đợt).
+- `run_daily_pipeline --offline`: `generate_features` → `generate_signals` → `run_alpha_scoring`
+  chạy sạch với 3 guard mới ⇒ **không có false-fire**; vẫn dừng đúng chỗ ở `generate_trade_cards`.
+- `run_stealth_accumulation_screen` và `build_cashflow_board --symbol-only` chạy riêng: exit 0.
+
+---
+
 ## 1. Bảng phân loại
 
 Ký hiệu: **STALE** = đã sửa trên main, report gốc nhầm do chạy nhánh cũ ·
