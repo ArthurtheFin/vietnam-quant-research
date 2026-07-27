@@ -129,3 +129,63 @@ def test_portfolio_risk_report_lineage_is_present_and_valid_when_generated() -> 
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert "lineage" in report, "portfolio_risk_report.json missing lineage block (gate #12)"
     validate_lineage_metadata(report["lineage"], label="portfolio_risk_report.json")
+
+
+def _seed_lineage_inputs(base):
+    """Minimal tree so build_lineage_metadata() can hash a real features file --
+    without it the lineage validator (correctly) refuses to emit a sidecar."""
+    import pandas as pd
+
+    (base / "data/output").mkdir(parents=True, exist_ok=True)
+    (base / "data/processed").mkdir(parents=True, exist_ok=True)
+    (base / "research_notes/generated").mkdir(parents=True, exist_ok=True)
+    (base / "config").mkdir(parents=True, exist_ok=True)
+    pd.DataFrame({"symbol": ["AAA"], "date": [pd.Timestamp("2026-07-27")], "close": [1.0]}).to_parquet(
+        base / "data/processed/stock_features.parquet", index=False
+    )
+    (base / "config/strategy_config.yaml").write_text("returns:\n  horizons: [1]\n")
+
+# --- research_notes sidecar (Đợt 3 NV4) --------------------------------------
+
+
+def test_research_notes_metadata_carries_a_timestamp(tmp_path, monkeypatch):
+    """build_research_notes.py seeds generated_at="" with a comment claiming the
+    write helper fills it. Nothing did, so research_notes_metadata.json was the
+    only sidecar in data/output/ shipping an empty timestamp."""
+    import pandas as pd
+
+    from src.reporting import research_notes
+
+    _seed_lineage_inputs(tmp_path)
+
+    payload = research_notes.write_research_notes_outputs(
+        index_df=pd.DataFrame({"symbol": ["AAA"], "latest_date": ["2026-07-27"]}),
+        notes_dict={"AAA": "# note"},
+        metadata={"generated_at": "", "status": "OK", "n_notes_generated": 1,
+                  "warnings": [], "generated_files": []},
+        base_dir=tmp_path,
+    )
+
+    assert payload["generated_at"], "generated_at must not be empty"
+    assert payload["generated_at"].startswith("20")
+
+
+def test_research_notes_metadata_declares_only_files_that_exist(tmp_path):
+    """The sidecar declared MST/BVS/KLB/NAB notes that were absent from disk --
+    same 'sidecar lies about what it produced' family as reports/top_watchlist.csv."""
+    import pandas as pd
+
+    from src.reporting import research_notes
+
+    _seed_lineage_inputs(tmp_path)
+
+    payload = research_notes.write_research_notes_outputs(
+        index_df=pd.DataFrame({"symbol": ["AAA", "BBB"], "latest_date": ["2026-07-27"] * 2}),
+        notes_dict={"AAA": "# a", "BBB": "# b"},
+        metadata={"generated_at": "", "status": "OK", "n_notes_generated": 2,
+                  "warnings": [], "generated_files": []},
+        base_dir=tmp_path,
+    )
+
+    missing = [f for f in payload["generated_files"] if not (tmp_path / f).exists()]
+    assert not missing, f"sidecar declares files that do not exist: {missing}"

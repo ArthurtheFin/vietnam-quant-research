@@ -466,6 +466,12 @@ def write_research_notes_outputs(
         generated_files.append(f"research_notes/generated/{sym}.md")
         
     payload = dict(metadata)
+    # build_research_notes.py seeds this as "" with the comment "Filled by write
+    # helper using utc_now_iso" -- but nothing ever filled it, so this was the
+    # only sidecar in data/output/ shipping an empty timestamp while every other
+    # one carried a real UTC time (Đợt 3 NV4). Fill it here, where the write
+    # actually happens.
+    payload["generated_at"] = utc_now_iso()
     payload["generated_files"] = [str(f) for f in generated_files]
     payload["lineage"] = validate_lineage_metadata(
         build_lineage_metadata(OFFICIAL_FEATURES_PATH, base_dir=base),
