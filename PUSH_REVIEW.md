@@ -1999,3 +1999,71 @@ là artifact do nhịp chạy hằng ngày sinh ra (463 file `data/` bị sửa,
 Ngoài ra có **9 notebook bị sửa** trong working tree — điều tra trong NV3.
 **Không stage bất kỳ mục nào trong số đó**; chỉ commit `notebooks/AUDIT_NOTEBOOKS_REPORT.md`
 và `PUSH_REVIEW.md`.
+
+**NV2-NV4 — đối chiếu lại từng finding trên `main`** (không sửa code, không chạy
+notebook, không merge). Kết quả ghi thành mục "ĐỐI CHIẾU LẠI TRÊN `main`" đặt ở
+**đầu** `notebooks/AUDIT_NOTEBOOKS_REPORT.md`, trước phần audit gốc.
+
+- **8 STALE** — report gốc nhầm vì chạy nhánh cũ: guard cho nb05/nb06/archive-02/03,
+  `add_market_regime(benchmark=)` của nb06, `benchmark_features=` của nb20,
+  `find_project_root()` của nb12, `check_notebooks.py`+`Makefile`, và input
+  `signals` (thay `clean_daily`) ở cell Sweeps của nb19.
+- **16 OPEN_MANUAL** — còn thật nhưng nằm ngoài đường tự động. Đáng chú ý: toàn bộ
+  chuỗi overfit `14→15→16` ghi ra `selected_portfolio_weights` /
+  `risk_overlay_weights` / `capital_allocation_plan` mà **0 script nào đọc**, nên
+  không chạm nhịp ngày.
+- **4 OPEN_AUTO** — xem dưới.
+
+**NV3 — phơi nhiễm tự động (đo, không đoán).** LaunchAgent
+`com.vietnam-quant-research.dailyrun` (T2-T6 19:00 + RunAtLoad) → `daily_run.sh` →
+đúng 4 script `.py`; `run_daily_pipeline --offline` → đúng 7 bước `.py`.
+**Không bước nào chạy notebook.** `run_all_notebooks.sh` chỉ được
+`tests/test_pipeline_contracts.py:37` gọi với `--list` (không execute) → chỉ chạy tay.
+`check_notebooks.py` rsync sang `tempfile.TemporaryDirectory` rồi mới `nbconvert
+--inplace` → không đụng dữ liệu thật.
+
+**Phát hiện MỚI, nghiêm trọng nhất (không có trong report gốc):**
+`data/signals/breakout_20d_setup_eligibility.parquet` + `breakout_20d_volatility_rule.parquet`
+có **producer duy nhất là notebook 07** (`save_breakout_research_outputs`, không script
+nào gọi), nhưng lại được `scripts/generate_trade_cards.py:44-45` — **bước 4/7 của
+pipeline tự động** — đọc mỗi đêm. mtime thực tế **2026-07-02**, trong khi
+`setup_signals.parquet`/`breakout_20d_trade_cards.parquet` là **2026-07-23**.
+⇒ trade card sinh tự động hằng đêm đang dựa trên bảng eligibility **đóng băng 25 ngày**,
+và bảng đó chính là `best_stop_row` **chọn in-sample**. Không có bước tự động nào làm
+mới; chỉ người mở notebook 07 chạy tay mới làm mới được.
+
+**`reports/top_watchlist.csv` — xác nhận đúng HAI producer** như dự đoán:
+`scripts/run_alpha_scoring.py:73` (`save_csv_atomic`, tự động, có ghi sidecar lineage) và
+notebook 12 cell[33] (`to_csv`, chạy tay, không atomic, không cập nhật lineage).
+**Bản trên đĩa hiện tại là bản của notebook**: mtime `10:47:38` ngày 2026-07-23, sau khi
+pipeline kết thúc lúc `08:38:08` (`logs/daily_run.log`: `SUMMARY: 4/4 steps OK`) **2h10m**;
+schema đã đổi — mất cột `alpha_score_shadow_v1`, thêm `rolling_beta_60d`. Sidecar
+`reports/alpha_scoring_metadata.json` (08:37:14) vẫn khai `top_watchlist.csv` là output của
+nó — **lời khai đang sai**. Giảm nhẹ: `grep` `src/`+`scripts/`+`tests/` cho thấy **không ai
+đọc lại** file này ⇒ hỏng deliverable + gãy lineage, không gãy pipeline.
+`alpha_scores.parquet` (nb12 cũng ghi) **nằm ngoài `PROTECTED_PATHS`** — guard chỉ bảo vệ
+đúng 3 path `data/processed/` — và được `run_meta_ranking.py:49` đọc, nhưng bước 3/7
+`run_alpha_scoring` tái sinh trước bước 7 nên **tự lành sau mỗi đêm**.
+
+**Tự đính chính:** mục nb20/`meta_ranking` look-ahead trong report gốc **đã phóng đại**.
+Đo lại: 435/500 dòng (87%) dồn vào đúng ngày cuối 2026-07-22, join theo cặp `(date, symbol)`
+⇒ hầu hết ngày rebalance lịch sử không khớp dòng nào và chạy bằng fallback
+`score_reversal_quality`. Vấn đề thật là **nhãn sai** (notebook không hề nhắc tới fallback),
+không phải look-ahead lan rộng. Hạ mức, giữ OPEN_MANUAL.
+
+**Quan sát phụ:** working tree main có **9 notebook bị sửa chưa commit** — 4 chỉ đổi
+`execution_count`/`outputs` (đã chạy tay), 5 (`04`,`05`,`06`,`13`,`14`) có thêm cell vẽ
+biểu đồ, **không phải fix bug**. `.ipynb_checkpoints/` đã quay lại (5 thư mục, bị
+`.gitignore:7` che) ⇒ claim "verified none of these files exist on disk anymore (audit A2,
+2026-07-08)" trong `notebooks/notebook_inventory.md` **nay đã lỗi thời**.
+
+**NV4 — thứ tự sửa đề xuất** (chỉ đề xuất, chưa làm): Đợt 2 = 3 mục OPEN_AUTO
+(eligibility 25-ngày-cũ → mở rộng `PROTECTED_PATHS` → dọn cell ghi của nb12);
+Đợt 3 = nb19 (chốt kiểm định) rồi nb14/15/16 (chuỗi overfit); Đợt 4 =
+`stock_features_volatility` mồ côi, nb09 markdown-vs-code, nb20 nhãn fallback;
+Đợt 5 = client report + cosmetic + cập nhật `notebook_inventory.md`. Bảng đầy đủ ở mục 4
+của report.
+
+**Ràng buộc đã giữ:** không sửa code, không chạy notebook, không merge nhánh. Nhánh
+`claude/super-prompt-audit-notebooks-281814` **không được đưa vào bất kỳ đợt nào** — merge
+sẽ revert cả 8 mục STALE. 2 commit trên `main`, **CHƯA push**.

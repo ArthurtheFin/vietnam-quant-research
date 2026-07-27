@@ -9,8 +9,227 @@
 > cho notebook 20). **Trên branch hiện tại, các fix đó KHÔNG tồn tại** — đã verify:
 > `grep -rl "guard_production_write" .` → rỗng; `ls scripts/check_notebooks.py` → không có; không có `Makefile`.
 > Report này mô tả trạng thái *branch hiện tại*, không phải trạng thái hợp nhất.
+>
+> **⇒ ĐÃ ĐỐI CHIẾU LẠI TRÊN `main` NGÀY 2026-07-27.** Xem mục "ĐỐI CHIẾU LẠI TRÊN `main`"
+> ngay bên dưới: **8 finding STALE** (đã sửa trên main), **16 OPEN_MANUAL**, **4 OPEN_AUTO**,
+> kèm **1 phát hiện mới** nghiêm trọng hơn tất cả các mục trong phần gốc, và **1 mục tự đính chính**
+> vì phần gốc đã phóng đại. Khi phần gốc mâu thuẫn với mục đó, **mục đó đúng**.
 
 ---
+
+# ĐỐI CHIẾU LẠI TRÊN `main` — 2026-07-27
+
+> **Đọc phần này TRƯỚC phần audit gốc bên dưới.**
+> Phần audit gốc (từ `## Tổng quan` trở xuống) được viết trên nhánh
+> `claude/super-prompt-audit-notebooks-281814`, **fork từ một điểm CŨ** và thiếu nhiều fix đã có
+> trên `main`. Nhánh đó nay **đóng băng, không merge** (merge sẽ revert các fix).
+> Phần này phân loại lại **từng finding trên `main` @ `1dd67e9`**, bằng bằng chứng đo trực tiếp.
+> Khi hai phần mâu thuẫn, **phần này đúng**.
+
+## 0. Trạng thái đo được lúc đối chiếu
+
+- `main` HEAD `1dd67e9` == `origin/main` (0 ahead / 0 behind).
+- Working tree **không sạch**: 1508 mục. Gần hết là artifact nhịp ngày (463 file `data/` bị sửa,
+  hàng loạt `data/disclosure/raw/*.json` chưa track, `reports/*`, `stock-decision-engine/outputs/*.png`).
+- **9 notebook bị sửa trong working tree.** Phân tích: 4 notebook chỉ đổi `execution_count`/`outputs`
+  (đã được **chạy tay**), 5 notebook (`04`, `05`, `06`, `13`, `14`) có **thay đổi source chưa commit** —
+  nội dung là **thêm cell vẽ biểu đồ** (matplotlib rcParams, plot regime timeline, plot volatility
+  estimators), **không phải fix bug**. Có người đang phát triển notebook bằng tay, chưa commit.
+- `.ipynb_checkpoints/` **đã quay lại** (5 thư mục dưới `notebooks/`). `notebook_inventory.md` mục
+  "Delete Candidates" ghi "(audit A2, 2026-07-08) verified none of these files exist on disk anymore"
+  — **claim đó nay đã lỗi thời**. Chúng bị `.gitignore:7` che nên không hiện trong `git status`.
+
+## 1. Bảng phân loại
+
+Ký hiệu: **STALE** = đã sửa trên main, report gốc nhầm do chạy nhánh cũ ·
+**OPEN_MANUAL** = còn thật, chỉ gây hại khi có người chạy notebook tay ·
+**OPEN_AUTO** = còn thật VÀ nằm trong đường chạy tự động hằng đêm.
+
+| # | Finding (report gốc) | Phân loại trên `main` | Bằng chứng |
+|---|---|---|---|
+| 1 | nb05 ghi đè `stock_features.parquet` | **STALE** | `05_volatility_regime.ipynb` cell[5] nay bọc `guard_production_write(output_path)` + `try/except ProductionWriteBlocked` |
+| 2 | nb06 ghi đè `market_features.parquet` | **STALE** | cell[5] cùng pattern guard |
+| 3 | nb06 gọi `add_market_regime()` **thiếu `benchmark=`** | **STALE** | cell[3] main: `benchmark = read_parquet("data/processed/benchmark_vnindex.parquet")` → `add_market_regime(breadth, benchmark=benchmark)`, kèm comment NV1 |
+| 4 | nb20 **BROKEN** — thiếu `benchmark_features=` → `ValueError` | **STALE** | cell[3] main đọc `benchmark_vnindex.parquet` + raise nếu rỗng; cell[4] truyền `benchmark_features=benchmark_features` |
+| 5 | nb12 `PROJECT_ROOT` sai layout → không chạy được từ Jupyter | **STALE** | cell[2] main dùng `find_project_root()`; `Path.cwd().name == "notebooks"` không còn |
+| 6 | archive `02`/`03` ghi đè `clean_daily_ohlcv.parquet` | **STALE** | cả hai nay guard; `03` còn ghi rõ root cause `LEGACY_PRICE_RAW_DIR` inline |
+| 7 | Thiếu rào chắn cấu trúc (`check_notebooks.py`, `Makefile`) | **STALE** | `scripts/check_notebooks.py` + `Makefile` (`make check-notebooks`) tồn tại; rsync sang `tempfile.TemporaryDirectory` rồi mới `nbconvert --inplace` → **không đụng dữ liệu thật** |
+| 8 | nb19 "Sweeps and Sensitivities" truyền sai input (`clean_daily`) | **STALE (một phần)** | cell main truyền `signals` + comment NV2. Phần **trùng vai trò với nb07 vẫn còn** (vẫn gọi `run_breakout_research`) |
+| 9 | **nb07 → `breakout_20d_setup_eligibility` / `volatility_rule`** | **OPEN_AUTO** ⛔ | Xem §2.1 — nghiêm trọng nhất |
+| 10 | nb12 ghi `data/signals/alpha_scores.parquet` không guard | **OPEN_AUTO** | `PROTECTED_PATHS` chỉ gồm 3 path `data/processed/`; `scripts/run_meta_ranking.py:49` (bước 7/7 tự động) đọc lại file này. Xem §2.2 |
+| 11 | nb12 ghi `reports/top_watchlist.csv` + `daily_alpha_ranking.csv` | **OPEN_AUTO** | Đúng 2 producer; file trên đĩa **hiện đang là bản của notebook**. Xem §2.3 |
+| 12 | nb09 ghi `stealth_accumulation_latest.parquet` không guard | **OPEN_AUTO (nhẹ)** | `run_meta_ranking.py:47` đọc, nhưng bước 5/7 `run_stealth_accumulation_screen.py` tái sinh trước bước 7 → tự lành sau mỗi đêm |
+| 13 | nb09 markdown mô tả "auto top 10" ≠ code scan full universe | **OPEN_MANUAL** | Nội dung nb09 **giống hệt** nhánh cũ (hash `abc7b8a11b` cả hai bên). `scan_input` vẫn bị bỏ; `load_auto_watchlist_symbols` vẫn import-không-dùng |
+| 14 | nb14 universe hard-code 20 mã + overfit ~53.000 ứng viên | **OPEN_MANUAL** | `user_watchlist = ["NAB","VCB",...]` vẫn nguyên ở cell[3] main; `generate_sub_portfolios` vẫn ở cell[10]; `selected_col` vẫn ở cell[13] |
+| 15 | nb14/nb15/nb16 → `selected_portfolio_weights` / `risk_overlay_weights` / `capital_allocation_plan` | **OPEN_MANUAL** | grep `src/` + `scripts/`: **0 reader**. Chỉ notebook đọc lẫn nhau → không chạm đường tự động |
+| 16 | nb15 báo cáo NAV/Sharpe in-sample | **OPEN_MANUAL** | nb15 giống hệt nhánh cũ (hash `8d89fa9fe8`) |
+| 17 | nb16 trùng 65 dòng với `00_archive/17`, cùng output path | **OPEN_MANUAL** | nb16 hash giống hệt; `00_archive/17` cell[14] vẫn ghi `risk_overlay_weights` + `capital_allocation_plan`, **không có guard** |
+| 18 | nb19 cell "Run Leakage Verification" **chưa từng chạy** | **OPEN_MANUAL** | HEAD main: cell[8] `ec=None, nout=0`. **Thêm**: cell[10] "Sweeps and Sensitivities" nay **cũng** `ec=None` → 2 cell chưa chạy |
+| 19 | nb19 nhãn "Out-of-Sample (2025-2026)" sai + validate nhầm danh mục | **OPEN_MANUAL** | cell[6] main vẫn dùng `weights_df[...]["max_sharpe"]` fit toàn mẫu; vẫn khác `mc_best_concentrated_3_5` mà nb15/16 dùng |
+| 20 | nb19 survivorship không đo (`config/delisted_symbols.csv` thiếu) | **OPEN_MANUAL** | File vẫn không tồn tại trên main |
+| 21 | nb13 + nb14 đọc `stock_features_volatility.parquet` mồ côi | **OPEN_MANUAL** | Vẫn **0 producer** toàn repo; mtime **2026-06-24** vs `stock_features.parquet` **2026-07-23** → lệch **29 ngày** |
+| 22 | nb04 → `stock_features_distribution.parquet` mồ côi | **OPEN_MANUAL** | 0 consumer trong `src`/`scripts`; mtime 2026-07-20 |
+| 23 | nb08 chỉ 1 mã HPG, stop 1% / target 20%, bootstrap IID | **OPEN_MANUAL** | cell[3] main: `symbol="HPG"`, `stop_pct=0.01`, `target_pct=0.20` — không đổi |
+| 24 | nb12 biểu đồ "Top 5 cumulative return" = backfill illusion | **OPEN_MANUAL** | `top_5_symbols` vẫn ở cell[32] main |
+| 25 | nb12 `execution_count` lộn xộn nặng | **OPEN_MANUAL** | HEAD main: `[None,4,5,...,12,15,...,20,23,25,27,29,31,33,34]` — y nguyên |
+| 26 | nb20 `meta_ranking.parquet` là snapshot → look-ahead | **OPEN_MANUAL (đã phóng đại)** | Xem §3 — tự đính chính |
+| 27 | `05_client_report` cell[21] chưa chạy + 2 chuỗi f-string hỏng | **OPEN_MANUAL** | Notebook giống hệt nhánh cũ (hash `d64f93297d`) |
+| 28 | nb07 chọn `best_stop_row` in-sample (bias phương pháp) | **OPEN_AUTO** ⛔ | Bias thì thuộc nhóm phương pháp, nhưng **output của nó chảy thẳng vào pipeline tự động** — xem §2.1 |
+
+**Tổng:** 8 STALE · 16 OPEN_MANUAL · 4 OPEN_AUTO.
+
+## 2. NV3 — Phơi nhiễm tự động (đo trực tiếp, không suy đoán)
+
+**Lịch chạy tự động duy nhất:** LaunchAgent `com.vietnam-quant-research.dailyrun`
+(`~/Library/LaunchAgents/`), `StartCalendarInterval` T2–T6 19:00 + `RunAtLoad`, gọi
+`/bin/bash scripts/daily_run.sh`. **Không có crontab** (`crontab -l` → "no crontab for jamesb").
+
+`daily_run.sh` gọi **đúng 4 bước, toàn bộ là `.py`**:
+
+1. `scripts/update_prices_daily.py --universe`
+2. `scripts/update_disclosure_daily.py --universe`
+3. `scripts/update_index_data.py`
+4. `scripts/run_daily_pipeline.py --offline`
+
+`run_daily_pipeline` (`PIPELINE_STEPS`, không cờ thêm) chạy 7 bước, cũng **toàn `.py`**:
+`generate_features` → `generate_signals` → `run_alpha_scoring` → `generate_trade_cards` →
+`run_stealth_accumulation_screen` → `build_cashflow_board --symbol-only` → `run_meta_ranking`.
+(`build_portfolio_stack` / `build_sector_board` / `build_research_notes` chỉ chạy khi có cờ —
+`daily_run.sh` **không** truyền cờ nào.)
+
+**→ Không một bước tự động nào chạy notebook.** `grep -rn "nbconvert\|\.ipynb" scripts/ Makefile <plist>`
+chỉ trúng `run_all_notebooks.sh` và `check_notebooks.py`.
+
+**`run_all_notebooks.sh` — ai gọi?** Chỉ `tests/test_pipeline_contracts.py:37`, và gọi với cờ
+**`--list`** (liệt kê, không execute). Không cron, không LaunchAgent, không script nào khác.
+→ **Chỉ chạy tay.**
+
+**`check_notebooks.py`** dùng `nbconvert --execute --inplace` nhưng `sync_sandbox()` rsync repo sang
+`tempfile.TemporaryDirectory` rồi mới chạy **trong sandbox** → **không đụng dữ liệu/notebook thật**. An toàn.
+
+### 2.1 ⛔ OPEN_AUTO #1 — pipeline tự động phụ thuộc artifact chỉ notebook 07 sinh ra được (25 ngày cũ)
+
+Đây là phát hiện **mới**, không có trong report gốc, và nghiêm trọng hơn mọi mục còn lại.
+
+| | |
+|---|---|
+| Producer duy nhất toàn repo | `save_breakout_research_outputs()` — **chỉ được gọi từ `notebooks/03_alpha_signals/07_breakout_research.ipynb`**. `grep` `src/`+`scripts/`: không script nào gọi |
+| Files | `data/signals/breakout_20d_setup_eligibility.parquet`, `breakout_20d_volatility_rule.parquet` |
+| Consumer | `scripts/generate_trade_cards.py:44-45` — **bước 4/7 của pipeline tự động hằng đêm** |
+| mtime thực tế | **2026-07-02 12:55** |
+| So sánh | `setup_signals.parquet` và `breakout_20d_trade_cards.parquet`: **2026-07-23 08:37** |
+
+**Hệ quả:** mỗi đêm, `generate_trade_cards.py` sinh trade card từ bảng eligibility **đóng băng
+từ 2026-07-02 — 25 ngày trước**, và bảng đó chính là `best_stop_row` **chọn in-sample** của
+notebook 07 (finding #28). Không có bước tự động nào làm mới nó; cách duy nhất là **một người mở
+notebook 07 và chạy tay**. Không có cảnh báo staleness nào cho path này.
+
+Đây là đường duy nhất mà một finding "chỉ hại khi chạy tay" thực sự **đã** chảy vào sản phẩm tự động —
+và nó chảy vào theo hướng ngược đời: **không chạy** notebook mới là thứ đang gây hại (dữ liệu đóng băng).
+
+### 2.2 OPEN_AUTO #2 — `alpha_scores.parquet` ngoài vùng bảo vệ
+
+`PROTECTED_PATHS` (`src/data/production_guard.py`) = **đúng 3 path**, đều thuộc `data/processed/`:
+`clean_daily_ohlcv` · `stock_features` · `market_features`. Mọi thứ dưới `data/signals/` và
+`reports/` **không được bảo vệ**.
+
+- Ghi bởi: `scripts/run_alpha_scoring.py:47` (tự động, bước 3/7) **và** `notebooks/.../12_*.ipynb` cell[16] (tay).
+- Đọc bởi: `scripts/run_meta_ranking.py:49` (tự động, bước 7/7), `src/screening/final_watchlist.py:153`,
+  `scripts/main_visual_dashboard.py:51`.
+- **Tự lành:** bước 3 chạy trước bước 7 trong cùng một lần chạy → bản notebook bị ghi đè lại mỗi đêm.
+  Cửa sổ phơi nhiễm = từ lúc chạy notebook tay đến lần chạy tự động kế tiếp.
+
+### 2.3 OPEN_AUTO #3 — `reports/top_watchlist.csv`: đúng 2 producer, và **bản trên đĩa hiện là bản của notebook**
+
+Xác nhận **đúng hai** producer sống:
+
+1. `scripts/run_alpha_scoring.py:73` — `save_csv_atomic(...)`, **tự động mỗi đêm**, kèm ghi sidecar
+   lineage `reports/alpha_scoring_metadata.json` (audit gate #12).
+2. `notebooks/03_alpha_signals/12_meta_ranking_optimization.ipynb` cell[33] —
+   `ranking.head(20).to_csv(...)`, **chạy tay**, **không atomic, không cập nhật lineage**.
+
+(Thêm 2 bản `-checkpoint.ipynb` trong `.ipynb_checkpoints/` cũng chứa dòng ghi này — bất động
+trừ khi có người mở và chạy chúng.)
+
+**Bằng chứng hiện trường ngày 2026-07-23:**
+
+| Thời điểm | Sự kiện | Bằng chứng |
+|---|---|---|
+| 08:36:59–08:38:08 | Pipeline tự động chạy xong | `logs/daily_run.log`: `SUMMARY: 4/4 steps OK`; mtime `stock_features` 08:36:59, `market_features` 08:37:01, `alpha_scoring_metadata.json` 08:37:14 |
+| **10:47:25–10:47:38** | **Notebook 12 chạy tay** | mtime `meta_ranking.parquet` 10:47:25, `alpha_scores.parquet` 10:47:36, `daily_alpha_ranking.csv` + `top_watchlist.csv` **10:47:38** — sau pipeline **2h10m** |
+| 11:02:12 | Notebook 14 chạy tay | mtime `selected_portfolio_weights.parquet` |
+
+Và schema đã đổi — bản trên đĩa **không phải** bản pipeline:
+
+```
+HEAD (pipeline): symbol,date,close,alpha_score,alpha_score_shadow_v1,momentum_score,...,market_regime
+DISK (notebook): symbol,date,close,alpha_score,momentum_score,...,rolling_beta_60d,market_regime
+```
+
+Bản notebook **mất cột `alpha_score_shadow_v1`** (cột nuôi so sánh shadow v2-vs-v1 của
+`SCORE_V2_REPORT`) và **thêm `rolling_beta_60d`**. Sidecar `alpha_scoring_metadata.json` (08:37:14)
+vẫn khai `generated_files: [... "reports/top_watchlist.csv"]` — **lời khai đó hiện đang sai**:
+file nó mô tả đã bị ghi đè bởi một producer khác 2 giờ sau đó.
+
+**Mức độ thật:** `grep` toàn `src/` + `scripts/` + `tests/` → **không ai ĐỌC lại**
+`top_watchlist.csv` / `daily_alpha_ranking.csv`. Đây là **deliverable đầu cuối** (người/khách đọc).
+Nên thiệt hại là **sai deliverable + gãy lineage**, không phải gãy pipeline. Vẫn xếp OPEN_AUTO vì
+nó là artifact do bước tự động sở hữu và đang bị bên khác chiếm chỗ **ngay lúc này**.
+
+### 2.4 Các file notebook ghi mà **không** ai tự động đọc (⇒ OPEN_MANUAL, không khẩn cấp)
+
+`selected_portfolio_weights.parquet` · `portfolio_construction_weights.parquet` ·
+`risk_overlay_weights.parquet` · `capital_allocation_plan.parquet` · `monte_carlo_*.parquet` ·
+`stock_features_distribution.parquet` · `live_dashboard_*.parquet` — **0 reader** trong
+`src/` + `scripts/`. Toàn bộ chuỗi `14 → 15 → 16` và `00_archive/17` nằm gọn ngoài đường tự động.
+
+## 3. Tự đính chính: mục 26 (nb20 / `meta_ranking` look-ahead) đã bị phóng đại
+
+Report gốc viết: *"tại các ngày được phủ, việc chọn cổ phiếu dùng điểm tính từ dữ liệu cuối kỳ =
+look-ahead trực tiếp"*. Đo lại phân bố thực tế của `meta_ranking.parquet` (500 dòng, 1 dòng/mã):
+
+```
+2026-07-22 → 435 mã (87.0%)      2026-07-21 → 20      2026-07-20 → 12
+2026-07-17 →   9 mã              2026-07-15 →  3      còn lại 21 ngày × 1-2 mã
+```
+
+`run_portfolio_backtest` join theo **đúng cặp `(date, symbol)`** (`ranking.set_index(["date","symbol"])`),
+và `rebalance_dates = all_dates[::20]` + ngày cuối. Vì 87% số dòng dồn vào **ngày cuối cùng**
+(đây là artifact "mỗi mã 1 dòng ở ngày cuối nó có dữ liệu", không phải panel lịch sử), nên:
+
+- Các ngày rebalance **lịch sử** hầu như không khớp dòng nào → chạy bằng **fallback**
+  `score_reversal_quality`, đúng như docstring dòng 50-52.
+- Chỉ **lần rebalance cuối** (ngày cuối chuỗi) khớp 435 mã — mà sau nó không còn ngày nào để sinh
+  lợi nhuận, nên ảnh hưởng lên equity curve ≈ 0.
+
+**Kết luận đúng:** đây **không phải** look-ahead lan rộng. Vấn đề thật là **nhãn sai**: notebook
+trình bày `meta_ranking` như nguồn xếp hạng của backtest, trong khi thực tế gần như toàn bộ quyết
+định đến từ một fallback mà notebook **không hề nhắc tới**. Hạ từ "look-ahead nghiêm trọng" xuống
+**minh bạch/nhãn sai**, giữ OPEN_MANUAL.
+
+## 4. NV4 — Đề xuất thứ tự sửa cho các đợt sau (CHỈ đề xuất, chưa làm gì)
+
+| Đợt | Việc | Vì sao đứng ở đây |
+|---|---|---|
+| **2.1** | **`breakout_20d_setup_eligibility` / `volatility_rule`**: quyết định một trong hai — (a) viết `scripts/run_breakout_research.py` và cắm vào `PIPELINE_STEPS` **trước** `generate_trade_cards`, hoặc (b) nếu cố ý đóng băng thì thêm cảnh báo staleness ở `generate_trade_cards.py` | Đường **duy nhất** một finding đã thực sự chảy vào sản phẩm tự động. Đang phục vụ dữ liệu 25 ngày tuổi mỗi đêm mà không ai biết |
+| **2.2** | Mở rộng `PROTECTED_PATHS` sang `data/signals/alpha_scores.parquet` + `reports/top_watchlist.csv` + `reports/daily_alpha_ranking.csv` (món đã 2 vòng bị bỏ ngoài scope) | Rào chắn rẻ, chặn đúng 2 đường ghi tay đang va nhau. Đã có sẵn cơ chế guard, chỉ thêm path |
+| **2.3** | Notebook 12: bỏ cell ghi `alpha_scores.parquet` + `reports/*.csv` (hoặc trỏ sang `data/scratch/`) | Sau 2.2 notebook sẽ báo lỗi; cần dọn để `make check-notebooks` còn xanh |
+| **3.1** | Notebook 19: chạy cell "Run Leakage Verification" và cell "Sweeps"; sửa nhãn "Out-of-Sample"; đổi sang validate đúng `mc_best_concentrated_3_5` | Chốt chặn kiểm định — phải đúng trước khi bàn tới bias của 14/15/16 |
+| **3.2** | Notebook 14: `user_watchlist = None`; tách fit/evaluate theo thời gian; thêm benchmark VNINDEX | Gốc của cả chuỗi overfit `14→15→16`. Sửa sau 3.1 để có công cụ đo |
+| **3.3** | Notebook 15/16: báo cáo out-of-sample thay vì in-sample; nêu rõ mã nào dùng `fillna` hằng số | Hệ quả của 3.2 |
+| **4.1** | `stock_features_volatility.parquet`: đổi input nb13 + nb14 sang `stock_features.parquet`, xoá file mồ côi | Âm thầm sai (NaN im lặng), nhưng ngoài đường tự động |
+| **4.2** | Notebook 09: đồng bộ markdown ↔ code (hoặc dùng `scan_input`, hoặc sửa markdown + bỏ import thừa); đổi tiêu đề "# 14" | Rủi ro hiểu nhầm cho người đọc, không rủi ro dữ liệu |
+| **4.3** | Notebook 20: ghi rõ trong markdown rằng fallback `score_reversal_quality` mới là nguồn xếp hạng thực tế | Theo đính chính §3 — chỉ là vấn đề nhãn |
+| **5.1** | `05_client_report`: sửa 2 chuỗi f-string hỏng; chạy cell[21] | Lỗi hiển thị trực tiếp trong báo cáo khách, nhưng cosmetic về dữ liệu |
+| **5.2** | Dọn cell trống (nb01, 04, 06, 10) + import thừa (nb12, 14, 16); `00_archive/17` thêm guard hoặc đổi output path | Nhóm ❌ cosmetic + rào chắn cuối |
+| **5.3** | Cập nhật `notebook_inventory.md`: mục "Delete Candidates" ghi `.ipynb_checkpoints` đã hết — **claim này nay sai**, checkpoint đã quay lại | Vệ sinh tài liệu |
+
+**Không đề xuất** đưa nhánh `claude/super-prompt-audit-notebooks-281814` vào bất kỳ đợt nào —
+merge nó sẽ revert 8 mục STALE ở §1.
+
+---
+
+# PHẦN AUDIT GỐC (viết trên nhánh cũ — đọc kèm bảng phân loại ở trên)
 
 ## Tổng quan
 
