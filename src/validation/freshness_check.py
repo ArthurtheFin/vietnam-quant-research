@@ -108,6 +108,55 @@ def assert_derived_artifact_fresh(
             )
 
 
+def load_upstream_artifact(
+    path: str | Path,
+    *,
+    producer: str,
+    max_age_days: float = 7.0,
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    """Read an artifact another notebook/script produced, never silently.
+
+    The rule this enforces (CLAUDE.md rule 12): a consumer must not quietly use
+    a stale upstream file. Notebook 15 did exactly that -- `os.path.exists()`
+    then read, so after the Đợt 2 write-guard stopped notebook 14 from
+    refreshing `selected_portfolio_weights.parquet`, notebook 15 kept consuming
+    a days-old copy with no indication anything was wrong (loud at the write,
+    silent at the read).
+
+    Always prints what it did. Returns `(df, info)` where `info` carries
+    `status` in {"ok", "stale", "missing"} plus `age_days` and `mtime`, so the
+    caller can branch (e.g. fall back to HRP) and so the state is visible in
+    the notebook's own output rather than only in a variable.
+    """
+    path = Path(path)
+    if not path.exists():
+        info = {"status": "missing", "path": str(path), "age_days": None, "mtime": None}
+        print(f"[upstream] KHONG TIM THAY {path} (producer: {producer}).")
+        return pd.DataFrame(), info
+
+    mtime = pd.Timestamp.fromtimestamp(path.stat().st_mtime)
+    age_days = (pd.Timestamp.now() - mtime).total_seconds() / 86400.0
+    # read_first_existing_parquet returns (df, resolved_path) -- unpack it.
+    df, _resolved = read_first_existing_parquet((str(path),))
+    status = "stale" if age_days > max_age_days else "ok"
+    info = {
+        "status": status,
+        "path": str(path),
+        "age_days": round(age_days, 1),
+        "mtime": mtime.isoformat(timespec="seconds"),
+        "rows": int(len(df)),
+    }
+    if status == "stale":
+        print(
+            f"[upstream] CANH BAO -- dang dung BAN CU cua {path}: ghi luc "
+            f"{mtime:%Y-%m-%d %H:%M} ({age_days:.1f} ngay tuoi, nguong {max_age_days:g} ngay). "
+            f"Chay lai {producer} de lam moi."
+        )
+    else:
+        print(f"[upstream] OK {path} -- ghi luc {mtime:%Y-%m-%d %H:%M} ({age_days:.1f} ngay tuoi).")
+    return df, info
+
+
 def inspect_artifacts(base_dir: str | Path = ".") -> dict[str, dict[str, object]]:
     base = Path(base_dir)
     inspected: dict[str, dict[str, object]] = {}

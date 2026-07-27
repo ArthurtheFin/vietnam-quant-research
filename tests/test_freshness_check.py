@@ -576,6 +576,7 @@ import time
 import pytest
 
 from src.validation.freshness_check import (
+    load_upstream_artifact,
     DerivedArtifactStale,
     assert_derived_artifact_fresh,
 )
@@ -639,3 +640,59 @@ def test_every_derived_path_is_checked_not_just_the_first(tmp_path):
 
     with pytest.raises(DerivedArtifactStale, match="volatility_rule"):
         assert_derived_artifact_fresh([fresh, stale], source, max_lag_days=7, remedy="rerun nb07")
+
+
+# --- load_upstream_artifact (Đợt 3 NV1) --------------------------------------
+#
+# Notebook 15 used to do `os.path.exists()` then read, so once the Đợt 2 write
+# guard stopped notebook 14 refreshing the file, 15 silently consumed a days-old
+# copy. This helper makes every read announce the file's age.
+
+
+def _write_parquet(path, age_days: float = 0.0):
+    pd.DataFrame({"symbol": ["AAA", "BBB"], "weight": [0.6, 0.4]}).to_parquet(path, index=False)
+    when = time.time() - age_days * 86400.0
+    os.utime(path, (when, when))
+    return path
+
+
+def test_load_upstream_artifact_returns_a_dataframe_not_a_tuple(tmp_path):
+    """read_first_existing_parquet returns (df, path); an early version of the
+    helper forwarded that tuple straight to callers, so `len(df)` was 2 for any
+    file and notebooks got a tuple where they expected a frame."""
+    target = _write_parquet(tmp_path / "weights.parquet")
+
+    df, info = load_upstream_artifact(target, producer="nb14", max_age_days=7)
+
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (2, 2)
+    assert info["rows"] == 2
+
+
+def test_load_upstream_artifact_flags_stale_and_says_the_date(tmp_path, capsys):
+    target = _write_parquet(tmp_path / "weights.parquet", age_days=30)
+
+    df, info = load_upstream_artifact(target, producer="nb14", max_age_days=7)
+
+    assert info["status"] == "stale"
+    assert info["age_days"] == 30.0
+    out = capsys.readouterr().out
+    assert "CANH BAO" in out and "BAN CU" in out
+    assert not df.empty  # still returned -- caller decides what to do
+
+
+def test_load_upstream_artifact_ok_when_fresh(tmp_path, capsys):
+    target = _write_parquet(tmp_path / "weights.parquet", age_days=1)
+
+    _df, info = load_upstream_artifact(target, producer="nb14", max_age_days=7)
+
+    assert info["status"] == "ok"
+    assert "OK" in capsys.readouterr().out
+
+
+def test_load_upstream_artifact_missing_is_announced_not_silent(tmp_path, capsys):
+    df, info = load_upstream_artifact(tmp_path / "nope.parquet", producer="nb14")
+
+    assert info["status"] == "missing"
+    assert df.empty
+    assert "KHONG TIM THAY" in capsys.readouterr().out
