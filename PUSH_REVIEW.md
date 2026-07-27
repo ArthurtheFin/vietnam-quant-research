@@ -1975,3 +1975,27 @@ công bố, cần review trước):
 NV nào trừ đọc-only trong NV5). Toàn bộ 5 commit trên `main`, **CHƯA push**
 theo đúng yêu cầu — chờ review trước vì đây là sửa lại chính các con số đã
 công bố.
+
+## Đưa AUDIT_NOTEBOOKS_REPORT về main + phân loại lại findings — 2026-07-27
+
+**Bối cảnh nhánh.** `notebooks/AUDIT_NOTEBOOKS_REPORT.md` được sinh ra trên
+nhánh `claude/super-prompt-audit-notebooks-281814` (worktree
+`audit-gates-17-6-12-049aeb`). Nhánh này **fork từ một điểm CŨ** trên
+`claude/charming-bartik-d21dc1`, trước vòng "Vòng theo dõi trực tiếp: mở rộng
+guard + sửa BROKEN + rào chắn cấu trúc — 2026-07-21/22" (xem mục cùng tên ở
+trên). Hệ quả: nhánh đó **thiếu** `src/data/production_guard.py`,
+`scripts/check_notebooks.py`, `Makefile`, `benchmark_features=` của notebook 20,
+và `find_project_root()` của notebook 12.
+
+**Quyết định:** nhánh `claude/super-prompt-audit-notebooks-281814` **ĐÓNG BĂNG,
+không dùng, không merge**. Merge nhánh đó vào main sẽ *revert* các fix trên.
+Chỉ **copy nguyên văn một file report** sang `notebooks/` trên main (commit
+riêng), rồi phân loại lại từng finding trực tiếp trên main ở commit kế tiếp.
+
+**Trạng thái main lúc bắt đầu:** HEAD `1dd67e9` == `origin/main`
+(0 ahead / 0 behind). Working tree **KHÔNG sạch** — 1508 mục, gần như toàn bộ
+là artifact do nhịp chạy hằng ngày sinh ra (463 file `data/` bị sửa, hàng loạt
+`data/disclosure/raw/*.json` chưa track, `reports/*`, `stock-decision-engine/outputs/*.png`).
+Ngoài ra có **9 notebook bị sửa** trong working tree — điều tra trong NV3.
+**Không stage bất kỳ mục nào trong số đó**; chỉ commit `notebooks/AUDIT_NOTEBOOKS_REPORT.md`
+và `PUSH_REVIEW.md`.
