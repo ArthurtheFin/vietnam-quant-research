@@ -63,6 +63,51 @@ DEPENDENCY_RULES: tuple[tuple[str, str, str], ...] = (
 )
 
 
+class DerivedArtifactStale(RuntimeError):
+    """A hand-produced input is too far behind the pipeline artifact it derives from."""
+
+
+def assert_derived_artifact_fresh(
+    derived_paths: Iterable[str | Path],
+    source_path: str | Path,
+    max_lag_days: float,
+    remedy: str,
+) -> None:
+    """Fail when a derived artifact was last rebuilt `max_lag_days` before its source.
+
+    For inputs that carry no `date` column of their own, so `latest_timestamp()`
+    can't be used -- freshness is file mtime ("when was this last rebuilt")
+    compared against the source's mtime.
+
+    Exists for artifacts produced by hand (a notebook) but consumed by the
+    nightly pipeline: nothing regenerates them, so they drift silently while
+    every downstream artifact keeps looking fresh. See
+    AUDIT_NOTEBOOKS_REPORT.md OPEN_AUTO #1 for the incident
+    (breakout_20d_setup_eligibility.parquet, 21 days stale, undetected).
+
+    `max_lag_days < 0` disables the check (one-off local debugging).
+    Raises `DerivedArtifactStale`; callers in `scripts/` translate that into
+    a `SystemExit` so the pipeline records a clean step failure.
+    """
+    if max_lag_days < 0:
+        return
+    source = Path(source_path)
+    if not source.exists():
+        return
+
+    source_mtime = source.stat().st_mtime
+    for raw_path in derived_paths:
+        path = Path(raw_path)
+        if not path.exists():
+            raise DerivedArtifactStale(f"{path} is missing. {remedy}")
+        lag_days = (source_mtime - path.stat().st_mtime) / 86400.0
+        if lag_days > max_lag_days:
+            raise DerivedArtifactStale(
+                f"{path} is {lag_days:.1f} days older than {source} "
+                f"(limit: {max_lag_days:g} days). {remedy}"
+            )
+
+
 def inspect_artifacts(base_dir: str | Path = ".") -> dict[str, dict[str, object]]:
     base = Path(base_dir)
     inspected: dict[str, dict[str, object]] = {}

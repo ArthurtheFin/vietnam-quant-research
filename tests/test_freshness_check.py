@@ -561,3 +561,81 @@ def test_missing_volume_column_rejects_instead_of_fabricating(tmp_path) -> None:
 
     assert candidates.empty, "candidate must be rejected, not fabricated a fake volume"
     assert metadata["rejected_symbols_portfolio_gate"]["AAA"] == "VOLUME_DATA_MISSING"
+
+
+# --- assert_derived_artifact_fresh (AUDIT_NOTEBOOKS_REPORT.md OPEN_AUTO #1) ---------
+#
+# Regression cover for the 21-day silent staleness: breakout_20d_setup_eligibility
+# .parquet is produced only by notebook 07 (by hand) but read every night by
+# scripts/generate_trade_cards.py. Neither file has a `date` column, so freshness
+# is mtime-based.
+
+import os
+import time
+
+import pytest
+
+from src.validation.freshness_check import (
+    DerivedArtifactStale,
+    assert_derived_artifact_fresh,
+)
+
+
+def _touch(path, age_days: float = 0.0):
+    path.write_text("x")
+    when = time.time() - age_days * 86400.0
+    os.utime(path, (when, when))
+    return path
+
+
+def test_derived_artifact_fresh_passes_when_within_limit(tmp_path):
+    source = _touch(tmp_path / "setup_signals.parquet", age_days=0)
+    derived = _touch(tmp_path / "eligibility.parquet", age_days=3)
+
+    assert_derived_artifact_fresh([derived], source, max_lag_days=7, remedy="rerun nb07")
+
+
+def test_derived_artifact_stale_raises_with_lag_and_remedy(tmp_path):
+    source = _touch(tmp_path / "setup_signals.parquet", age_days=0)
+    derived = _touch(tmp_path / "eligibility.parquet", age_days=21)
+
+    with pytest.raises(DerivedArtifactStale) as excinfo:
+        assert_derived_artifact_fresh([derived], source, max_lag_days=7, remedy="rerun nb07")
+
+    message = str(excinfo.value)
+    assert "21.0 days older" in message
+    assert "limit: 7 days" in message
+    assert "rerun nb07" in message
+
+
+def test_derived_artifact_missing_raises(tmp_path):
+    source = _touch(tmp_path / "setup_signals.parquet", age_days=0)
+
+    with pytest.raises(DerivedArtifactStale, match="is missing"):
+        assert_derived_artifact_fresh(
+            [tmp_path / "nope.parquet"], source, max_lag_days=7, remedy="rerun nb07"
+        )
+
+
+def test_negative_limit_disables_the_check(tmp_path):
+    source = _touch(tmp_path / "setup_signals.parquet", age_days=0)
+    derived = _touch(tmp_path / "eligibility.parquet", age_days=999)
+
+    assert_derived_artifact_fresh([derived], source, max_lag_days=-1, remedy="rerun nb07")
+
+
+def test_missing_source_is_a_no_op(tmp_path):
+    # Nothing to compare against -- a fresh checkout shouldn't fail here.
+    assert_derived_artifact_fresh(
+        [tmp_path / "nope.parquet"], tmp_path / "absent.parquet",
+        max_lag_days=7, remedy="rerun nb07",
+    )
+
+
+def test_every_derived_path_is_checked_not_just_the_first(tmp_path):
+    source = _touch(tmp_path / "setup_signals.parquet", age_days=0)
+    fresh = _touch(tmp_path / "eligibility.parquet", age_days=1)
+    stale = _touch(tmp_path / "volatility_rule.parquet", age_days=40)
+
+    with pytest.raises(DerivedArtifactStale, match="volatility_rule"):
+        assert_derived_artifact_fresh([fresh, stale], source, max_lag_days=7, remedy="rerun nb07")
