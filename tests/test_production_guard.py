@@ -27,7 +27,24 @@ def test_protected_paths_match_dataset_config():
 
 def test_non_production_path_is_never_protected():
     assert not is_protected_path("notebooks/outputs/scratch_thing.parquet")
-    assert not is_protected_path("data/signals/monte_carlo_exits.parquet")
+    assert not is_protected_path("docs/reports/whatever.md")
+
+
+def test_pipeline_owned_dirs_are_protected():
+    """Scope widened from 3 exact paths to whole pipeline-owned directories
+    (AUDIT_NOTEBOOKS_REPORT.md OPEN_AUTO #2/#3).
+
+    `data/signals/monte_carlo_exits.parquet` was asserted UNprotected here
+    before. That assertion encoded the narrow original scope -- and that scope
+    is exactly what let notebook 12 overwrite data/signals/alpha_scores.parquet
+    and reports/top_watchlist.csv, neither of which was in PROTECTED_PATHS.
+    Anything a pipeline step produces or reads is protected now; notebooks
+    write to notebooks/outputs/ instead.
+    """
+    assert is_protected_path("data/signals/monte_carlo_exits.parquet")
+    assert is_protected_path("data/signals/alpha_scores.parquet")
+    assert is_protected_path("data/output/client_ready_watchlist.parquet")
+    assert is_protected_path("reports/top_watchlist.csv")
 
 
 def test_write_blocked_by_default():

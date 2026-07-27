@@ -30,8 +30,34 @@ def _atomic_write(path: Path, write_fn) -> Path:
     return path
 
 
+def _skip_notebook_write(path: Path) -> bool:
+    """Enforce "a notebook never writes a pipeline-owned artifact" at the write
+    layer (AUDIT_NOTEBOOKS_REPORT.md OPEN_AUTO #2/#3).
+
+    Put here rather than in each notebook because notebooks 07/09/12/14/15/16
+    all write into data/signals or reports/ and none of them carried a guard
+    call -- only 05/06 did. Imported lazily so this module stays cheap to
+    import and free of an import cycle with src.data.dataset_config consumers.
+    """
+    from src.data.production_guard import guard_notebook_write
+
+    if not guard_notebook_write(path):
+        return False
+    from src.data.dataset_config import NOTEBOOK_OUTPUT_DIR
+
+    print(
+        f"KHONG ghi {path} -- day la artifact do pipeline tu dong so huu; "
+        f"notebook khong duoc ghi de. Ghi sang {NOTEBOOK_OUTPUT_DIR}/ thay the, "
+        f"hoac dat ALLOW_PRODUCTION_WRITE=1 truoc khi khoi dong kernel neu that su "
+        f"muon ghi de bang tay. Xem AUDIT_NOTEBOOKS_REPORT.md OPEN_AUTO #2/#3."
+    )
+    return True
+
+
 def save_parquet(df: pd.DataFrame, path: str | Path) -> Path:
     path = ensure_parent(path)
+    if _skip_notebook_write(path):
+        return path
     _atomic_write(path, lambda tmp: df.to_parquet(tmp, index=False))
     return path
 
@@ -43,6 +69,8 @@ def save_csv_atomic(df: pd.DataFrame, path: str | Path, index: bool = False, **t
     where this doesn't matter), see NV1b commit for the specific call sites
     this was applied to."""
     path = ensure_parent(path)
+    if _skip_notebook_write(path):
+        return path
     _atomic_write(path, lambda tmp: df.to_csv(tmp, index=index, **to_csv_kwargs))
     return path
 

@@ -44,3 +44,24 @@ QUARANTINE_DIR = "data/quarantine_existing_v1"
 # a background job kept refreshing this directory via
 # scripts/update_daily_data.py, independently of full_history_v2.
 LEGACY_PRICE_RAW_DIR = "data/raw/daily_ohlcv"
+
+# Directories owned end-to-end by the automated nightly pipeline
+# (scripts/daily_run.sh -> scripts/run_daily_pipeline.py). Everything inside
+# them is either produced or consumed by a pipeline step, so nothing outside
+# that pipeline may write there -- enforced in src/data/production_guard.py.
+#
+# Added after AUDIT_NOTEBOOKS_REPORT.md OPEN_AUTO #2/#3 found notebook 12
+# overwriting data/signals/alpha_scores.parquet and reports/top_watchlist.csv
+# by hand, two hours after the pipeline had produced them, leaving
+# reports/alpha_scoring_metadata.json's lineage claim describing a file that on
+# disk had a different schema.
+PIPELINE_OWNED_DIRS = (
+    "data/processed",
+    "data/signals",
+    "data/output",
+    "reports",
+)
+
+# Where notebooks should write instead. Deliberately NOT pipeline-owned --
+# nothing in the automated pipeline reads from here.
+NOTEBOOK_OUTPUT_DIR = "notebooks/outputs"
