@@ -76,6 +76,26 @@ với hai cờ boolean `eligible`/`watchlist_eligible` và mức `stop_loss` hi�
 (đóng băng ở `-0.10`). Không phải "watchlist sai hoàn toàn", nhưng thứ tự xếp hạng **có** bị dịch
 bởi thống kê nghiên cứu cũ một tháng, và trade card hiển thị stop-loss không còn được kiểm chứng lại.
 
+**⚠️ Hệ quả phụ CẦN BIẾT — guard làm đổi hành vi của chuỗi tay `14 → 15 → 16`.**
+Không notebook nào trong chuỗi này bị sửa (đúng phạm vi đã thống nhất), nhưng vì guard nằm ở tầng
+`save_parquet`, chạy tay nb14 **không còn ghi được** `data/signals/selected_portfolio_weights.parquet`
+(nó in cảnh báo "KHONG ghi ..." rất rõ). Vấn đề nằm ở bước kế tiếp: nb15 cell[3] là
+
+```python
+if os.path.exists(selected_weights_path):
+    selected_weights_df = read_parquet(selected_weights_path)   # <- file cu VAN CON tren dia
+```
+
+File cũ vẫn tồn tại (mtime `2026-07-23 11:02`), nên nb15 sẽ **im lặng dùng bản cũ** thay vì rơi vào
+nhánh fallback HRP. Nghĩa là: guard làm *ồn* ở chỗ ghi (nb14) nhưng làm *im lặng* ở chỗ đọc (nb15) —
+đúng loại lệch mà report này vẫn phê phán. Tương tự với `risk_overlay_weights.parquet` và
+`capital_allocation_plan.parquet` (cả hai mtime `2026-07-02`, tức đã cũ sẵn 25 ngày từ trước vòng này).
+
+Đây là **đánh đổi có chủ ý**: 3 file này có **0 consumer tự động**, nên rủi ro nằm hoàn toàn trong
+quy trình tay, thấp hơn hẳn việc để notebook ghi đè artifact pipeline. **Cách xử lý đúng** là chuyển
+cả 3 đường ghi/đọc của `14/15/16` sang `notebooks/outputs/` — thuộc **Đợt 3**, cùng lúc với việc sửa
+chuỗi overfit, chứ không chắp vá riêng lẻ ở vòng này.
+
 **Phát hiện phụ (ngoài scope, chỉ ghi nhận):** `data/output/research_notes_metadata.json` khai 4
 note đã sinh (`MST.md`, `BVS.md`, `KLB.md`, `NAB.md`) mà `research_notes/generated/` **không có**.
 Cùng họ "sidecar nói dối" nhưng không liên quan notebook, và `build_research_notes` không nằm trong
