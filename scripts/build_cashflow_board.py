@@ -22,6 +22,7 @@ from src.analytics.cashflow_board import (
 from src.data.loaders import save_parquet
 from src.screening.final_watchlist import apply_post_cashflow_overlay
 from src.utils.logger import get_logger
+from src.validation.freshness_check import DerivedArtifactStale, assert_input_chain_fresh
 
 LOGGER = get_logger("build_cashflow_board")
 
@@ -42,6 +43,13 @@ def main(argv: list[str] | None = None) -> int:
     stock_features = inputs["stock_features"]
     if stock_features.empty:
         raise SystemExit("stock_features is missing or empty. Run the daily pipeline / generate_features before building Cashflow Board.")
+
+    # Input-chain freshness (CLAUDE.md rule 12 / Đợt 3 NV2) -- emptiness was
+    # checked, currency was not.
+    try:
+        assert_input_chain_fresh(PROJECT_ROOT, consumer="build_cashflow_board")
+    except DerivedArtifactStale as exc:
+        raise SystemExit(str(exc)) from exc
 
     if args.symbol_only:
         LOGGER.info("Building symbol-level Cashflow Board (pre-ranking pass)...")

@@ -576,6 +576,7 @@ import time
 import pytest
 
 from src.validation.freshness_check import (
+    assert_input_chain_fresh,
     load_upstream_artifact,
     DerivedArtifactStale,
     assert_derived_artifact_fresh,
@@ -696,3 +697,35 @@ def test_load_upstream_artifact_missing_is_announced_not_silent(tmp_path, capsys
     assert info["status"] == "missing"
     assert df.empty
     assert "KHONG TIM THAY" in capsys.readouterr().out
+
+
+# --- assert_input_chain_fresh (Đợt 3 NV2) ------------------------------------
+
+
+def _chain(tmp_path, feature_days_back: int = 0):
+    (tmp_path / "data/processed").mkdir(parents=True, exist_ok=True)
+    end = pd.Timestamp("2026-07-27")
+    pd.DataFrame({"symbol": ["AAA"], "date": [end], "close": [1.0]}).to_parquet(
+        tmp_path / "data/processed/clean_daily_ohlcv.parquet", index=False
+    )
+    pd.DataFrame(
+        {"symbol": ["AAA"], "date": [end - pd.Timedelta(days=feature_days_back)], "close": [1.0]}
+    ).to_parquet(tmp_path / "data/processed/stock_features.parquet", index=False)
+    return tmp_path
+
+
+def test_input_chain_fresh_passes_when_aligned(tmp_path):
+    assert_input_chain_fresh(_chain(tmp_path, 0), consumer="probe")
+
+
+def test_input_chain_fresh_fails_when_features_lag_source(tmp_path):
+    with pytest.raises(DerivedArtifactStale) as excinfo:
+        assert_input_chain_fresh(_chain(tmp_path, 6), consumer="run_alpha_scoring")
+    message = str(excinfo.value)
+    assert "run_alpha_scoring" in message
+    assert "generate_features.py" in message
+
+
+def test_input_chain_fresh_is_a_no_op_when_inputs_absent(tmp_path):
+    # Emptiness is each caller's own precondition to report, not this guard's.
+    assert_input_chain_fresh(tmp_path, consumer="probe")

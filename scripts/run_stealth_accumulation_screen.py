@@ -18,6 +18,17 @@ from src.screening.stealth_accumulation import (
 )
 
 
+# Input-chain freshness (CLAUDE.md rule 12 / AUDIT_NOTEBOOKS_REPORT.md Đợt 3 NV2):
+# this step only ever checked that its inputs were non-empty, never that they
+# were current. Harmless in a normal sequential nightly run; catches a
+# standalone rerun against a half-built or stale feature file.
+from src.validation.freshness_check import DerivedArtifactStale, assert_input_chain_fresh
+
+try:
+    assert_input_chain_fresh(PROJECT_ROOT, consumer="run_stealth_accumulation_screen")
+except DerivedArtifactStale as exc:
+    raise SystemExit(str(exc)) from exc
+
 config = load_screen_config("config/screens/stealth_accumulation.yaml")
 
 # Use stock_features directly — it already contains clean OHLCV + all computed features

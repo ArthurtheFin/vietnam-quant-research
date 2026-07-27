@@ -24,6 +24,17 @@ pullback_ma_col = signal_cfg.get('pullback_ma_col', 'ma20')
 pullback_tolerance = signal_cfg.get('pullback_tolerance', 0.015)
 volume_spike_threshold = signal_cfg.get('volume_spike_threshold', 2.0)
 
+# Input-chain freshness (CLAUDE.md rule 12 / AUDIT_NOTEBOOKS_REPORT.md Đợt 3 NV2):
+# this step only ever checked that its inputs were non-empty, never that they
+# were current. Harmless in a normal sequential nightly run; catches a
+# standalone rerun against a half-built or stale feature file.
+from src.validation.freshness_check import DerivedArtifactStale, assert_input_chain_fresh
+
+try:
+    assert_input_chain_fresh(PROJECT_ROOT, consumer="generate_signals")
+except DerivedArtifactStale as exc:
+    raise SystemExit(str(exc)) from exc
+
 features = read_parquet(OFFICIAL_FEATURES_PATH)
 if features.empty:
     raise SystemExit('No features found. Run scripts/generate_features.py first.')

@@ -108,6 +108,42 @@ def assert_derived_artifact_fresh(
             )
 
 
+def assert_input_chain_fresh(
+    base_dir: str | Path = ".",
+    *,
+    consumer: str,
+) -> None:
+    """Refuse to run a pipeline step whose inputs are internally inconsistent.
+
+    Checks `stock_features.parquet` is not behind `clean_daily_ohlcv.parquet`
+    (its own source). Cheap, and it cannot fire during a normal sequential
+    nightly run, where `generate_features.py` rebuilds both together.
+
+    What it does catch: running a step standalone -- `python
+    scripts/run_alpha_scoring.py` after a partial or failed feature build -- on
+    a stale feature file. Before this, those steps only checked that the file
+    was non-empty, so an out-of-date one sailed through (CLAUDE.md rule 12).
+
+    Raises `DerivedArtifactStale`; callers translate to `SystemExit`.
+    """
+    base = Path(base_dir)
+    source, _ = read_first_existing_parquet((OFFICIAL_CLEAN_OHLCV_PATH,), base_dir=base)
+    target, _ = read_first_existing_parquet((OFFICIAL_FEATURES_PATH,), base_dir=base)
+    if source.empty or target.empty:
+        return  # emptiness is each caller's own precondition to report
+    source_latest = latest_timestamp(source)
+    target_latest = latest_timestamp(target)
+    if source_latest is None or target_latest is None:
+        return
+    if target_latest < source_latest:
+        raise DerivedArtifactStale(
+            f"{consumer}: {OFFICIAL_FEATURES_PATH} is stale relative to "
+            f"{OFFICIAL_CLEAN_OHLCV_PATH} (features latest {target_latest.date()}, "
+            f"clean OHLCV latest {source_latest.date()}). Run "
+            f"`python scripts/generate_features.py` before this step."
+        )
+
+
 def load_upstream_artifact(
     path: str | Path,
     *,

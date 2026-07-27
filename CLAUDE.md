@@ -66,3 +66,18 @@
     lỗi ngay — không cần đợi vòng audit sau mới biết. Notebook gọi API
     sống (SSI) bị bỏ qua mặc định (`LIVE_API_NOTEBOOKS` trong script), thêm
     `--include-live` nếu cần chạy cả chúng.
+
+12. **Consumer phải kiểm tra độ tươi của artifact nó đọc — cấm im lặng dùng
+    bản cũ.** Một bước/notebook đọc file do bước KHÁC sinh ra thì không được
+    chỉ kiểm tra "file có tồn tại / có rỗng không" rồi dùng luôn. Phải một
+    trong hai: (a) so ngày dữ liệu bằng `assert_input_chain_fresh()` /
+    `assert_derived_artifact_fresh()` và FAIL rõ ràng, hoặc (b) đọc bằng
+    `load_upstream_artifact()` — hàm này luôn in ra mtime + tuổi file và gắn
+    cờ `stale`. Tất cả nằm trong `src/validation/freshness_check.py`.
+    Lý do (`notebooks/AUDIT_NOTEBOOKS_REPORT.md`): hai sự cố cùng một họ.
+    (1) `breakout_20d_setup_eligibility.parquet` đóng băng 25 ngày mà
+    `generate_trade_cards.py` vẫn đọc mỗi đêm — trade card vẫn "tươi" nên mọi
+    freshness check hạ nguồn đều pass. (2) notebook 15 dùng
+    `os.path.exists()` rồi đọc thẳng, nên khi guard chặn notebook 14 ghi file,
+    nó im lặng xài bản cũ nhiều ngày. Cả hai đều **ồn ở chỗ ghi, im ở chỗ
+    đọc** — chỗ đọc mới là nơi phải kêu.
