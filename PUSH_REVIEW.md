@@ -2067,3 +2067,80 @@ của report.
 **Ràng buộc đã giữ:** không sửa code, không chạy notebook, không merge nhánh. Nhánh
 `claude/super-prompt-audit-notebooks-281814` **không được đưa vào bất kỳ đợt nào** — merge
 sẽ revert cả 8 mục STALE. 2 commit trên `main`, **CHƯA push**.
+
+## Đợt 2 — xử lý trọn nhóm OPEN_AUTO (4 mục) — 2026-07-27
+
+Phạm vi: **chỉ** nhóm OPEN_AUTO. Không đụng chuỗi `14/15/16`, không đụng `nb19`,
+không dọn cosmetic. 16 mục OPEN_MANUAL và 8 mục STALE giữ nguyên.
+
+**NV0 (dọn nền).** 9 notebook sửa-chưa-commit trong working tree được commit
+riêng (`22bc288`) trước khi sửa gì, theo quyết định của chủ dự án — 5 file
+(`04`,`05`,`06`,`13`,`14`) có cell vẽ biểu đồ thêm tay, 4 file chỉ đổi
+`execution_count`/`outputs`. Không phải tác phẩm của vòng này, commit tách để
+diff của các NV sau sạch.
+
+**NV1 — OPEN_AUTO #1, eligibility đóng băng (`eff0020`).** Chẩn đoán trước khi
+sửa: `breakout_20d_setup_eligibility.parquet` + `breakout_20d_volatility_rule.parquet`
+join theo `symbol` / `volatility_regime` vào trade card, cấp `edge_tier`,
+`eligible`, `watchlist_eligible`, `stop_loss`, `profit_factor`, `win_rate`,
+`avg_return` — tức gần như toàn bộ phần "chất lượng setup" của trade card.
+Producer duy nhất là `save_breakout_research_outputs()`, chỉ được gọi từ nb07.
+`stop_loss` trong đó đến từ `_select_best_stop_relaxed()`
+(`src/backtest/breakout_research.py:275`) — quét lưới **in-sample**.
+
+Chọn hướng **(b)** đúng như khuyến nghị: thêm `assert_derived_artifact_fresh()`
+(`src/validation/freshness_check.py`, có 6 unit test) và gọi từ
+`generate_trade_cards.py`. Hai file không có cột `date` nên đo bằng **mtime** so
+với `setup_signals.parquet`; quá **7 ngày** → `SystemExit` kèm hướng dẫn sửa.
+Override `MAX_ELIGIBILITY_LAG_DAYS` (`-1` = tắt). Hướng **(a)** (port sang script
+chạy đêm) **cố ý hoãn**: tự động hoá nó = tự động hoá một lựa chọn overfit và
+fit lại nó mỗi đêm — cần prereg riêng.
+
+*Mức nhiễm 25 ngày qua:* trade card → `run_meta_ranking.py:46` →
+`meta_ranking.parquet` → `final_watchlist.py` → `data/output/*watchlist.parquet`
+→ client report. Có tới khách, nhưng định lượng được: `trade_edge_score` +
+`setup_quality_score` là 2/3 thành phần của `signal_raw`, và `signal` chỉ nặng
+**11.11/100** trong `final_score` (`final_watchlist.py:127,580`) ⇒ khoảng **4–7
+điểm/100** của thứ hạng bị dịch, cộng 2 cờ `eligible`/`watchlist_eligible` và
+mức `stop_loss` hiển thị (đóng băng `-0.10`). Không phải watchlist sai hoàn
+toàn, nhưng thứ tự **có** lệch vì thống kê nghiên cứu cũ một tháng.
+
+**NV2 — mở rộng vùng bảo vệ (`b053ede`).** `PROTECTED_PATHS` cũ chỉ có 3 file
+`data/processed/` — chính vì thế nb12 ghi đè `alpha_scores.parquet` và
+`reports/top_watchlist.csv` không bị cản. Thêm `PIPELINE_OWNED_DIRS`
+(`data/processed`, `data/signals`, `data/output`, `reports`) vào
+`dataset_config.py`, `is_protected_path()` khớp theo thư mục;
+`notebooks/outputs/` được miễn trừ tường minh.
+
+Điểm mấu chốt: guard **hạ xuống tầng `save_parquet`/`save_csv_atomic`** thay vì
+bắt từng notebook tự gọi — nb07/09/14/15/16 đều ghi `data/signals/` và **không
+file nào** có guard, chỉ 05/06 có. Nhận diện notebook cố ý **fail-open**: chỉ
+`ZMQInteractiveShell` mới tính là notebook, nên `python scripts/...` không bao
+giờ bị chặn nhầm (false positive sẽ làm pipeline im lặng ngừng ghi — đúng loại
+lỗi module này sinh ra để chặn). **Skip + in cảnh báo**, không raise, theo đúng
+idiom 05/06, để `make check-notebooks` không đỏ hàng loạt rồi bị tắt guard.
+`ALLOW_PRODUCTION_WRITE=1` vẫn là cửa thoát — đó là cách nb07 làm mới eligibility.
+
+Test quét tĩnh theo yêu cầu (`tests/test_notebook_write_guard.py`): không notebook
+nào được `.to_csv()`/`.to_parquet()` thẳng vào thư mục pipeline (ghi thô **bỏ
+qua** guard tầng loader). Chính test này bắt được 2 lời gọi `to_csv` của nb12.
+`tests/test_production_guard.py` có một assertion khẳng định
+`data/signals/monte_carlo_exits.parquet` **không** được bảo vệ — assertion đó mã
+hoá phạm vi hẹp cũ, đã **thay** (không xoá) vì mở rộng phạm vi chính là mục đích.
+
+**NV3 — dọn nb12 + sửa lineage nói dối (`cb80949`).** 3 đường ghi của nb12
+(`alpha_scores.parquet`, `meta_ranking*.parquet`, `reports/*.csv`) chuyển sang
+`notebooks/outputs/`. Chạy lại `scripts/run_alpha_scoring.py` để khôi phục
+`reports/`: `top_watchlist.csv` có lại cột `alpha_score_shadow_v1`, mất
+`rolling_beta_60d`, và 3 output + sidecar cùng một mtime ⇒ lời khai trong
+`alpha_scoring_metadata.json` đúng trở lại.
+
+Quét toàn bộ sidecar khác tìm cùng lỗi "khai là producer của file bị nguồn khác
+ghi đè": `cashflow_board`, `watchlist`, `sector_board`, `portfolio_stack` đều
+nhất quán. **Riêng `data/output/research_notes_metadata.json` khai 4 note
+(`MST/BVS/KLB/NAB`) không tồn tại trong `research_notes/generated/`** — cùng họ
+lỗi nhưng không liên quan notebook, và `build_research_notes` không nằm trong
+bước mặc định hằng đêm ⇒ ghi nhận, không sửa vòng này.
+
+**`.ipynb_checkpoints/`:** kiểm tra lại — **đã có sẵn** `.gitignore` dòng 7,
+không cần thêm. Chỉ bổ sung `notebooks/outputs/**/*.csv` (trước chỉ có `*.parquet`).

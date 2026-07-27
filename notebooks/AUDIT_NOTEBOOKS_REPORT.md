@@ -39,11 +39,59 @@
   "Delete Candidates" ghi "(audit A2, 2026-07-08) verified none of these files exist on disk anymore"
   — **claim đó nay đã lỗi thời**. Chúng bị `.gitignore:7` che nên không hiện trong `git status`.
 
+---
+
+# ĐỢT 2 — ĐÃ XỬ LÝ TOÀN BỘ NHÓM OPEN_AUTO (2026-07-27)
+
+Vòng này **chỉ** đụng nhóm OPEN_AUTO. 16 mục OPEN_MANUAL và 8 mục STALE **giữ nguyên**,
+chuỗi `14/15/16` và `nb19` **không đụng tới**.
+
+| Mục | Trạng thái | Cách xử lý | Commit |
+|---|---|---|---|
+| **OPEN_AUTO #1** — eligibility đóng băng 25 ngày | ✅ **ĐÃ CHẶN** | `assert_derived_artifact_fresh()` trong `generate_trade_cards.py`: so mtime `breakout_20d_setup_eligibility` / `volatility_rule` với `setup_signals`, quá **7 ngày** → `SystemExit`. Env `MAX_ELIGIBILITY_LAG_DAYS` để nới, `-1` để tắt | `eff0020` |
+| **OPEN_AUTO #2** — `alpha_scores.parquet` ngoài vùng bảo vệ | ✅ **ĐÃ CHẶN** | `PROTECTED_DIRS` phủ cả `data/processed` · `data/signals` · `data/output` · `reports`; guard chuyển xuống tầng `save_parquet`/`save_csv_atomic` nên **mọi notebook** được phủ, không cần sửa từng file | `b053ede` |
+| **OPEN_AUTO #3** — `reports/top_watchlist.csv` 2 producer | ✅ **ĐÃ SỬA + KHÔI PHỤC** | nb12 chuyển 3 đường ghi sang `notebooks/outputs/`; chạy lại `run_alpha_scoring.py` → schema có lại `alpha_score_shadow_v1`, 4 file cùng mtime, lineage đúng trở lại | `cb80949` |
+| **OPEN_AUTO #4** — nb09 ghi `stealth_accumulation_latest` | ✅ **ĐÃ CHẶN** | Tự động phủ bởi guard tầng loader ở #2 — không cần sửa nb09 | `b053ede` |
+
+**Vì sao KHÔNG tự động hoá việc sinh eligibility (hướng (a)):** `run_breakout_research()` chọn
+stop-loss bằng `_select_best_stop_relaxed()` (`src/backtest/breakout_research.py:275`) — quét lưới
+**in-sample** trên chính dữ liệu nó báo cáo. Cắm vào cron sẽ biến một lựa chọn overfit thành thứ
+được **fit lại mỗi đêm**. Cần prereg riêng; xem "Đợt 2.1" ở mục 4.
+
+**Mức nhiễm 25 ngày qua (NV1, đánh giá tác động ngược).** Chuỗi lan truyền đo được:
+
+```
+nb07 (tay, 2026-07-02) → breakout_20d_setup_eligibility.parquet
+   → generate_trade_cards.py:44 (bước 4/7, mỗi đêm) → breakout_20d_trade_cards.parquet
+   → run_meta_ranking.py:46 (bước 7/7) → meta_ranking.parquet
+   → final_watchlist.py → data/output/{research_candidates, trading_watchlist, client_ready_watchlist}.parquet
+   → notebooks/05_client_report/01_client_market_report.ipynb (đọc data/output/)
+```
+
+Nhiễm **có** tới watchlist khách hàng, nhưng **định lượng được và ở mức vừa**: `trade_edge_score`
+và `setup_quality_score` (cả hai dẫn xuất từ `win_rate`/`profit_factor`/`avg_return` đóng băng) là
+2 trong 3 thành phần của `signal_raw`, mà `signal` chỉ nặng **11.11/100** trong `final_score`
+(`final_watchlist.py:127,580`). Tức khoảng **4–7 điểm trên thang 100** của thứ hạng bị lệch, cộng
+với hai cờ boolean `eligible`/`watchlist_eligible` và mức `stop_loss` hiển thị trên trade card
+(đóng băng ở `-0.10`). Không phải "watchlist sai hoàn toàn", nhưng thứ tự xếp hạng **có** bị dịch
+bởi thống kê nghiên cứu cũ một tháng, và trade card hiển thị stop-loss không còn được kiểm chứng lại.
+
+**Phát hiện phụ (ngoài scope, chỉ ghi nhận):** `data/output/research_notes_metadata.json` khai 4
+note đã sinh (`MST.md`, `BVS.md`, `KLB.md`, `NAB.md`) mà `research_notes/generated/` **không có**.
+Cùng họ "sidecar nói dối" nhưng không liên quan notebook, và `build_research_notes` không nằm trong
+các bước mặc định hằng đêm. Không sửa vòng này.
+
+**`.ipynb_checkpoints/`:** kiểm tra lại — **đã có sẵn** trong `.gitignore` dòng 7, không cần thêm.
+Chỉ bổ sung `notebooks/outputs/**/*.csv` (trước đó chỉ có `*.parquet`).
+
+---
+
 ## 1. Bảng phân loại
 
 Ký hiệu: **STALE** = đã sửa trên main, report gốc nhầm do chạy nhánh cũ ·
 **OPEN_MANUAL** = còn thật, chỉ gây hại khi có người chạy notebook tay ·
-**OPEN_AUTO** = còn thật VÀ nằm trong đường chạy tự động hằng đêm.
+**OPEN_AUTO** = còn thật VÀ nằm trong đường chạy tự động hằng đêm
+(**cả 4 mục OPEN_AUTO nay đã xử lý — xem mục ĐỢT 2 ở trên**).
 
 | # | Finding (report gốc) | Phân loại trên `main` | Bằng chứng |
 |---|---|---|---|
