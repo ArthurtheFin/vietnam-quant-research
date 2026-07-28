@@ -146,6 +146,16 @@ def run_portfolio_backtest(
 
     min_holding_sessions = load_min_holding_sessions()
 
+    # Which source actually drove each rebalance decision (AUDIT_NOTEBOOKS_REPORT.md
+    # Đợt 4 NV2). `meta_ranking` is joined on an exact (date, symbol) pair, and
+    # data/signals/meta_ranking.parquet is a SNAPSHOT -- one row per symbol, 87%
+    # of them stamped with the final date -- not a historical panel. So on almost
+    # every historical rebalance date the lookup misses and selection silently
+    # falls through to score_reversal_quality. Callers were presenting the result
+    # as "ranked by meta_score" with no way to see that. Counted and returned, so
+    # the label can be checked rather than assumed.
+    ranking_source_counts = {"meta_ranking": 0, "fallback": 0}
+
     # 2. Rebalancing dates
     rebalance_dates = all_dates[::rebalance_period]
     if all_dates[-1] not in rebalance_dates:
@@ -321,6 +331,7 @@ def run_portfolio_backtest(
                 scores_today = ranking_indexed.loc[decision_date].copy()
             except KeyError:
                 scores_today = pd.DataFrame()
+            ranking_source_counts["meta_ranking" if not scores_today.empty else "fallback"] += 1
 
             try:
                 features_today = df[df["date"] == decision_date].set_index("symbol")
@@ -502,6 +513,7 @@ def run_portfolio_backtest(
         "portfolio_returns": pct_returns,
         "benchmark_curve": bench_nav,
         "benchmark_symbol": benchmark_source,
+        "ranking_source_counts": dict(ranking_source_counts),
         "trades_log": pd.DataFrame(trades_log),
         "skipped_limit_up": pd.DataFrame(skipped_limit_up),
         "regime_adjustments": pd.DataFrame(regime_adjustments),

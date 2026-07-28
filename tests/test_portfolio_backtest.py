@@ -523,3 +523,51 @@ def test_max_per_sector_caps_sector_concentration() -> None:
         "sector cap must take the top name from each sector (A1, B1), not the "
         f"sector-blind top-2 (A1, A2); got {selected}"
     )
+
+
+def test_ranking_source_counts_reports_which_source_decided(monkeypatch):
+    """run_portfolio_backtest must report whether meta_ranking or the
+    score_reversal_quality fallback actually drove each rebalance.
+
+    data/signals/meta_ranking.parquet is a snapshot (one row per symbol, 87% on
+    the final date), not a historical panel, and it is joined on an exact
+    (date, symbol) pair. Measured on real data 2026-07-27: meta_ranking matched
+    0 of 81 rebalances -- every decision came from the fallback -- while the
+    notebook presented the run as ranked by meta_score. Without this counter
+    there is no way to tell (AUDIT_NOTEBOOKS_REPORT.md Đợt 4 NV2).
+    """
+    import pandas as pd
+
+    from src.backtest import run_portfolio_backtest
+
+    dates = pd.bdate_range("2024-01-01", periods=60)
+    rows = []
+    for sym in ["AAA", "BBB", "CCC"]:
+        for i, d in enumerate(dates):
+            rows.append({
+                "symbol": sym, "date": d, "close": 10.0 + i * 0.1, "open": 10.0 + i * 0.1,
+                "return_1d": 0.001, "value_ma20": 5e10, "above_ma200": True,
+                "above_ma20": True, "ma20": 9.0, "ma200": 8.0,
+            })
+    features = pd.DataFrame(rows)
+    benchmark = pd.DataFrame({"date": dates, "return_1d": [0.0005] * len(dates)})
+
+    # Snapshot-shaped ranking: one row per symbol, all on the final date.
+    snapshot = pd.DataFrame({
+        "symbol": ["AAA", "BBB", "CCC"],
+        "date": [dates[-1]] * 3,
+        "meta_score": [90.0, 80.0, 70.0],
+    })
+
+    result = run_portfolio_backtest(
+        features=features, meta_ranking=snapshot,
+        rebalance_period=10, portfolio_size=2,
+        benchmark_features=benchmark,
+    )
+
+    counts = result["ranking_source_counts"]
+    assert set(counts) == {"meta_ranking", "fallback"}
+    assert sum(counts.values()) > 0, "no rebalance decision was recorded"
+    # A snapshot stamped on the final date can never match a T-1 decision date.
+    assert counts["meta_ranking"] == 0
+    assert counts["fallback"] == sum(counts.values())
