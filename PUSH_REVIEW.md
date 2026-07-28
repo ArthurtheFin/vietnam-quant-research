@@ -2231,3 +2231,56 @@ nhất trong `data/output/` thiếu timestamp. Đã fill tại chỗ ghi. 2 test
 false-fire**, vẫn dừng đúng chỗ ở `generate_trade_cards`.
 `run_stealth_accumulation_screen` + `build_cashflow_board --symbol-only` chạy
 riêng: exit 0. 6 commit trên `main`, **CHƯA push**.
+
+## Đợt 4 — file mồ côi + nhãn sai còn lại — 2026-07-27/28
+
+Phạm vi: file mồ côi, nhãn `meta_ranking`, quét nốt họ "lineage nói dối".
+**Không** đụng chuỗi overfitting `14→15→16` (Đợt 5).
+
+**NV0 — gỡ tắc pipeline.** NV0 trong đề bài còn nguyên placeholder `[a/b/c]`;
+đã hỏi và chủ dự án chọn **(a)**: chạy nb07 để làm mới eligibility. Chạy với
+`ALLOW_PRODUCTION_WRITE=1` (đúng cửa thoát đã thiết kế ở Đợt 2 cho chính tình
+huống này). **Lưu ý phải giữ:** eligibility mới vẫn mang `stop_loss` chọn
+**in-sample** qua `_select_best_stop_relaxed()` — làm mới dữ liệu KHÔNG sửa vấn
+đề phương pháp, chỉ gỡ tắc. Việc bỏ lựa chọn in-sample thuộc **Đợt 5**.
+
+**NV1 (`66209f4`) — và một đính chính đáng kể của chính bản audit gốc.**
+Truy nguyên `stock_features_volatility.parquet`: `git log -S` chỉ trúng file
+*đọc*, không có file nào *ghi*; ngay commit đầu tiên `4313f2d` (2026-07-01),
+`05_volatility_regime.ipynb` đã ghi `stock_features.parquet` chứ không phải
+`_volatility`; dữ liệu file dừng ở **2026-06-24**, trước cả commit đầu tiên ⇒
+tàn dư một phiên chạy tay trước khi repo vào git. Tái tạo được:
+`stock_features.parquet` là **tập cha** (49 cột vs 25, tới 2026-07-27), chỉ
+thiếu `forward_return_1d` — cột `add_returns()` cố ý bỏ khi `h == 1`.
+
+**Đính chính:** bản audit gốc ghi nb13/nb14 nhận "NaN im lặng cho mọi ngày sau
+2026-06-24". **Sai.** `setup_signals.parquet` đã mang sẵn cả 6 cột enrich, mà cả
+hai notebook chỉ merge cột **chưa có** — điều kiện luôn rỗng nên **merge chưa
+bao giờ chạy**. Hai file là I/O thừa tạo cảm giác phụ thuộc, không phải nguồn
+NaN; gỡ chúng **không đổi một con số nào**. Lỗi của bản gốc: suy ra từ "file cũ
++ có lệnh merge" mà không kiểm tra điều kiện merge có thoả không.
+Quarantine vào `data/quarantine_orphan_features_v1/` kèm README (không xoá).
+
+**NV2 (`e992ed2`) — `meta_ranking` hoá ra trơ hoàn toàn.** Xác nhận lại snapshot
+(500 dòng, 1 dòng/mã, 87% dồn ngày cuối). `final_watchlist.py:562` đã nhận biết
+từ trước; nb20 là consumer duy nhất còn coi nó là chuỗi lịch sử.
+`run_portfolio_backtest` nay đếm nguồn quyết định và trả `ranking_source_counts`.
+**Đo thật 2026-07-27: `{'meta_ranking': 0, 'fallback': 81}` — 0/81, tức 100%
+fallback.** Tham số `meta_ranking` **không đóng góp gì**; CAGR 18.66% hoàn toàn
+là của `score_reversal_quality`. Khớp 0 chứ không phải 1 vì ngày quyết định là
+`all_dates[day_idx - 1]` và vòng lặp loại ngày cuối chuỗi.
+⇒ Chốt việc hạ cấp từ Đợt 0: **không phải look-ahead** — tham số trơ. Là lỗi
+nhãn, và nhãn nay đúng (markdown ghi 0/81, cell in lại số mỗi lần chạy).
+
+**NV3 (`2ad50e5`) — quét 14 sidecar: 1 lỗi thật, 2 dương tính giả.**
+Lỗi thật: nhánh `--symbol-only` của `build_cashflow_board.py` ghi đè
+`cashflow_board.parquet`/`.csv` nhưng **không viết metadata**, nên sidecar tiếp
+tục mô tả một lần chạy full-mode cũ. Pass này là **bước 6/7 hằng đêm** ⇒ sidecar
+sai **theo cấu trúc, mỗi đêm**. Nay append `symbol_only_pass` thay vì đè payload
+full-mode.
+Dương tính giả (kiểm tra rồi loại, **không sửa**): `alpha_scoring_metadata.json`
+không có `generated_at` top-level nhưng có `lineage.lineage_generated_at` đầy đủ;
+`market_regime_study_results.json` dùng schema lineage khác (prereg/seed/n_boot)
+hợp với một study một lần và đầy đủ — scanner của tôi đo nhầm bằng schema pipeline.
+
+**Nghiệm thu:** full suite **359 passed** (326 → 359 qua 3 đợt).

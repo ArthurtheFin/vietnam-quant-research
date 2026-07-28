@@ -176,6 +176,87 @@ vòng sau.
 
 ---
 
+# ĐỢT 4 — FILE MỒ CÔI + NHÃN SAI CÒN LẠI (2026-07-27/28)
+
+Phạm vi: file mồ côi, nhãn `meta_ranking`, quét nốt họ "lineage nói dối".
+**Không** đụng chuỗi overfitting `14→15→16` (Đợt 5).
+
+| NV | Việc | Commit |
+|---|---|---|
+| 0 | Gỡ tắc pipeline theo phương án **(a)** — chạy nb07 làm mới eligibility | *(xem dưới)* |
+| 1 | `stock_features_volatility` + `stock_features_distribution` mồ côi → gỡ khỏi nb13/nb14, quarantine | `66209f4` |
+| 2 | `meta_ranking` là snapshot → đếm nguồn xếp hạng thật, sửa nhãn nb20 | `e992ed2` |
+| 3 | Quét nốt 14 sidecar → 1 lỗi thật (`--symbol-only`), 2 dương tính giả | `2ad50e5` |
+
+## NV1 — truy nguyên file mồ côi, và **đính chính bản audit gốc**
+
+**Truy nguyên.** `git log -S "stock_features_volatility"` chỉ trúng các file *đọc*, không
+có file nào *ghi*. Ngay ở commit đầu tiên `4313f2d` (2026-07-01), `05_volatility_regime.ipynb`
+đã ghi ra `stock_features.parquet` — **không phải** `_volatility`. Ngày dữ liệu của file là
+**2026-06-24, trước cả commit đầu tiên** ⇒ tàn dư một phiên chạy tay trước khi repo vào git.
+
+**Tái tạo được không? Có.** `stock_features.parquet` là **tập cha**: 49 cột vs 25, dữ liệu tới
+2026-07-27 vs 2026-06-24. Cột duy nhất file mồ côi có mà bản hiện hành không có là
+`forward_return_1d` — `add_returns()` cố ý bỏ `h == 1` (`src/features/returns.py:50`), và đó là
+cột nhìn tương lai, không notebook nào ở đây dùng.
+
+**⚠️ ĐÍNH CHÍNH.** Phần audit gốc (và bảng phân loại mục 21 bên dưới) ghi hai notebook này nhận
+"**NaN im lặng** cho mọi ngày sau 2026-06-24". **SAI.** Kiểm tra lại: `setup_signals.parquet`
+đã mang sẵn **cả 6 cột enrich** (`volatility_regime`, `volatility_percentile`, `atr_pct_14`,
+`dist_skew_60d`, `dist_kurt_60d`, `tail_ratio_60d`). Cả nb13 lẫn nb14 đều chỉ merge cột **chưa
+có** (`col not in analysis_df.columns` / `col not in signals.columns`) — điều kiện đó **luôn
+rỗng**, nên lệnh merge **chưa bao giờ chạy**.
+
+⇒ Hai file là **I/O thừa tạo cảm giác có phụ thuộc**, không phải nguồn NaN. Vì thế gỡ chúng
+**không đổi một con số nào**. Lỗi của bản audit gốc: kết luận từ "file cũ + có lệnh merge" mà
+không kiểm tra điều kiện merge có thoả không.
+
+Cả hai chuyển vào `data/quarantine_orphan_features_v1/` kèm README (không xoá — bị gitignore).
+Chỗ các cột phải đến từ đâu nay được **assert kêu to** thay vì vá im lặng.
+
+## NV2 — `meta_ranking` không đóng góp gì cho backtest nb20
+
+Xác nhận lại: 500 dòng, **1 dòng/mã**, 24 ngày phân biệt, **87% dồn vào ngày cuối** (2026-07-22).
+`final_watchlist.py:562` đã có comment nhận biết điều này từ trước; **nb20 là consumer duy nhất
+còn đối xử với nó như chuỗi lịch sử**.
+
+`run_portfolio_backtest` nay **đếm** mỗi lần tái cơ cấu dùng nguồn nào và trả về
+`ranking_source_counts`. **Đo thật trên dữ liệu 2026-07-27:**
+
+```
+ranking_source_counts: {'meta_ranking': 0, 'fallback': 81}
+   meta_ranking: 0/81  =   0.0%
+   fallback    : 81/81 = 100.0%
+   CAGR: 18.66%
+```
+
+**meta_ranking khớp 0/81 lần — tham số này hoàn toàn trơ.** Con số CAGR 18.66% là của mô hình
+mean-reversion `score_reversal_quality`, không phải của meta ranking. Lý do khớp 0 chứ không phải 1:
+ngày quyết định là `all_dates[day_idx - 1]` và vòng lặp loại ngày cuối chuỗi, nên đúng cái mốc
+mang 435 mã không bao giờ được hỏi tới.
+
+⇒ **Chốt lại việc hạ cấp từ Đợt 0**: đây **không phải look-ahead** chút nào — tham số trơ. Nó là
+lỗi **nhãn**, và nhãn nay đã đúng: markdown nb20 ghi rõ con số 0/81, cell in `ranking_source_counts`
+mỗi lần chạy để kiểm chứng lại thay vì tin.
+
+## NV3 — quét nốt 14 sidecar
+
+| Sidecar | Kết luận |
+|---|---|
+| `cashflow_board_metadata.json` | ❌ **LỖI THẬT** — xem dưới |
+| `alpha_scoring_metadata.json` | ✅ Dương tính giả: không có `generated_at` ở top-level nhưng có `lineage.lineage_generated_at` đầy đủ hash. Khác quy ước anh em, **không sai sự thật** |
+| `market_regime_study_results.json` | ✅ Dương tính giả: `lineage` dùng **schema khác** (prereg/seed/n_boot/run_date) hợp với một study một lần, và **đầy đủ**. Scanner của tôi đo nhầm bằng schema pipeline |
+| 11 file còn lại | ✅ OK |
+
+**Lỗi thật:** nhánh `--symbol-only` của `build_cashflow_board.py` ghi đè
+`cashflow_board.parquet` + `.csv` nhưng **không viết metadata**, nên sidecar tiếp tục mô tả một
+lần chạy full-mode cũ trong khi 2 file trên đĩa đã bị pass một phần thay thế. Pass này là **bước
+6/7 của pipeline hằng đêm** ⇒ sidecar **sai theo cấu trúc, mỗi đêm**. Nay append bản ghi
+`symbol_only_pass` (timestamp, số mã, 2 file đã ghi đè) thay vì đè payload full-mode — payload đó
+mô tả đúng các output sector/watchlist mà nhánh này không hề sinh ra.
+
+---
+
 ## 1. Bảng phân loại
 
 Ký hiệu: **STALE** = đã sửa trên main, report gốc nhầm do chạy nhánh cũ ·
