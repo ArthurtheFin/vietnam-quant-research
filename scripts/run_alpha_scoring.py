@@ -77,10 +77,31 @@ def main():
     save_csv_atomic(ranking, reports_dir / "daily_alpha_ranking.csv")
     print(f"Exported daily alpha ranking to {reports_dir / 'daily_alpha_ranking.csv'} ({len(ranking)} symbols)")
 
-    # Report 2: top 20 watchlist (alpha_score >= 75 or top 20)
+    # Report 2: top 20 watchlist.
+    #
+    # The comment here used to read "(alpha_score >= 75 or top 20)". The code
+    # never applied that bar -- it is a plain head(20), so the file always has
+    # exactly 20 rows no matter how weak the scores are (AUDIT_NOTEBOOKS_REPORT.md
+    # Đợt 5 (A)). Rather than silently start filtering on a number that was never
+    # pre-registered, keep the selection unchanged and state the composition:
+    # how many of the 20 clear the 75 the comment always claimed.
+    STRONG_ALPHA_REFERENCE = 75.0
     top_watchlist = ranking.head(20).copy()
+    _alpha = pd.to_numeric(top_watchlist.get("alpha_score", pd.Series(dtype=float)), errors="coerce").fillna(0.0)
+    n_strong = int(_alpha.ge(STRONG_ALPHA_REFERENCE).sum())
+    top_watchlist["evidence_basis"] = [
+        f"alpha_score >= {STRONG_ALPHA_REFERENCE:g}" if v else f"top-20 rank only (alpha_score < {STRONG_ALPHA_REFERENCE:g})"
+        for v in _alpha.ge(STRONG_ALPHA_REFERENCE)
+    ]
+    evidence_headline = (
+        f"top_watchlist: {len(top_watchlist)} mã, trong đó {n_strong} có "
+        f"alpha_score >= {STRONG_ALPHA_REFERENCE:g} và {len(top_watchlist) - n_strong} "
+        f"chỉ có mặt nhờ thứ hạng top-20. Danh sách luôn dài đúng 20 dòng bất kể "
+        f"điểm mạnh hay yếu."
+    )
     save_csv_atomic(top_watchlist, reports_dir / "top_watchlist.csv")
     print(f"Exported top 20 watchlist to {reports_dir / 'top_watchlist.csv'}")
+    print(f"  {evidence_headline}")
 
     # Lineage (audit gate #12): daily_alpha_ranking.csv/top_watchlist.csv are
     # plain CSVs with no metadata slot of their own -- write a sidecar so both
@@ -95,6 +116,19 @@ def main():
             "latest_date": latest_date.date().isoformat(),
             "symbol_count": int(len(ranking)),
             "top_watchlist_count": int(len(top_watchlist)),
+            # Đợt 5 (A): a bare count of 20 tells a reader nothing about strength.
+            "evidence_summary": {
+                "tier": "top_watchlist",
+                "count": int(len(top_watchlist)),
+                "ranked_by": "alpha_score",
+                "score_threshold_applied": False,
+                "reference_threshold": STRONG_ALPHA_REFERENCE,
+                "n_meeting_reference": n_strong,
+                "n_rank_only": int(len(top_watchlist)) - n_strong,
+                "alpha_score_min": round(float(_alpha.min()), 2) if len(_alpha) else None,
+                "alpha_score_max": round(float(_alpha.max()), 2) if len(_alpha) else None,
+                "headline": evidence_headline,
+            },
             "generated_files": [
                 "data/signals/alpha_scores.parquet",
                 "reports/daily_alpha_ranking.csv",

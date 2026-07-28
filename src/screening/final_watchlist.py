@@ -52,6 +52,7 @@ FINAL_WATCHLIST_COLUMNS = [
     "confirmation_status",
     "cashflow_verification",
     "rank_universe_size",
+    "evidence_basis",
 ]
 
 
@@ -339,6 +340,21 @@ def save_watchlist_outputs(
         "data_review_count": int(len(outputs.get("data_review_watchlist", pd.DataFrame()))),
         "client_ready_threshold": client_threshold,
         "trading_threshold": trading_threshold,
+        # Đợt 5 (A): a bare count says nothing about what backs it. See
+        # build_evidence_summary's docstring for the experiment that showed the
+        # tier gates on artifact presence, not evidence strength.
+        "evidence_summary": {
+            tier: build_evidence_summary(
+                outputs.get(key, pd.DataFrame()),
+                tier_name=tier,
+                client_threshold=client_threshold,
+                no_alpha_mode=(str(cfg.get("ranking_mode", "score")) == "no_alpha_liquidity_sort"),
+            )
+            for tier, key in (
+                ("client_ready", "client_ready_watchlist"),
+                ("trading_watchlist", "trading_watchlist"),
+            )
+        },
         "generated_files": [relative_path(stem.with_suffix(".parquet"), base) for stem in mapping.values()] + [relative_path(meta_path, base)],
         "generated_at": pd.Timestamp.now().isoformat(),
         "warnings": [],
@@ -854,6 +870,63 @@ def _select_with_sector_cap(ranked_pool: pd.DataFrame, limit: int, max_per_secto
     return ranked_pool.loc[keep_idx]
 
 
+def build_evidence_summary(
+    tier_df: pd.DataFrame,
+    *,
+    tier_name: str,
+    client_threshold: float,
+    no_alpha_mode: bool,
+) -> dict[str, Any]:
+    """State plainly what a tier's membership actually rests on.
+
+    Why this exists (AUDIT_NOTEBOOKS_REPORT.md Đợt 5 (A)). With
+    `ranking_mode = "no_alpha_liquidity_sort"` -- the live default since
+    WATCHLIST_VALIDATION_REPORT.md's Nhánh C found no validated alpha factor --
+    `client_score_ok` is forced True, so `client_ready_threshold` (60.0) is
+    bypassed and rows are ordered by `value_ma20`. A controlled experiment on
+    2026-07-28 showed the tier gates on the *presence* of the signal artifacts,
+    not the *strength* of what is in them: zeroing every meta/alpha score still
+    returned 10 client-ready names (final_score 13.7-70.1), and only deleting
+    the artifacts outright collapsed the tier to 0.
+
+    So the count alone tells a reader nothing. This reports the composition:
+    how many names clear the configured threshold on their own merit versus how
+    many are present on liquidity rank. Descriptive only -- it introduces no new
+    cutoff and changes no selection. Choosing an absolute floor is option (i)
+    and needs its own pre-registration.
+    """
+    n = int(len(tier_df))
+    summary: dict[str, Any] = {
+        "tier": tier_name,
+        "count": n,
+        "ranked_by": "value_ma20 (liquidity)" if no_alpha_mode else "final_score",
+        "score_threshold_applied": (not no_alpha_mode),
+        "configured_threshold": client_threshold,
+    }
+    if n == 0:
+        summary["headline"] = f"{tier_name}: 0 mã — không có mã nào đạt điều kiện."
+        return summary
+
+    scores = pd.to_numeric(tier_df.get("final_score", pd.Series(dtype=float)), errors="coerce").fillna(0.0)
+    n_above = int(scores.ge(client_threshold).sum())
+    n_below = n - n_above
+    summary.update({
+        "final_score_min": round(float(scores.min()), 2),
+        "final_score_max": round(float(scores.max()), 2),
+        "n_meeting_configured_threshold": n_above,
+        "n_liquidity_rank_only": n_below,
+    })
+    if no_alpha_mode:
+        summary["headline"] = (
+            f"{tier_name}: {n} mã, trong đó {n_above} đạt ngưỡng điểm cấu hình "
+            f"({client_threshold:g}) và {n_below} chỉ có mặt nhờ xếp hạng thanh khoản. "
+            f"Danh sách KHÔNG được xếp theo alpha đã kiểm định."
+        )
+    else:
+        summary["headline"] = f"{tier_name}: {n} mã, tất cả đạt ngưỡng {client_threshold:g}."
+    return summary
+
+
 def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any]) -> dict[str, pd.DataFrame]:
     out = scored_universe.copy()
     if out.empty:
@@ -994,6 +1067,26 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         default="Excluded",
     )
 
+    # Đợt 5 (A): factual per-row basis, so a reader of a single row can see what
+    # put it there without cross-referencing the metadata sidecar.
+    _score_num = pd.to_numeric(out["final_score"], errors="coerce").fillna(0.0)
+    _meets = _score_num.ge(client_threshold)
+    out["evidence_basis"] = np.select(
+        [
+            out["candidate_tier"].eq("Data Review"),
+            out["candidate_tier"].eq("Excluded"),
+            _meets,
+            pd.Series(no_alpha_mode, index=out.index) & ~_meets,
+        ],
+        [
+            "Data review — chưa đủ điều kiện đánh giá",
+            "Không vào tier nào",
+            f"Đạt ngưỡng điểm cấu hình ({client_threshold:g})",
+            f"Xếp hạng thanh khoản — KHÔNG đạt ngưỡng điểm cấu hình ({client_threshold:g})",
+        ],
+        default=f"Dưới ngưỡng điểm cấu hình ({client_threshold:g})",
+    )
+
     def _reason_for_research(row: pd.Series) -> str:
         if str(row.get("eligibility_status", "")) == "REJECTED":
             return str(row.get("eligibility_reason", "REJECTED"))
@@ -1017,10 +1110,18 @@ def _redistribute_after_gate(scored_universe: pd.DataFrame, cfg: dict[str, Any])
         ),
         axis=1,
     )
-    out.loc[out["is_client_ready"], "confidence_label"] = np.where(
-        out.loc[out["is_client_ready"], "final_score"].ge(70.0),
-        "High",
-        "Medium-High",
+    # Đợt 5 (A): a name sitting in the client tier purely on liquidity rank must
+    # not be labelled "Medium-High". On 2026-07-28 GEX carried final_score 6.91
+    # out of 100 and was still labelled Medium-High, because the label only ever
+    # looked at tier membership. `client_threshold` is the project's OWN
+    # configured bar (client_ready_threshold, 60.0) -- surfacing that it is unmet
+    # is not a new cutoff, it is reporting one that no_alpha_mode silently bypasses.
+    _cr = out["is_client_ready"]
+    _cr_score = out.loc[_cr, "final_score"]
+    out.loc[_cr, "confidence_label"] = np.select(
+        [_cr_score.ge(70.0), _cr_score.ge(client_threshold)],
+        ["High", "Medium-High"],
+        default="Liquidity-Only",
     )
     out.loc[out["is_trading_candidate"], "confidence_label"] = "Medium"
     out.loc[out["candidate_tier"] == "Research Candidate", "confidence_label"] = "Low"
