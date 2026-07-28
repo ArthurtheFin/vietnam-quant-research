@@ -2284,3 +2284,38 @@ không có `generated_at` top-level nhưng có `lineage.lineage_generated_at` đ
 hợp với một study một lần và đầy đủ — scanner của tôi đo nhầm bằng schema pipeline.
 
 **Nghiệm thu:** full suite **359 passed** (326 → 359 qua 3 đợt).
+
+**NV0 (Đợt 4) — kết quả gỡ tắc, và phát hiện lớn hơn cả việc tắc.**
+`nb07` chạy với `ALLOW_PRODUCTION_WRITE=1`, load đúng
+`data/signals/setup_signals.parquet`, ~11 phút, exit 0. `eligibility` +
+`volatility_rule` nay mtime `2026-07-28 14:51` > `setup_signals` ⇒ guard hết
+kêu, `generate_trade_cards` chạy lại bình thường (500 trade card).
+
+**Nhưng bảng mới khác hẳn bảng đóng băng, theo hướng xấu.** Cùng tham số
+(`stop -0.10`, `holding 20`, `cost 0.004`), số trade tăng **~281 → 2.395**
+(5.7×–10.2× tuỳ regime), và lợi thế `breakout_20d` gần như biến mất:
+Low Vol +7.0%→+1.5% (Allowed→Conditional), Normal Vol +6.2%→**−0.06%**
+(Allowed→**Avoid**), High Vol +3.1%→**−0.29%** (Allowed→**Avoid**),
+Panic Vol +5.2%→**−2.4%**. Chỉ **2/473 mã** đạt `Valid Edge` (trước phần lớn là
+"Valid Edge"); trong 500 trade card mới có **406 "Insufficient Data"** và
+**477 action = "No Signal"** — không còn lệnh mua nào.
+
+⇒ Bảng đóng băng 25 ngày không chỉ *cũ* mà **lạc quan hơn thực tế một cách có
+hệ thống**, gần như chắc chắn là ảo giác mẫu nhỏ (57–100 trade/regime). Suốt 25
+ngày pipeline sinh trade card bằng cờ `eligible`/`edge_tier` mà dữ liệu đầy đủ
+**không ủng hộ**. Đây là biện minh hậu nghiệm mạnh nhất cho guard dựng ở Đợt 2,
+và nó đẩy `breakout_20d` từ "tín hiệu đang dùng" thành "cần kiểm định lại từ
+đầu" ở Đợt 5.
+
+**Sai sót quy trình của tôi, ghi lại để không lặp:** tôi **không** quarantine
+bản eligibility cũ trước khi chạy nb07. File bị gitignore nên không có lịch sử
+git, và refresh đã ghi đè. Các con số "cũ" ở trên là những gì tôi đã in ra trong
+chẩn đoán Đợt 2, **không phải** đối chiếu file-với-file — nên chưa cô lập được
+hoàn toàn nguyên nhân (bội số trade 6–10× là bằng chứng mạnh cho "mẫu cũ nhỏ
+hơn", nhưng không loại trừ thay đổi universe 408→473 mã hay phân loại regime).
+Lẽ ra phải quarantine trước, đúng như đã làm với 4 file chuỗi 14/15/16 và 2 file
+mồ côi trong chính vòng này.
+
+**Nhắc lại:** eligibility mới vẫn mang `stop_loss` chọn **in-sample** qua
+`_select_best_stop_relaxed()`. Refresh **không** sửa vấn đề phương pháp — chỉ gỡ
+tắc. Bỏ lựa chọn in-sample vẫn thuộc Đợt 5.

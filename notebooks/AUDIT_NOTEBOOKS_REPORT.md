@@ -188,6 +188,48 @@ Phạm vi: file mồ côi, nhãn `meta_ranking`, quét nốt họ "lineage nói 
 | 2 | `meta_ranking` là snapshot → đếm nguồn xếp hạng thật, sửa nhãn nb20 | `e992ed2` |
 | 3 | Quét nốt 14 sidecar → 1 lỗi thật (`--symbol-only`), 2 dương tính giả | `2ad50e5` |
 
+## NV0 — gỡ tắc bằng (a), và một phát hiện nghiêm trọng hơn cả việc tắc
+
+Chạy `nb07` với `ALLOW_PRODUCTION_WRITE=1` (đúng cửa thoát thiết kế ở Đợt 2 cho tình huống này).
+Notebook load đúng nguồn hiện hành (`Loaded features from: data/signals/setup_signals.parquet`),
+chạy ~11 phút, exit 0. `eligibility` + `volatility_rule` nay mang mtime `2026-07-28 14:51`,
+mới hơn `setup_signals` ⇒ guard hết kêu, `generate_trade_cards` chạy lại bình thường.
+
+### ⚠️ Bảng eligibility mới KHÁC HẲN bảng đóng băng — và theo hướng xấu
+
+Cùng tham số (`stop_loss = -0.10`, `holding_period = 20`, `cost = 0.004`), nhưng:
+
+| Regime | trades cũ | trades mới | bội số | avg_return cũ | avg_return mới | rule cũ | rule mới |
+|---|---:|---:|---:|---:|---:|---|---|
+| Low Vol | 57 | 323 | **5.7×** | +7.0% | **+1.5%** | Allowed | Conditional |
+| Normal Vol | 98 | 672 | **6.9×** | +6.2% | **−0.06%** | Allowed | **Avoid** |
+| High Vol | 100 | 693 | **6.9×** | +3.1% | **−0.29%** | Allowed | **Avoid** |
+| Panic Vol | 26 | 265 | **10.2×** | +5.2% | **−2.4%** | Avoid | Avoid |
+
+Tổng số trade: **~281 → 2.395**. Trên mẫu đầy đủ hơn, **lợi thế của `breakout_20d` gần như biến mất**:
+4/6 regime có avg_return **âm**, và chỉ **2/473 mã** đạt `Valid Edge` (trước đây phần lớn là "Valid Edge").
+
+Hạ nguồn ngay lập tức: trong 500 trade card mới, **406 "Insufficient Data"**, **2 "Valid Edge"**,
+và **477/500 action = "No Signal"** — không còn lệnh mua nào.
+
+**Ý nghĩa.** Bảng đóng băng 25 ngày không chỉ *cũ* — nó **lạc quan hơn thực tế một cách có hệ thống**,
+gần như chắc chắn là ảo giác mẫu nhỏ (57–100 trade/regime). Suốt 25 ngày, pipeline sinh trade card
+bằng cờ `eligible`/`edge_tier` mà **dữ liệu đầy đủ không ủng hộ**. Đây là lý do mạnh nhất, hậu nghiệm,
+cho toàn bộ việc dựng guard ở Đợt 2 — và nó biến `breakout_20d` từ "tín hiệu đang dùng" thành
+"tín hiệu cần kiểm định lại từ đầu" ở **Đợt 5**.
+
+**Giới hạn của kết luận này (phải nói rõ).** Tôi **không** giữ lại bản eligibility cũ trước khi
+chạy nb07 — file bị gitignore nên không có lịch sử git, và lệnh refresh đã ghi đè nó. Các con số
+"cũ" ở bảng trên là những gì tôi đã in ra và ghi lại trong chẩn đoán Đợt 2, không phải đối chiếu
+file-với-file. Vì vậy tôi **chưa cô lập được** nguyên nhân: bội số trade 6–10× là bằng chứng mạnh
+cho giả thuyết "mẫu cũ nhỏ hơn nhiều", nhưng không loại trừ hoàn toàn thay đổi khác (universe
+408→473 mã, phân loại regime). **Đây là sai sót quy trình của tôi** — lẽ ra phải quarantine bản cũ
+trước khi refresh, đúng như đã làm với 4 file chuỗi 14/15/16 và 2 file mồ côi.
+
+**Nhắc lại điều KHÔNG được quên:** eligibility mới vẫn mang `stop_loss` chọn **in-sample** qua
+`_select_best_stop_relaxed()`. Làm mới dữ liệu **không** sửa vấn đề phương pháp — chỉ gỡ tắc.
+Bỏ lựa chọn in-sample vẫn thuộc **Đợt 5**.
+
 ## NV1 — truy nguyên file mồ côi, và **đính chính bản audit gốc**
 
 **Truy nguyên.** `git log -S "stock_features_volatility"` chỉ trúng các file *đọc*, không
