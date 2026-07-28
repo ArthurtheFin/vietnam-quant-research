@@ -35,6 +35,10 @@ data/quarantine_existing_v1/**/*.parquet
 # data/quarantine_notebook_chain_v1/README.md). READMEs stay tracked.
 data/quarantine_notebook_chain_v1/**/*.parquet
 
+# quarantined orphan feature files (forensic only, see
+# data/quarantine_orphan_features_v1/README.md)
+data/quarantine_orphan_features_v1/**/*.parquet
+
 # notebooks outputs -- the sanctioned write target for notebooks, which may not
 # write into pipeline-owned dirs (src/data/production_guard.py). Derived data,
 # never committed. .csv added when notebook 12's report export was redirected
