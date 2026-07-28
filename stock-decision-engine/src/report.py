@@ -52,24 +52,63 @@ def facts_summary(ticker: str, metrics: dict[str, Any], facts: dict[str, Any], s
 
 def vietnamese_facts_note(ticker: str, metrics: dict[str, Any], facts: dict[str, Any], simulation: dict[str, float]) -> str:
     status = facts["status"]
-    parts = [
-        f"{ticker.upper()}: đây là bảng dữ kiện tham khảo, KHÔNG phải khuyến nghị mua/bán "
-        f"(SDE_SCORING_REPORT.md, Nhánh C -- final_score/decision cũ không có bằng chứng dự báo, đã gỡ bỏ).",
-        f"Bối cảnh thị trường chung đang ở trạng thái {status['market_regime'].lower()}, còn xu hướng của cổ phiếu là {status['stock_trend'].lower()}.",
+    
+    lines = [
+        f"BẢN BÁO CÁO PHÂN TÍCH CHẨN ĐOÁN CHI TIẾT CỔ PHIẾU {ticker.upper()}",
+        "=============================================================",
+        "Phân tích chuyên sâu dựa trên các công cụ định lượng tích hợp:",
+        "",
+        "1. BỐI CẢNH THỊ TRƯỜNG & XU HƯỚNG (MARKET REGIME & TREND PROFILE)",
+        f"  - Thị trường chung (Benchmark): Ở trạng thái '{status['market_regime']}'. Chỉ số VNINDEX đang đóng cửa ở mức {metrics['market_close']:,.1f} điểm, " + 
+        ("nằm trên đường MA50 trung hạn" if metrics['market_above_ma50'] else "nằm dưới đường MA50 trung hạn") + " và " +
+        ("nằm trên đường MA200 dài hạn." if metrics['market_above_ma200'] else "nằm dưới đường MA200 dài hạn."),
+        f"  - Cấu trúc xu hướng cổ phiếu: Trạng thái xu hướng được phân loại là '{status['stock_trend']}'.",
+        f"    + Vị thế giá so với MA20: " + ("Trên MA20" if metrics['above_ma20'] else "Dưới MA20") + f" (Khoảng cách: {metrics['distance_ma20']*100:+.2f}%)",
+        f"    + Vị thế giá so với MA50: " + ("Trên MA50" if metrics['above_ma50'] else "Dưới MA50") + f" (Khoảng cách: {metrics['distance_ma50']*100:+.2f}%)",
+        f"    + Cấu trúc MA Stack (20 > 50 > 200): " + ("Tích cực / Bullish Stacked" if metrics['ma_stack'] else "Chưa đồng thuận xu hướng tăng"),
+        f"    + Độ dốc xu hướng (MA50 Slope): {metrics['ma50_slope']*100:+.2f}% (" + ("Xu hướng trung hạn đang hướng lên" if metrics['ma50_slope'] > 0 else "Xu hướng trung hạn đang hướng xuống") + ")",
+        f"    + Tín hiệu breakout Donchian 20d: " + ("Đang kích hoạt breakout đỉnh 20 ngày" if metrics['donchian_20_breakout'] else "Không có breakout"),
+        "",
+        "2. ĐỘNG LƯỢNG & ĐỘC LẬP DÒNG TIỀN (MOMENTUM & FLOW VOLUME ANALYSIS)",
+        f"  - Chỉ số động lượng (RSI 14): Đạt {metrics['rsi_14']:.2f}. " + 
+        ("Cổ phiếu đang đi vào vùng quá mua (>70)." if metrics['rsi_14'] > 70 else "Cổ phiếu đang ở trạng thái quá bán (<30)." if metrics['rsi_14'] < 30 else "Động lượng ở mức trung bình ổn định."),
+        f"  - Chỉ báo MACD Histogram: Đạt {metrics['macd_hist']:.4f} (" + ("Động lượng dương đang tăng trưởng" if metrics['macd_hist'] > 0 else "Động lượng âm đang chiếm ưu thế") + ")",
+        f"  - Cường độ xu hướng (ADX): Đạt {metrics['adx']:.2f} (" + ("Xu hướng mạnh mẽ" if metrics['adx'] >= 25 else "Xu hướng đi ngang / yếu") + f"), với chỉ báo +DI đạt {metrics['plus_di']:.2f} và -DI đạt {metrics['minus_di']:.2f}.",
+        f"  - Tình trạng Dòng tiền & Khối lượng (Volume / CMF / MFI):",
+        f"    + Tỷ lệ khối lượng (Volume Ratio): {metrics['volume_ratio']:.2f}x so với trung bình 20 phiên.",
+        f"    + Điểm chênh lệch khối lượng (Volume Z-Score): {metrics['volume_zscore']:.2f} (" + ("Cảnh báo bùng nổ khối lượng / Volume Shock" if metrics['volume_zscore'] > 1.5 else "Khối lượng giao dịch bình thường") + ")",
+        f"    + Chỉ số dòng tiền (MFI 14): {metrics['mfi']:.2f} / Chỉ số Chaikin (CMF 20): {metrics['cmf']:.3f} (" + ("Dòng tiền tích lũy ròng đi vào" if metrics['cmf'] > 0 else "Dòng tiền phân phối ròng đi ra") + ")",
+        "",
+        "3. SỨC MẠNH TƯƠNG ĐỐI & HIỆU SUẤT ĐỊNH LƯỢNG (RELATIVE STRENGTH & ALPHA CAPM)",
+        f"  - Sức mạnh so với VNINDEX (Relative Strength): Trạng thái '{status['relative_strength']}'.",
+        f"    + Hiệu suất vượt trội (Excess Return) 20 ngày: {metrics['excess_return_20d']*100:+.2f}%",
+        f"    + Hiệu suất vượt trội (Excess Return) 60 ngày: {metrics['excess_return_60d']*100:+.2f}%",
+        f"    + Độ dốc đường RS (RS Slope): {metrics['rs_slope']*100:+.2f}%",
+        f"  - Hệ số CAPM & Tương quan:",
+        f"    + Hệ số Beta lăn 60 ngày: {metrics['rolling_beta']:.2f} | Hệ số tương quan (Correlation): {metrics['rolling_corr']:.2f}",
+        f"    + Chỉ số Jensen's Alpha (annualized): {metrics.get('jensen_alpha', 0):.2%}",
+        f"    + Chỉ số Sharpe: {metrics.get('sharpe', 0):.2f} | Chỉ số Sortino: {metrics.get('sortino', 0):.2f}",
+        "",
+        "4. ĐÁNH GIÁ BIẾN ĐỘNG & RỦI RO ĐUÔI (VOLATILITY & TAIL RISK)",
+        f"  - Mức biến động thực tế (Realized Vol 20d): {metrics['vol_20d']*100:.2f}% (Phân vị biến động: {metrics['volatility_percentile']:.2f}%)",
+        f"  - Độ rộng biến động ATR %: {metrics['atr_pct']*100:.2f}% (Biến động trung bình ngày thực tế: {metrics['atr']:,.0f} VND)",
+        f"  - Rủi ro sụt giảm tối đa 1 năm qua (Max Drawdown): {metrics['max_drawdown']*100:.2f}%",
+        f"  - Rủi ro đuôi (Daily CVaR 95%): {metrics['cvar_95']*100:.2f}% | Độ lệch phân phối lợi suất (Skewness): {metrics['skewness']:.3f}",
+        "",
+        "5. MÔ PHỎNG MONTE CARLO & CÁC VÙNG THAM CHIẾU ATR (SIMULATION & REFERENCE LEVELS)",
+        f"  - Vùng tham chiếu ATR xây dựng từ giá đóng cửa hiện tại:",
+        f"    + Vùng mua tham chiếu (Entry Zone): {metrics['entry_zone_low']:,.0f} - {metrics['entry_zone_high']:,.0f} VND",
+        f"    + Điểm cắt lỗ tham chiếu (Stop Loss): {metrics['stop_loss']:,.0f} VND",
+        f"    + Điểm chốt lời tham chiếu Target 1:  {metrics['target_1']:,.0f} VND",
+        f"    + Điểm chốt lời tham chiếu Target 2:  {metrics['target_2']:,.0f} VND",
+        f"    + Tỷ lệ Lợi nhuận/Rủi ro (Risk/Reward ratio): {metrics['risk_reward']:.2f}",
+        f"  - Kết quả mô phỏng Monte Carlo (3000 đường chạy):",
+        f"    + Xác suất đạt Target 1 trước khi chạm Stop Loss: {simulation['prob_hit_target_1_before_stop']:.1%}",
+        f"    + Xác suất chạm Stop Loss trước khi đạt Target 1: {simulation['prob_hit_stop_before_target_1']:.1%}",
+        f"    + Lợi nhuận mô phỏng trung vị kỳ vọng (horizon 20d): {simulation['expected_return']:.2%}",
+        f"    + CVaR mô phỏng rủi ro đuôi 20d: {simulation['cvar_return']:.2%}",
     ]
-    if metrics["above_ma50"] and metrics["above_ma200"]:
-        parts.append("Giá vẫn giữ trên MA50 và MA200.")
-    else:
-        parts.append("Giá chưa xác nhận nằm trên các đường MA trung hạn quan trọng.")
-    if metrics["excess_return_20d"] > 0 or metrics["excess_return_60d"] > 0:
-        parts.append("Relative Strength so với VNINDEX đang cải thiện.")
-    else:
-        parts.append("Relative Strength chưa nổi bật so với VNINDEX.")
-    if metrics["price_extension_warning"]:
-        parts.append("Giá đang cách MA20 tương đối xa.")
-    parts.append(f"Vùng tham chiếu ATR quanh {metrics['entry_zone_low']:,.0f}-{metrics['entry_zone_high']:,.0f}, stop-loss tham chiếu {metrics['stop_loss']:,.0f}, target 1 tham chiếu {metrics['target_1']:,.0f}.")
-    parts.append(f"Monte Carlo (chưa kiểm định calibration) ước tính xác suất chạm target 1 trước stop là {simulation['prob_hit_target_1_before_stop']:.1%}.")
-    return " ".join(parts)
+    return "\n".join(lines)
 
 
 def save_outputs(
