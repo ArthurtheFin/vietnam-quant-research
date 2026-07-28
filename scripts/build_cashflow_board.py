@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -22,6 +23,7 @@ from src.analytics.cashflow_board import (
 from src.data.loaders import save_parquet
 from src.screening.final_watchlist import apply_post_cashflow_overlay
 from src.utils.logger import get_logger
+from src.utils.pipeline_io import utc_now_iso, write_json
 from src.validation.freshness_check import DerivedArtifactStale, assert_input_chain_fresh
 
 LOGGER = get_logger("build_cashflow_board")
@@ -68,6 +70,38 @@ def main(argv: list[str] | None = None) -> int:
             "Symbol-only cashflow board written: %s symbols, latest date %s, value proxy used: %s",
             symbol_cf["symbol"].nunique(), latest, value_proxy_used,
         )
+
+        # Keep the sidecar honest (AUDIT_NOTEBOOKS_REPORT.md Đợt 4 NV3). This
+        # branch rewrites cashflow_board.parquet/.csv but produces none of the
+        # sector/watchlist outputs, so it must not write a full metadata payload
+        # -- yet leaving the file untouched meant cashflow_board_metadata.json
+        # kept describing an older full-mode run while the two files on disk had
+        # been replaced by this pass. It runs as step 6/7 of every nightly
+        # pipeline, so the sidecar was stale-by-construction every night.
+        # Annotate rather than overwrite: the full-mode payload stays intact for
+        # its own outputs, plus a record of what this pass actually replaced.
+        metadata_path = out_dir / "cashflow_board_metadata.json"
+        if metadata_path.exists():
+            try:
+                existing = json.loads(metadata_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                existing = {}
+            existing["symbol_only_pass"] = {
+                "generated_at": utc_now_iso(),
+                "latest_date": str(latest) if latest is not None else None,
+                "symbol_count": int(symbol_cf["symbol"].nunique()),
+                "value_proxy_used": bool(value_proxy_used),
+                "overwrote_files": [
+                    "data/output/cashflow_board.parquet",
+                    "data/output/cashflow_board.csv",
+                ],
+                "note": (
+                    "These two files come from the symbol-only pass, not from the "
+                    "full-mode run described by the top-level keys."
+                ),
+            }
+            write_json(existing, metadata_path)
+            LOGGER.info("Annotated %s with this symbol-only pass.", metadata_path.name)
         return 0
 
     LOGGER.info("Building Cashflow Board...")

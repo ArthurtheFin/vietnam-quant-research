@@ -189,3 +189,38 @@ def test_research_notes_metadata_declares_only_files_that_exist(tmp_path):
 
     missing = [f for f in payload["generated_files"] if not (tmp_path / f).exists()]
     assert not missing, f"sidecar declares files that do not exist: {missing}"
+
+
+def test_symbol_only_cashflow_pass_annotates_its_sidecar(tmp_path):
+    """build_cashflow_board.py --symbol-only rewrites cashflow_board.parquet/.csv
+    but produces none of the sector/watchlist outputs. It used to leave
+    cashflow_board_metadata.json completely untouched, so the sidecar kept
+    describing an older full-mode run while those two files on disk had been
+    replaced. It is step 6/7 of every nightly pipeline, so the sidecar was stale
+    by construction every night (AUDIT_NOTEBOOKS_REPORT.md Đợt 4 NV3).
+
+    Contract: the full-mode payload survives, and a symbol_only_pass record says
+    what this pass actually replaced.
+    """
+    import json
+
+    from src.utils.pipeline_io import utc_now_iso, write_json
+
+    meta = tmp_path / "cashflow_board_metadata.json"
+    write_json({"generated_at": "2026-07-01T00:00:00+00:00",
+                "generated_files": ["data/output/sector_cashflow.parquet"]}, meta)
+
+    # Mirror what the --symbol-only branch does.
+    existing = json.loads(meta.read_text(encoding="utf-8"))
+    existing["symbol_only_pass"] = {
+        "generated_at": utc_now_iso(),
+        "overwrote_files": ["data/output/cashflow_board.parquet",
+                            "data/output/cashflow_board.csv"],
+    }
+    write_json(existing, meta)
+
+    payload = json.loads(meta.read_text(encoding="utf-8"))
+    assert payload["generated_files"] == ["data/output/sector_cashflow.parquet"], \
+        "full-mode payload must survive the annotation"
+    assert payload["symbol_only_pass"]["generated_at"]
+    assert "cashflow_board.parquet" in payload["symbol_only_pass"]["overwrote_files"][0]
