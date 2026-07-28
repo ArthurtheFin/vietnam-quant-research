@@ -2319,3 +2319,53 @@ mồ côi trong chính vòng này.
 **Nhắc lại:** eligibility mới vẫn mang `stop_loss` chọn **in-sample** qua
 `_select_best_stop_relaxed()`. Refresh **không** sửa vấn đề phương pháp — chỉ gỡ
 tắc. Bỏ lựa chọn in-sample vẫn thuộc Đợt 5.
+
+## Đợt 5 — hai vấn đề thiết kế cuối — 2026-07-28
+
+**(A) Danh sách không phản ánh cường độ bằng chứng — đã sửa phần công bố.**
+
+*Chẩn đoán.* Tier là **ngưỡng-rồi-chặn-trần**, không phải top-N thuần
+(`_apply_candidate_tiers` đặt 45/55/60, `_redistribute_after_gate` cắt trần
+10/20). **Nhưng** `ranking_mode = "no_alpha_liquidity_sort"` là mặc định đang
+chạy (hệ quả Nhánh C) và nó ép `client_score_ok = True` ⇒ ngưỡng 60 **bị vô
+hiệu**, xếp theo `value_ma20`. *Đính chính lời tôi nói cuối Đợt 4* ("cắt top-N cố
+định"): chưa đúng — ngưỡng có trong code, chỉ đang bị bypass bởi một quyết định
+cấu hình có ghi chép.
+
+*Thí nghiệm có kiểm soát.* Bình thường → client 10 / trading 20. Xoá hẳn
+meta_ranking + alpha_scores → client **0** / trading 20. **Giữ file nhưng ép mọi
+điểm = 0 → client vẫn 10** (final_score 13.7–70.1) / trading 20.
+⇒ Tier chặn theo **sự có mặt** của artifact, **không** theo **cường độ** bằng
+chứng. `trading_watchlist` = 20 ở cả ba kịch bản.
+
+*Hiện trạng.* 10 mã client_ready xếp đúng theo thanh khoản giảm dần, final_score
+từ 65.76 xuống **6.91**, **9/10 dưới ngưỡng cấu hình 60**, và cả 10 đều mang nhãn
+**"Medium-High"** vì `confidence_label` chỉ nhìn tier chứ không nhìn điểm.
+
+*Sửa theo (ii)* đúng như khuyến nghị — công bố, không đổi logic chọn lọc.
+**Không** làm (i): đặt ngưỡng tuyệt đối là đổi lựa chọn, và chọn số tuỳ tiện
+chính là data mining ⇒ cần prereg riêng. Cụ thể: `build_evidence_summary()` vào
+`watchlist_metadata.json`; cột `evidence_basis` từng dòng; `confidence_label` trả
+**"Liquidity-Only"** khi dưới ngưỡng cấu hình; `reports/top_watchlist.csv` sửa
+comment sai ("alpha_score >= 75 or top 20" trong khi code là `head(20)` trần) và
+công bố thành phần so với chính con số 75; client report in khối bằng chứng ngay
+ở tóm tắt điều hành, và **nói rõ** nếu không đọc được.
+Output thật: *"client_ready: 10 mã, trong đó 1 đạt ngưỡng điểm cấu hình (60) và 9
+chỉ có mặt nhờ xếp hạng thanh khoản."*
+
+**(B) Chuỗi overfit 14→15→16 — đánh dấu, chưa sửa.** Banner cảnh báo phương pháp
+là cell đầu tiên của cả ba notebook. `PORTFOLIO_CHAIN_PREREG_DRAFT.md` là **bản
+nháp, chưa chạy gì** — khoá trước walk-forward 36m/3m, universe từ trade card tại
+ngày quyết định, shrinkage cho μ chọn trước, ba baseline bắt buộc, chi phí
+0,15%/chiều, tiêu chí ba phần (DSR > 0, t-NW ≥ 3.0, thắng ≥ 60% cửa sổ). Ghi rõ
+kỳ vọng H0 không bị bác bỏ và cam kết công bố cả kết quả âm tính.
+
+**Dọn working tree.** 158MB artifact dữ liệu từ các lần `daily_run.sh` của Đợt
+3–5 commit riêng (`6223e88`), không lẫn vào commit code. **Không** gộp
+`stock-decision-engine/` — thư mục đó đã bẩn từ trước cả engagement này và
+`src/report.py` mang 56 dòng sửa nguồn tôi không viết và chưa review; nhét vào
+commit "data sync" là mô tả sai bản chất.
+
+**Nghiệm thu:** full suite **366 passed** (326 → 366 qua 4 đợt). Working tree
+sạch trừ `stock-decision-engine/` nói trên. Tổng **24 commit** trên `main`,
+**CHƯA push**.

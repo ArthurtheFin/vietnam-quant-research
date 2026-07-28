@@ -299,6 +299,79 @@ mô tả đúng các output sector/watchlist mà nhánh này không hề sinh ra
 
 ---
 
+# ĐỢT 5 — HAI VẤN ĐỀ THIẾT KẾ CUỐI (2026-07-28)
+
+## (A) Danh sách không phản ánh cường độ bằng chứng — ĐÃ SỬA phần công bố
+
+### Chẩn đoán: cơ chế thật KHÔNG phải top-N thuần
+
+Tier là **ngưỡng-rồi-chặn-trần**, không phải top-N thuần (`_apply_candidate_tiers`
+đặt `final_score >= 45/55/60`, `_redistribute_after_gate` cắt trần 10/20).
+**Nhưng** `ranking_mode = "no_alpha_liquidity_sort"` là **mặc định đang chạy**
+(hệ quả Nhánh C: không có nhân tố alpha nào qua kiểm định), và nó ép
+`client_score_ok = True` ⇒ **ngưỡng 60.0 bị vô hiệu**, danh sách xếp theo `value_ma20`.
+
+*Đính chính lời tôi nói cuối Đợt 4:* tôi bảo "final_watchlist cắt top-N cố định".
+Nói vậy **chưa đúng** — ngưỡng có tồn tại trong code, nó chỉ đang bị bypass bởi
+một quyết định cấu hình có ghi chép.
+
+### Thí nghiệm có kiểm soát (2026-07-28)
+
+| Kịch bản | client_ready | trading |
+|---|---:|---:|
+| Bình thường | 10 | 20 |
+| **Xoá hẳn** meta_ranking + alpha_scores | **0** | 20 |
+| **Giữ file, ép MỌI điểm = 0** | **10** (score 13.7–70.1) | 20 |
+
+⇒ **Tier chặn theo SỰ CÓ MẶT của artifact, không theo CƯỜNG ĐỘ bằng chứng trong đó.**
+Đưa mọi điểm alpha/meta về 0 vẫn ra đủ 10 mã. `trading_watchlist` = 20 ở cả ba kịch bản.
+
+### Bằng chứng thực tế đang chống lưng cho 10 mã hôm nay
+
+Xếp **đúng theo `value_ma20` giảm dần**, `final_score` từ **65.76 xuống 6.91**,
+**9/10 dưới ngưỡng cấu hình 60** — và cả 10 đều được dán nhãn **"Medium-High"**,
+vì `confidence_label` trước đây chỉ nhìn *thuộc tier nào*, không nhìn điểm.
+GEX: `final_score` **6.91/100** → nhãn "Medium-High".
+
+### Sửa theo phương án (ii) — công bố, không đổi logic chọn lọc
+
+Chọn (ii) đúng như khuyến nghị. **Không** chọn (i): đặt ngưỡng tuyệt đối là đổi
+logic chọn lọc, và chọn con số tuỳ tiện chính là data mining ⇒ cần prereg riêng.
+
+- `build_evidence_summary()` → `watchlist_metadata.json`: bao nhiêu mã đạt ngưỡng
+  cấu hình, bao nhiêu chỉ nhờ thanh khoản, ngưỡng có được áp không, dải điểm.
+- Cột `evidence_basis` trên **từng dòng** — đọc một dòng là hiểu, không cần tra sidecar.
+- `confidence_label` trả **"Liquidity-Only"** khi dưới ngưỡng cấu hình, thay vì
+  tâng bốc một mã 6.91/100 thành "Medium-High". Đổi **nhãn**, không đổi **lựa chọn**.
+- `reports/top_watchlist.csv`: comment ghi "alpha_score >= 75 or top 20" nhưng code
+  là `head(20)` trần — **luôn đúng 20 dòng dù điểm yếu tới đâu**. Sửa comment, giữ
+  nguyên lựa chọn, công bố thành phần so với chính con số 75 đó.
+- Client report nạp `watchlist_metadata.json` và in khối bằng chứng ngay ở tóm tắt
+  điều hành; nếu không đọc được thì **nói rõ là không đọc được**.
+
+Output thật hiện tại:
+
+> *client_ready: 10 mã, trong đó **1** đạt ngưỡng điểm cấu hình (60) và **9** chỉ có mặt
+> nhờ xếp hạng thanh khoản. Danh sách KHÔNG được xếp theo alpha đã kiểm định.*
+
+## (B) Chuỗi overfit 14 → 15 → 16 — ĐÁNH DẤU, CHƯA SỬA
+
+Banner cảnh báo phương pháp nay là **cell đầu tiên** của cả ba notebook, để người
+mở ra thấy ngay mà không cần tìm report: universe hard-code 20 mã (11 ngân hàng)
+khiến nhánh trade card không bao giờ chạy; μ = trung bình toàn mẫu đưa thẳng vào
+mean-variance (có shrinkage cho Σ, **không có** cho μ); người thắng là Sharpe cao
+nhất trong **~53.000 ứng viên** đánh giá trên chính mẫu đã fit — không OOS, không
+DSR, không CI, không benchmark. Và người thắng đó chính là thứ ghi ra file cho 15/16.
+
+`docs/reports/scoring/PORTFOLIO_CHAIN_PREREG_DRAFT.md` — **BẢN NHÁP, chưa chạy gì**.
+Khoá trước: walk-forward 36 tháng fit / 3 tháng đánh giá không chồng lấn; universe
+lấy từ trade card tại ngày quyết định; shrinkage cho μ chọn **trước**; ba baseline
+bắt buộc; chi phí 0,15%/chiều; và tiêu chí ba phần (DSR > 0 với `n_trials` = số ứng
+viên đã duyệt, t-NW ≥ 3.0 so với equal-weight, thắng ≥ 60% số cửa sổ). Ghi rõ kỳ
+vọng của người soạn là **H0 không bị bác bỏ**, và cam kết công bố cả kết quả âm tính.
+
+---
+
 ## 1. Bảng phân loại
 
 Ký hiệu: **STALE** = đã sửa trên main, report gốc nhầm do chạy nhánh cũ ·
