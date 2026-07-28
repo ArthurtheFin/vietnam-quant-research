@@ -1,7 +1,19 @@
 {
-  "latest_date": "2026-07-22",
-  "symbol_count": 435,
+  "latest_date": "2026-07-28",
+  "symbol_count": 442,
   "top_watchlist_count": 20,
+  "evidence_summary": {
+    "tier": "top_watchlist",
+    "count": 20,
+    "ranked_by": "alpha_score",
+    "score_threshold_applied": false,
+    "reference_threshold": 75.0,
+    "n_meeting_reference": 20,
+    "n_rank_only": 0,
+    "alpha_score_min": 84.68,
+    "alpha_score_max": 92.87,
+    "headline": "top_watchlist: 20 mã, trong đó 20 có alpha_score >= 75 và 0 chỉ có mặt nhờ thứ hạng top-20. Danh sách luôn dài đúng 20 dòng bất kể điểm mạnh hay yếu."
+  },
   "generated_files": [
     "data/signals/alpha_scores.parquet",
     "reports/daily_alpha_ranking.csv",
@@ -10,11 +22,11 @@
   "lineage": {
     "dataset_version": "full_history_v2",
     "features_path": "data/processed/stock_features.parquet",
-    "features_sha256": "b8be278b036b9766621b17d378237c3b181f2159db9b38ed1dc6f78a578e32d4",
-    "features_row_count": 718709,
+    "features_sha256": "f0bfc9fbbb7f3e4e57a183bc35008d7f73bdfb4fdf94c6135a71b367ec6c52c0",
+    "features_row_count": 720479,
     "config_path": "config/strategy_config.yaml",
     "config_hash": "11236e60e4cf4852651ac471f71bf0ff0990c35ec56ac6e0a2dfa2e020a0f771",
-    "git_commit_hash": "eff0020b0fe34994acbe8733ac3daaad795166ec",
-    "lineage_generated_at": "2026-07-27T06:20:14+00:00"
+    "git_commit_hash": "b0f0f7429fbe397b64493f03086a6c792cbc815f",
+    "lineage_generated_at": "2026-07-28T08:49:16+00:00"
   }
 }
